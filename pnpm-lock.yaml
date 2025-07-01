@@ -14,6 +14,9 @@ importers:
       '@openzeppelin/contracts-upgradeable':
         specifier: 5.3.0
         version: 5.3.0(@openzeppelin/contracts@5.3.0)
+      solady:
+        specifier: ^0.1.23
+        version: 0.1.23
     devDependencies:
       '@commitlint/cli':
         specifier: 19.8.0
@@ -3236,6 +3239,9 @@ packages:
   slice-ansi@7.1.0:
     resolution: {integrity: sha512-bSiSngZ/jWeX93BqeIAbImyTbEihizcwNjFoRUIY/T1wWQsfsm2Vw1agPKylXvQTU7iASGdHhyqRlqQzfz+Htg==}
     engines: {node: '>=18'}
+
+  solady@0.1.23:
+    resolution: {integrity: sha512-9UEfad/GxaxY4CgnbPptnOTTjN92ytg8umZrKRRV/1ziQm5iaUoiftMUMt/5k4r626fCIZaxNywWrVhmIRryOQ==}
 
   solc@0.8.26:
     resolution: {integrity: sha512-yiPQNVf5rBFHwN6SIf3TUUvVAFKcQqmSUFeq+fb6pNRCo0ZCgpYOZDi3BVoezCPIAcKrVYd/qXlBLUP9wVrZ9g==}
@@ -7602,6 +7608,8 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 5.0.0
+
+  solady@0.1.23: {}
 
   solc@0.8.26(debug@4.4.0):
     dependencies:
