@@ -21,11 +21,19 @@ interface IVersionController {
     error NonExistingMinorVersion(bytes32 _contractType, uint64 _major, uint64 _minor);
     error AuditReportAlreadySubmitted(address _auditor, string _auditReport);
     error InvalidAuditor(address _author);
+    error BytecodeNotVerified(BytecodeVersion _version);
+    error NotDeveloper(address _account);
+    error NonExistingPatch(bytes32 _contractType, Version _version);
 
     struct Version {
         uint64 major;
         uint64 minor;
         uint64 patch;
+    }
+
+    struct VersionWithAlternative {
+        Version version;
+        string alternative;
     }
 
     struct BytecodeInput {
@@ -49,6 +57,6 @@ interface IVersionController {
 
     struct BytecodeVersion {
         bytes32 contractType;
-        Version version;
+        VersionWithAlternative version;
     }
 }

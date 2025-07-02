@@ -8,6 +8,7 @@ import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cry
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { SSTORE2 } from "solady/src/utils/SSTORE2.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IVersionController } from "./interfaces/IVersionController.sol";
 
 contract VersionController is
@@ -17,9 +18,11 @@ contract VersionController is
     EIP712Upgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
+    using Strings for uint256;
 
     bytes32 public constant BYTECODE_VERSION_TYPEHASH =
-        keccak256("Bytecode(bytes32 contractType,uint64 major,uint64 minor,uint64 patch)");
+        keccak256("BytecodeVersion(bytes32 contractType,uint64 major,uint64 minor,uint64 patch,string alternative)");
     bytes32 public constant AUDIT_REPORT_TYPEHASH = keccak256("AuditReport(bytes32 bytecodeHash,string auditReport)");
     bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
     bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
@@ -28,7 +31,7 @@ contract VersionController is
     /// @notice small buffer to account for `SSTORE2` overhead
     uint256 public constant CHUNK_SIZE = 24500;
 
-    mapping(bytes32 => address) private contractTypeKeyDeveloper;
+    mapping(bytes32 => address) public contractTypeKeyDeveloper;
     mapping(address => EnumerableSet.AddressSet) private subDevelopers;
     mapping(address => address) public subToKeyDeveloper;
 
@@ -36,8 +39,11 @@ contract VersionController is
     mapping(bytes32 => mapping(uint64 => uint64)) public latestMinor;
     mapping(bytes32 => mapping(uint64 => mapping(uint64 => uint64))) public latestPatch;
 
+    mapping(bytes32 => VersionWithAlternative[]) private alternativeVersions;
+    mapping(bytes32 => mapping(string => bool)) public alternativeVersionExists;
+
     mapping(bytes32 => Bytecode) public bytecodes;
-    mapping(bytes32 => AuditStatus) public bytecodeAuditStatus;
+    mapping(bytes32 => AuditStatus) private bytecodeAuditStatus;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -53,10 +59,8 @@ contract VersionController is
 
     modifier checkDeveloper(bytes32 _contractType, address _developer) {
         address contractTypeKeyDev = contractTypeKeyDeveloper[_contractType];
-        if (!hasRole(KEY_DEVELOPER_ROLE, _developer))
-            revert AccessControlUnauthorizedAccount(_developer, KEY_DEVELOPER_ROLE);
-        if (!hasRole(SUB_DEVELOPER_ROLE, _developer))
-            revert AccessControlUnauthorizedAccount(_developer, SUB_DEVELOPER_ROLE);
+        if (!hasRole(KEY_DEVELOPER_ROLE, _developer) && !hasRole(SUB_DEVELOPER_ROLE, _developer))
+            revert NotDeveloper(_developer);
         if (contractTypeKeyDev != _developer && subToKeyDeveloper[_developer] != contractTypeKeyDev)
             revert WrongDeveloper(_contractType, _developer);
         _;
@@ -91,21 +95,24 @@ contract VersionController is
     ) external checkDeveloper(_bytecodeInput.contractType, msg.sender) {
         if (latestVersions[_bytecodeInput.contractType].major != 0)
             revert BytecodeAlreadyReleased(_bytecodeInput.contractType);
-        Version memory version = Version(1, 0, 0);
+        VersionWithAlternative memory version = VersionWithAlternative(Version(1, 0, 0), "");
         address keyDeveloper = getKeyDeveloper(msg.sender);
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
 
-        latestVersions[_bytecodeInput.contractType] = version;
+        latestVersions[_bytecodeInput.contractType] = version.version;
     }
 
     function releaseMajorVersion(
         BytecodeInput calldata _bytecodeInput
     ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
-        Version memory version = Version(latestVersions[_bytecodeInput.contractType].major + 1, 0, 0);
+        VersionWithAlternative memory version = VersionWithAlternative(
+            Version(latestVersions[_bytecodeInput.contractType].major + 1, 0, 0),
+            ""
+        );
         address keyDeveloper = getKeyDeveloper(msg.sender);
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
 
-        latestVersions[_bytecodeInput.contractType] = version;
+        latestVersions[_bytecodeInput.contractType] = version.version;
     }
 
     function releaseMinorVersion(
@@ -114,12 +121,15 @@ contract VersionController is
     ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
         Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
         if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
-        Version memory version = Version(_major, latestMinor[_bytecodeInput.contractType][_major]++, 0);
+        VersionWithAlternative memory version = VersionWithAlternative(
+            Version(_major, latestMinor[_bytecodeInput.contractType][_major]++, 0),
+            ""
+        );
         address keyDeveloper = getKeyDeveloper(msg.sender);
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
 
         if (_major == latestVersion.major) {
-            latestVersion.minor = version.minor;
+            latestVersion.minor = version.version.minor;
             latestVersion.patch = 0;
         }
     }
@@ -128,17 +138,39 @@ contract VersionController is
         BytecodeInput calldata _bytecodeInput,
         uint64 _major,
         uint64 _minor
-    ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+    ) external checkDeveloper(_bytecodeInput.contractType, msg.sender) {
         Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
         if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
         uint64 latestMinorVersion = latestMinor[_bytecodeInput.contractType][_major];
         if (_minor > latestMinorVersion) revert NonExistingMinorVersion(_bytecodeInput.contractType, _major, _minor);
 
-        Version memory version = Version(_major, _minor, latestPatch[_bytecodeInput.contractType][_major][_minor]++);
+        VersionWithAlternative memory version = VersionWithAlternative(
+            Version(_major, _minor, latestPatch[_bytecodeInput.contractType][_major][_minor]++),
+            ""
+        );
         address keyDeveloper = getKeyDeveloper(msg.sender);
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
 
-        if (_major == latestVersion.major && _minor == latestVersion.minor) latestVersion.patch = version.patch;
+        if (_major == latestVersion.major && _minor == latestVersion.minor) latestVersion.patch = version.version.patch;
+    }
+
+    function releaseAlternativeVersion(
+        BytecodeInput calldata _bytecodeInput,
+        VersionWithAlternative calldata _version
+    ) external checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+        if (_version.version.major > latestVersions[_bytecodeInput.contractType].major)
+            revert NonExistingMajorVersion(_bytecodeInput.contractType, _version.version.major);
+        if (_version.version.minor > latestMinor[_bytecodeInput.contractType][_version.version.major])
+            revert NonExistingMinorVersion(_bytecodeInput.contractType, _version.version.major, _version.version.minor);
+        if (
+            _version.version.patch >
+            latestPatch[_bytecodeInput.contractType][_version.version.major][_version.version.minor]
+        ) revert NonExistingPatch(_bytecodeInput.contractType, _version.version);
+        address keyDeveloper = getKeyDeveloper(msg.sender);
+        _uploadBytecode(_bytecodeInput, keyDeveloper, _version);
+
+        alternativeVersions[_bytecodeInput.contractType].push(_version);
+        alternativeVersionExists[_bytecodeInput.contractType][_versionToStr(_version)] = true;
     }
 
     /* Auditor functions */
@@ -188,10 +220,20 @@ contract VersionController is
 
     /* View functions */
 
-    function computeBytecodeHash(bytes32 _contractType, Version memory _version) public pure returns (bytes32) {
+    function computeBytecodeHash(
+        bytes32 _contractType,
+        VersionWithAlternative memory _version
+    ) public pure returns (bytes32) {
         return
             keccak256(
-                abi.encode(BYTECODE_VERSION_TYPEHASH, _contractType, _version.major, _version.minor, _version.patch)
+                abi.encode(
+                    BYTECODE_VERSION_TYPEHASH,
+                    _contractType,
+                    _version.version.major,
+                    _version.version.minor,
+                    _version.version.patch,
+                    _version.alternative
+                )
             );
     }
 
@@ -203,12 +245,53 @@ contract VersionController is
         return hasRole(KEY_DEVELOPER_ROLE, _account) ? _account : subToKeyDeveloper[_account];
     }
 
+    function isBytecodeVerified(BytecodeVersion calldata _version) public view returns (bool) {
+        return bytecodeAuditStatus[computeBytecodeHash(_version.contractType, _version.version)].verified;
+    }
+
+    function getLatestVersion(bytes32 _contractType) external view returns (string memory) {
+        return _versionToStr(VersionWithAlternative(latestVersions[_contractType], ""));
+    }
+
+    function getAuditorsForBytecodeVersion(BytecodeVersion calldata _version) external view returns (address[] memory) {
+        return bytecodeAuditStatus[computeBytecodeHash(_version.contractType, _version.version)].auditors;
+    }
+
+    /// @notice Returns the audit report for a certain bytecode version and auditor.
+    /// @dev Can also be used to check if a certain auditor verified the bytecode version.
+    /// @param _version Struct containing contract type and version for which to get audit report.
+    /// @param _auditor Address of auditor whose audit report to get.
+    /// @return Audit report of specified auditor for specified contract type and version.
+    function getAuditReport(BytecodeVersion calldata _version, address _auditor) external view returns (string memory) {
+        return bytecodeAuditStatus[computeBytecodeHash(_version.contractType, _version.version)].auditReports[_auditor];
+    }
+
+    function versionExists(BytecodeVersion calldata _version) external view returns (bool) {
+        return
+            _version.version.version.major <= latestVersions[_version.contractType].major &&
+                _version.version.version.minor <= latestMinor[_version.contractType][_version.version.version.major] &&
+                latestPatch[_version.contractType][_version.version.version.major][_version.version.version.minor] <=
+                _version.version.version.patch
+                ? true
+                : false;
+    }
+
+    /// @dev Throws and error if bytecode is not verified by at least one auditor.
+    function getVerifiedBytecode(BytecodeVersion calldata _version) external view returns (bytes memory) {
+        if (!isBytecodeVerified(_version)) revert BytecodeNotVerified(_version);
+        return _readInitCode(bytecodes[computeBytecodeHash(_version.contractType, _version.version)].initCodePtrs);
+    }
+
+    function getAllAlternativeVersions(bytes32 _contractType) external view returns (VersionWithAlternative[] memory) {
+        return alternativeVersions[_contractType];
+    }
+
     /* Internal helpers */
 
     function _uploadBytecode(
         BytecodeInput calldata _bytecodeInput,
         address _keyDeveloper,
-        Version memory _version
+        VersionWithAlternative memory _version
     ) internal {
         address[] memory initCodePointers = _writeInitCode(_bytecodeInput.initCode);
         Bytecode memory bc = Bytecode({
@@ -221,7 +304,7 @@ contract VersionController is
         bytes32 hash = computeBytecodeHash(_bytecodeInput.contractType, _version);
         bytecodes[hash] = bc;
 
-        emit BytecodeUploaded(_bytecodeInput.contractType, _version);
+        emit BytecodeUploaded(_bytecodeInput.contractType, _version.version);
     }
 
     function _writeInitCode(bytes calldata _initCode) internal returns (address[] memory) {
@@ -235,6 +318,24 @@ contract VersionController is
             initCodePointers[i] = SSTORE2.write(_initCode[start:end]);
         }
         return initCodePointers;
+    }
+
+    function _readInitCode(address[] memory _initCodePtrs) internal view returns (bytes memory) {
+        bytes memory initCode;
+        for (uint256 i; i < _initCodePtrs.length; ++i) {
+            initCode = bytes.concat(initCode, SSTORE2.read(_initCodePtrs[i]));
+        }
+        return initCode;
+    }
+
+    function _versionToStr(VersionWithAlternative memory _version) internal pure returns (string memory) {
+        return
+            string.concat(
+                uint256(_version.version.major).toString(),
+                uint256(_version.version.minor).toString(),
+                uint256(_version.version.patch).toString(),
+                _version.alternative
+            );
     }
 
     /* Overriden AccessControl functions */
