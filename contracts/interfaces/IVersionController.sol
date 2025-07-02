@@ -4,6 +4,7 @@ interface IVersionController {
     event PrimaryAuditorSet(address _primaryAuditor);
     event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper);
     event BytecodeUploaded(bytes32 _contractType, Version _version);
+    event AuditReportSubmitted(address _author, string _auditReport, bytes32 _bytecodeHash, bytes _signature);
 
     error NotAuthorizedForContractType(bytes32 _contractType, address _caller);
     error SameKeyDeveloper(address _keyDeveloper);
@@ -18,6 +19,8 @@ interface IVersionController {
     error BytecodeNotReleased(bytes32 _contractType);
     error NonExistingMajorVersion(bytes32 _contractType, uint64 _major);
     error NonExistingMinorVersion(bytes32 _contractType, uint64 _major, uint64 _minor);
+    error AuditReportAlreadySubmitted(address _auditor, string _auditReport);
+    error InvalidAuditor(address _author);
 
     struct Version {
         uint64 major;
@@ -31,6 +34,12 @@ interface IVersionController {
         string sourceURL;
     }
 
+    struct AuditStatus {
+        address[] auditors;
+        bool verified;
+        mapping(address => string) auditReports;
+    }
+
     struct Bytecode {
         bytes32 contractType;
         address[] initCodePtrs;
@@ -41,10 +50,5 @@ interface IVersionController {
     struct BytecodeVersion {
         bytes32 contractType;
         Version version;
-    }
-
-    struct Audit {
-        string reportURL;
-        bytes signature;
     }
 }

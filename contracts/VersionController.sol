@@ -3,15 +3,24 @@ pragma solidity 0.8.30;
 import {
     AccessControlEnumerableUpgradeable
 } from "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { SSTORE2 } from "solady/src/utils/SSTORE2.sol";
 import { IVersionController } from "./interfaces/IVersionController.sol";
 
-contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeable, IVersionController {
+contract VersionController is
+    AccessControlEnumerableUpgradeable,
+    UUPSUpgradeable,
+    IVersionController,
+    EIP712Upgradeable
+{
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    bytes32 public constant BYTECODE_VERSION_TYPEHASH = keccak256("Bytecode(bytes32,uint64,uint64,uint64)");
+    bytes32 public constant BYTECODE_VERSION_TYPEHASH =
+        keccak256("Bytecode(bytes32 contractType,uint64 major,uint64 minor,uint64 patch)");
+    bytes32 public constant AUDIT_REPORT_TYPEHASH = keccak256("AuditReport(bytes32 bytecodeHash,string auditReport)");
     bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
     bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
@@ -26,7 +35,9 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
     mapping(bytes32 => Version) public latestVersions;
     mapping(bytes32 => mapping(uint64 => uint64)) public latestMinor;
     mapping(bytes32 => mapping(uint64 => mapping(uint64 => uint64))) public latestPatch;
+
     mapping(bytes32 => Bytecode) public bytecodes;
+    mapping(bytes32 => AuditStatus) public bytecodeAuditStatus;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -36,6 +47,7 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
     function initialize(address _governor) external initializer {
         __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
+        __EIP712_init("VersionController", "1");
         _grantRole(DEFAULT_ADMIN_ROLE, _governor);
     }
 
@@ -129,7 +141,27 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
         if (_major == latestVersion.major && _minor == latestVersion.minor) latestVersion.patch = version.patch;
     }
 
-    /* Auditor function */
+    /* Auditor functions */
+
+    function verifyBytecode(
+        BytecodeVersion calldata _bytecodeVersion,
+        string calldata _auditReport,
+        bytes calldata _signature
+    ) external onlyRole(AUDITOR_ROLE) bytecodeReleased(_bytecodeVersion.contractType) {
+        bytes32 bytecodeHash = computeBytecodeHash(_bytecodeVersion.contractType, _bytecodeVersion.version);
+        AuditStatus storage auditStatus = bytecodeAuditStatus[bytecodeHash];
+        if (bytes(auditStatus.auditReports[msg.sender]).length > 0)
+            revert AuditReportAlreadySubmitted(msg.sender, _auditReport);
+        bytes32 reportHash = computeAuditReportHash(bytecodeHash, _auditReport);
+        address author = ECDSA.recover(_hashTypedDataV4(reportHash), _signature);
+        if (author != msg.sender) revert InvalidAuditor(author);
+        // Store report
+        auditStatus.auditors.push(author);
+        auditStatus.auditReports[author] = _auditReport;
+        if (!auditStatus.verified) auditStatus.verified = true;
+
+        emit AuditReportSubmitted(author, _auditReport, bytecodeHash, _signature);
+    }
 
     /* Key Developer functions */
 
@@ -163,6 +195,10 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
             );
     }
 
+    function computeAuditReportHash(bytes32 _bytecodeHash, string calldata _auditReport) public pure returns (bytes32) {
+        return keccak256(abi.encode(AUDIT_REPORT_TYPEHASH, _bytecodeHash, bytes(_auditReport)));
+    }
+
     function getKeyDeveloper(address _account) public view returns (address) {
         return hasRole(KEY_DEVELOPER_ROLE, _account) ? _account : subToKeyDeveloper[_account];
     }
@@ -175,12 +211,12 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
         Version memory _version
     ) internal {
         address[] memory initCodePointers = _writeInitCode(_bytecodeInput.initCode);
-        Bytecode memory bc = Bytecode(
-            _bytecodeInput.contractType,
-            initCodePointers,
-            _bytecodeInput.sourceURL,
-            _keyDeveloper
-        );
+        Bytecode memory bc = Bytecode({
+            contractType: _bytecodeInput.contractType,
+            initCodePtrs: initCodePointers,
+            sourceURL: _bytecodeInput.sourceURL,
+            author: _keyDeveloper
+        });
 
         bytes32 hash = computeBytecodeHash(_bytecodeInput.contractType, _version);
         bytecodes[hash] = bc;
