@@ -3,14 +3,21 @@ pragma solidity 0.8.30;
 interface IVersionController {
     event PrimaryAuditorSet(address _primaryAuditor);
     event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper);
+    event BytecodeUploaded(bytes32 _contractType, Version _version);
 
-    error NotAuthorized(address _caller);
+    error NotAuthorizedForContractType(bytes32 _contractType, address _caller);
     error SameKeyDeveloper(address _keyDeveloper);
     error TooManySubDevelopers(address _keyDeveloper);
     error AlreadySubDeveloper(address _subDeveloper);
     error NotSubDeveloper(address _subDeveloper);
     error SubDeveloperNotInSet(address _keyDeveloper, address _subDeveloper);
     error SubDeveloperAlreadyInSet(address _keyDeveloper, address _subDeveloper);
+    error WrongDeveloper(bytes32 _contractType, address _developer);
+    error BytecodeAlreadyReleased(bytes32 _contractType);
+    error InitCodeIsEmpty();
+    error BytecodeNotReleased(bytes32 _contractType);
+    error NonExistingMajorVersion(bytes32 _contractType, uint64 _major);
+    error NonExistingMinorVersion(bytes32 _contractType, uint64 _major, uint64 _minor);
 
     struct Version {
         uint64 major;
@@ -26,9 +33,14 @@ interface IVersionController {
 
     struct Bytecode {
         bytes32 contractType;
-        address initCodePtr;
+        address[] initCodePtrs;
         string sourceURL;
         address author;
+    }
+
+    struct BytecodeVersion {
+        bytes32 contractType;
+        Version version;
     }
 
     struct Audit {

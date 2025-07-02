@@ -11,14 +11,22 @@ import { IVersionController } from "./interfaces/IVersionController.sol";
 contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeable, IVersionController {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    bytes32 public constant BYTECODE_VERSION_TYPEHASH = keccak256("Bytecode(bytes32,uint64,uint64,uint64)");
     bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
     bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
     uint256 public constant SUB_DEVELOPERS_LIMIT = 3;
+    /// @notice small buffer to account for `SSTORE2` overhead
+    uint256 public constant CHUNK_SIZE = 24500;
 
     mapping(bytes32 => address) private contractTypeKeyDeveloper;
     mapping(address => EnumerableSet.AddressSet) private subDevelopers;
     mapping(address => address) public subToKeyDeveloper;
+
+    mapping(bytes32 => Version) public latestVersions;
+    mapping(bytes32 => mapping(uint64 => uint64)) public latestMinor;
+    mapping(bytes32 => mapping(uint64 => mapping(uint64 => uint64))) public latestPatch;
+    mapping(bytes32 => Bytecode) public bytecodes;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -31,20 +39,97 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
         _grantRole(DEFAULT_ADMIN_ROLE, _governor);
     }
 
+    modifier checkDeveloper(bytes32 _contractType, address _developer) {
+        address contractTypeKeyDev = contractTypeKeyDeveloper[_contractType];
+        if (!hasRole(KEY_DEVELOPER_ROLE, _developer))
+            revert AccessControlUnauthorizedAccount(_developer, KEY_DEVELOPER_ROLE);
+        if (!hasRole(SUB_DEVELOPER_ROLE, _developer))
+            revert AccessControlUnauthorizedAccount(_developer, SUB_DEVELOPER_ROLE);
+        if (contractTypeKeyDev != _developer && subToKeyDeveloper[_developer] != contractTypeKeyDev)
+            revert WrongDeveloper(_contractType, _developer);
+        _;
+    }
+
+    modifier bytecodeReleased(bytes32 _contractType) {
+        if (latestVersions[_contractType].major == 0) revert BytecodeNotReleased(_contractType);
+        _;
+    }
+
     /* Governor functions */
 
     /// @notice Assigns a new key developer for a certain contract type.
     /// @dev Governor can use this function to initializes contract type and forcibly assign new key developer.
     /// @dev Key developer can use this functions to transfer developer rights over contracy type to another key developer.
     function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && contractTypeKeyDeveloper[_contractType] != msg.sender)
-            revert NotAuthorized(msg.sender);
+        if (
+            !hasRole(DEFAULT_ADMIN_ROLE, msg.sender) &&
+            (!hasRole(KEY_DEVELOPER_ROLE, msg.sender) || contractTypeKeyDeveloper[_contractType] != msg.sender)
+        ) revert NotAuthorizedForContractType(_contractType, msg.sender);
         _checkRole(KEY_DEVELOPER_ROLE, _keyDeveloper);
         if (contractTypeKeyDeveloper[_contractType] == _keyDeveloper) revert SameKeyDeveloper(_keyDeveloper);
         contractTypeKeyDeveloper[_contractType] = _keyDeveloper;
 
         emit KeyDeveloperAssigned(_contractType, _keyDeveloper);
     }
+
+    /* Upload bytecode functions */
+
+    function releaseBytecode(
+        BytecodeInput calldata _bytecodeInput
+    ) external checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+        if (latestVersions[_bytecodeInput.contractType].major != 0)
+            revert BytecodeAlreadyReleased(_bytecodeInput.contractType);
+        Version memory version = Version(1, 0, 0);
+        address keyDeveloper = getKeyDeveloper(msg.sender);
+        _uploadBytecode(_bytecodeInput, keyDeveloper, version);
+
+        latestVersions[_bytecodeInput.contractType] = version;
+    }
+
+    function releaseMajorVersion(
+        BytecodeInput calldata _bytecodeInput
+    ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+        Version memory version = Version(latestVersions[_bytecodeInput.contractType].major + 1, 0, 0);
+        address keyDeveloper = getKeyDeveloper(msg.sender);
+        _uploadBytecode(_bytecodeInput, keyDeveloper, version);
+
+        latestVersions[_bytecodeInput.contractType] = version;
+    }
+
+    function releaseMinorVersion(
+        BytecodeInput calldata _bytecodeInput,
+        uint64 _major
+    ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+        Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
+        if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
+        Version memory version = Version(_major, latestMinor[_bytecodeInput.contractType][_major]++, 0);
+        address keyDeveloper = getKeyDeveloper(msg.sender);
+        _uploadBytecode(_bytecodeInput, keyDeveloper, version);
+
+        if (_major == latestVersion.major) {
+            latestVersion.minor = version.minor;
+            latestVersion.patch = 0;
+        }
+    }
+
+    function releasePatchVersion(
+        BytecodeInput calldata _bytecodeInput,
+        uint64 _major,
+        uint64 _minor
+    ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+        Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
+        if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
+        uint64 latestMinorVersion = latestMinor[_bytecodeInput.contractType][_major];
+        if (_minor > latestMinorVersion) revert NonExistingMinorVersion(_bytecodeInput.contractType, _major, _minor);
+
+        Version memory version = Version(_major, _minor, latestPatch[_bytecodeInput.contractType][_major][_minor]++);
+        address keyDeveloper = getKeyDeveloper(msg.sender);
+        _uploadBytecode(_bytecodeInput, keyDeveloper, version);
+
+        if (_major == latestVersion.major && _minor == latestVersion.minor) latestVersion.patch = version.patch;
+    }
+
+    /* Auditor function */
 
     /* Key Developer functions */
 
@@ -69,9 +154,55 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
         if (!result) revert NotSubDeveloper(_subDeveloper);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    /* View functions */
+
+    function computeBytecodeHash(bytes32 _contractType, Version memory _version) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(BYTECODE_VERSION_TYPEHASH, _contractType, _version.major, _version.minor, _version.patch)
+            );
+    }
+
+    function getKeyDeveloper(address _account) public view returns (address) {
+        return hasRole(KEY_DEVELOPER_ROLE, _account) ? _account : subToKeyDeveloper[_account];
+    }
+
+    /* Internal helpers */
+
+    function _uploadBytecode(
+        BytecodeInput calldata _bytecodeInput,
+        address _keyDeveloper,
+        Version memory _version
+    ) internal {
+        address[] memory initCodePointers = _writeInitCode(_bytecodeInput.initCode);
+        Bytecode memory bc = Bytecode(
+            _bytecodeInput.contractType,
+            initCodePointers,
+            _bytecodeInput.sourceURL,
+            _keyDeveloper
+        );
+
+        bytes32 hash = computeBytecodeHash(_bytecodeInput.contractType, _version);
+        bytecodes[hash] = bc;
+
+        emit BytecodeUploaded(_bytecodeInput.contractType, _version);
+    }
+
+    function _writeInitCode(bytes calldata _initCode) internal returns (address[] memory) {
+        if (_initCode.length == 0) revert InitCodeIsEmpty();
+        uint256 len = (_initCode.length - 1) / CHUNK_SIZE + 1;
+        address[] memory initCodePointers = new address[](len);
+        for (uint256 i; i < len; ++i) {
+            uint256 start = i * CHUNK_SIZE;
+            uint256 end = start + CHUNK_SIZE;
+            if (end > _initCode.length) end = _initCode.length;
+            initCodePointers[i] = SSTORE2.write(_initCode[start:end]);
+        }
+        return initCodePointers;
+    }
 
     /* Overriden AccessControl functions */
+
     function _grantRole(bytes32 role, address account) internal override returns (bool) {
         if (role == SUB_DEVELOPER_ROLE) {
             _checkRole(KEY_DEVELOPER_ROLE, msg.sender);
@@ -102,4 +233,6 @@ contract VersionController is AccessControlEnumerableUpgradeable, UUPSUpgradeabl
         }
         return super._revokeRole(role, account);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 }
