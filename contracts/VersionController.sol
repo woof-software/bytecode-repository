@@ -40,7 +40,6 @@ contract VersionController is
     mapping(bytes32 => mapping(uint64 => mapping(uint64 => uint64))) public latestPatch;
 
     mapping(bytes32 => VersionWithAlternative[]) private alternativeVersions;
-    mapping(bytes32 => mapping(string => bool)) public alternativeVersionExists;
 
     mapping(bytes32 => Bytecode) public bytecodes;
     mapping(bytes32 => AuditStatus) private bytecodeAuditStatus;
@@ -122,7 +121,7 @@ contract VersionController is
         Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
         if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
         VersionWithAlternative memory version = VersionWithAlternative(
-            Version(_major, latestMinor[_bytecodeInput.contractType][_major]++, 0),
+            Version(_major, ++latestMinor[_bytecodeInput.contractType][_major], 0),
             ""
         );
         address keyDeveloper = getKeyDeveloper(msg.sender);
@@ -145,7 +144,7 @@ contract VersionController is
         if (_minor > latestMinorVersion) revert NonExistingMinorVersion(_bytecodeInput.contractType, _major, _minor);
 
         VersionWithAlternative memory version = VersionWithAlternative(
-            Version(_major, _minor, latestPatch[_bytecodeInput.contractType][_major][_minor]++),
+            Version(_major, _minor, ++latestPatch[_bytecodeInput.contractType][_major][_minor]),
             ""
         );
         address keyDeveloper = getKeyDeveloper(msg.sender);
@@ -170,7 +169,6 @@ contract VersionController is
         _uploadBytecode(_bytecodeInput, keyDeveloper, _version);
 
         alternativeVersions[_bytecodeInput.contractType].push(_version);
-        alternativeVersionExists[_bytecodeInput.contractType][_versionToStr(_version)] = true;
     }
 
     /* Auditor functions */
@@ -212,7 +210,8 @@ contract VersionController is
     /// @dev Can only be called by key developer.
     /// @dev Sub developer must be in msg.sender's sub developers set added via `addSubDeveloper()` function.
     /// @param _subDeveloper Address of sub developer to remove.
-    function removeSubDeveloper(address _subDeveloper) external {
+    function removeSubDeveloper(address _subDeveloper) external onlyRole(KEY_DEVELOPER_ROLE) {
+        if (subToKeyDeveloper[_subDeveloper] != msg.sender) revert WrongKeyDeveloper(msg.sender, _subDeveloper);
         bool result = _revokeRole(SUB_DEVELOPER_ROLE, _subDeveloper);
         // _revokeRole() returns false if account already doesn't have a specified role
         if (!result) revert NotSubDeveloper(_subDeveloper);
@@ -238,11 +237,15 @@ contract VersionController is
     }
 
     function computeAuditReportHash(bytes32 _bytecodeHash, string calldata _auditReport) public pure returns (bytes32) {
-        return keccak256(abi.encode(AUDIT_REPORT_TYPEHASH, _bytecodeHash, bytes(_auditReport)));
+        return keccak256(abi.encode(AUDIT_REPORT_TYPEHASH, _bytecodeHash, keccak256(bytes(_auditReport))));
     }
 
     function getKeyDeveloper(address _account) public view returns (address) {
         return hasRole(KEY_DEVELOPER_ROLE, _account) ? _account : subToKeyDeveloper[_account];
+    }
+
+    function getSubDevsForKeyDeveloper(address _keyDeveloper) public view returns (address[] memory) {
+        return subDevelopers[_keyDeveloper].values();
     }
 
     function isBytecodeVerified(BytecodeVersion calldata _version) public view returns (bool) {
@@ -267,13 +270,11 @@ contract VersionController is
     }
 
     function versionExists(BytecodeVersion calldata _version) external view returns (bool) {
-        return
-            _version.version.version.major <= latestVersions[_version.contractType].major &&
-                _version.version.version.minor <= latestMinor[_version.contractType][_version.version.version.major] &&
-                latestPatch[_version.contractType][_version.version.version.major][_version.version.version.minor] <=
-                _version.version.version.patch
-                ? true
-                : false;
+        return versionExists(computeBytecodeHash(_version.contractType, _version.version));
+    }
+
+    function versionExists(bytes32 _bytecodeHash) public view returns (bool) {
+        return bytecodes[_bytecodeHash].author != address(0);
     }
 
     /// @dev Throws and error if bytecode is not verified by at least one auditor.
@@ -302,6 +303,7 @@ contract VersionController is
         });
 
         bytes32 hash = computeBytecodeHash(_bytecodeInput.contractType, _version);
+        if (versionExists(hash)) revert VersionAlreadyExists(_bytecodeInput.contractType, _version);
         bytecodes[hash] = bc;
 
         emit BytecodeUploaded(_bytecodeInput.contractType, _version.version);
@@ -332,7 +334,9 @@ contract VersionController is
         return
             string.concat(
                 uint256(_version.version.major).toString(),
+                ".",
                 uint256(_version.version.minor).toString(),
+                ".",
                 uint256(_version.version.patch).toString(),
                 _version.alternative
             );
@@ -362,7 +366,7 @@ contract VersionController is
             EnumerableSet.AddressSet storage subDevelopersSet = subDevelopers[account];
             // Should not consume too much gas since number of sub devs is capped by `SUB_DEVELOPERS_LIMIT`.
             address[] memory subDeveloperValues = subDevelopersSet.values();
-            for (uint256 i = 0; i < subDeveloperValues.length; i++) {
+            for (uint256 i = 0; i < subDeveloperValues.length; ++i) {
                 super._revokeRole(SUB_DEVELOPER_ROLE, subDeveloperValues[i]);
                 delete subToKeyDeveloper[subDeveloperValues[i]];
             }

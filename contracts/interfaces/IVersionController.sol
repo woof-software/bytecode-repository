@@ -24,6 +24,8 @@ interface IVersionController {
     error BytecodeNotVerified(BytecodeVersion _version);
     error NotDeveloper(address _account);
     error NonExistingPatch(bytes32 _contractType, Version _version);
+    error WrongKeyDeveloper(address account, address _subDeveloper);
+    error VersionAlreadyExists(bytes32 _contractType, VersionWithAlternative _version);
 
     struct Version {
         uint64 major;
