@@ -11,6 +11,9 @@ importers:
       '@chainlink/contracts':
         specifier: ^1.4.0
         version: 1.4.0(ethers@6.13.7)
+      '@chainlink/contracts-ccip':
+        specifier: ^1.6.0
+        version: 1.6.0(ethers@6.13.7)
       '@openzeppelin/contracts':
         specifier: 5.3.0
         version: 5.3.0
@@ -308,6 +311,10 @@ packages:
   '@bytecodealliance/preview2-shim@0.17.2':
     resolution: {integrity: sha512-mNm/lblgES8UkVle8rGImXOz4TtL3eU3inHay/7TVchkKrb/lgcVvTK0+VAw8p5zQ0rgQsXm1j5dOlAAd+MeoA==}
 
+  '@chainlink/contracts-ccip@1.6.0':
+    resolution: {integrity: sha512-QVtd1DcSW8WoX2T0gI4+EKh9yKipocSejx/9neC7Vd5dbVffyV9kNPJgQ6BC8kgLZG3f+4S2+l3YCDD7y1b6bQ==}
+    engines: {node: '>=20', pnpm: '>=10'}
+
   '@chainlink/contracts@1.4.0':
     resolution: {integrity: sha512-SpNCJ0TPOI6pa2l702Wk4WIP8ccw5ARcRP1E/ZTqaFffXNoZeF03WhsVL8f3l3OTRFA9Z40O5KcZzmJmZQkoFA==}
     engines: {node: '>=18', pnpm: '>=10'}
@@ -323,6 +330,10 @@ packages:
 
   '@changesets/cli@2.28.1':
     resolution: {integrity: sha512-PiIyGRmSc6JddQJe/W1hRPjiN4VrMvb2VfQ6Uydy2punBioQrsxppyG5WafinKcW1mT0jOe/wU4k9Zy5ff21AA==}
+    hasBin: true
+
+  '@changesets/cli@2.29.5':
+    resolution: {integrity: sha512-0j0cPq3fgxt2dPdFsg4XvO+6L66RC0pZybT9F4dG5TBrLA3jA/1pNkdTXH9IBBVHkgsKrNKenI3n1mPyPlIydg==}
     hasBin: true
 
   '@changesets/config@3.1.1':
@@ -4384,6 +4395,18 @@ snapshots:
 
   '@bytecodealliance/preview2-shim@0.17.2': {}
 
+  '@chainlink/contracts-ccip@1.6.0(ethers@6.13.7)':
+    dependencies:
+      '@chainlink/contracts': 1.4.0(ethers@6.13.7)
+      '@changesets/cli': 2.29.5
+      '@changesets/get-github-info': 0.6.0
+      semver: 7.7.1
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - ethers
+      - utf-8-validate
+
   '@chainlink/contracts@1.4.0(ethers@6.13.7)':
     dependencies:
       '@arbitrum/nitro-contracts': 3.0.0
@@ -4431,6 +4454,37 @@ snapshots:
       '@changesets/types': 6.1.0
 
   '@changesets/cli@2.28.1':
+    dependencies:
+      '@changesets/apply-release-plan': 7.0.12
+      '@changesets/assemble-release-plan': 6.0.9
+      '@changesets/changelog-git': 0.2.1
+      '@changesets/config': 3.1.1
+      '@changesets/errors': 0.2.0
+      '@changesets/get-dependents-graph': 2.1.3
+      '@changesets/get-release-plan': 4.0.13
+      '@changesets/git': 3.0.4
+      '@changesets/logger': 0.1.1
+      '@changesets/pre': 2.0.2
+      '@changesets/read': 0.6.5
+      '@changesets/should-skip-package': 0.1.2
+      '@changesets/types': 6.1.0
+      '@changesets/write': 0.4.0
+      '@manypkg/get-packages': 1.1.3
+      ansi-colors: 4.1.3
+      ci-info: 3.9.0
+      enquirer: 2.4.1
+      external-editor: 3.1.0
+      fs-extra: 7.0.1
+      mri: 1.2.0
+      p-limit: 2.3.0
+      package-manager-detector: 0.2.11
+      picocolors: 1.1.1
+      resolve-from: 5.0.0
+      semver: 7.7.1
+      spawndamnit: 3.0.1
+      term-size: 2.2.1
+
+  '@changesets/cli@2.29.5':
     dependencies:
       '@changesets/apply-release-plan': 7.0.12
       '@changesets/assemble-release-plan': 6.0.9
