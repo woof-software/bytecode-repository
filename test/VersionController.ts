@@ -676,8 +676,8 @@ describe("VersionController", function () {
                 }
             )
         )
-            .revertedWithCustomError(versionController, "NonExistingMajorVersion")
-            .withArgs(WOOF.contractTypes[0], 2);
+            .revertedWithCustomError(versionController, "NonExistingVersion")
+            .withArgs(WOOF.contractTypes[0], [[2, 0, 0], ""]);
     });
 
     it("Should not release alternative version for non-existing minor version", async () => {
@@ -703,8 +703,8 @@ describe("VersionController", function () {
                 }
             )
         )
-            .revertedWithCustomError(versionController, "NonExistingMinorVersion")
-            .withArgs(WOOF.contractTypes[0], 1, 1);
+            .revertedWithCustomError(versionController, "NonExistingVersion")
+            .withArgs(WOOF.contractTypes[0], [[1, 1, 0], ""]);
     });
 
     it("Should not release alternative version for non-existing patch version", async () => {
@@ -730,8 +730,8 @@ describe("VersionController", function () {
                 }
             )
         )
-            .revertedWithCustomError(versionController, "NonExistingPatch")
-            .withArgs(WOOF.contractTypes[0], [1, 0, 1]);
+            .revertedWithCustomError(versionController, "NonExistingVersion")
+            .withArgs(WOOF.contractTypes[0], [[1, 0, 1], ""]);
     });
 
     it("Should revert if not auditor tries to verify bytecode", async () => {
