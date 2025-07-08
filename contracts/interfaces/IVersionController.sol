@@ -1,6 +1,8 @@
 pragma solidity 0.8.30;
 
-interface IVersionController {
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+
+interface IVersionController is IAccessControl {
     event PrimaryAuditorSet(address _primaryAuditor);
     event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper);
     event BytecodeUploaded(bytes32 _contractType, Version _version);
