@@ -11,6 +11,7 @@ interface IL1DeployManager {
     error OnlyGovernor();
     error OnlyDeveloper();
     error InsufficientBalance();
+    error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
 
     struct DeployData {
         bytes32 contractType;

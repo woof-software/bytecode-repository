@@ -20,9 +20,6 @@ contract VersionController is
     using EnumerableSet for EnumerableSet.AddressSet;
     using Strings for uint256;
 
-    /// @notice Bytecode version typehash.
-    bytes32 public constant BYTECODE_VERSION_TYPEHASH =
-        keccak256("BytecodeVersion(bytes32 contractType,uint64 major,uint64 minor,uint64 patch,string alternative)");
     /// @notice Audit report typehash.
     bytes32 public constant AUDIT_REPORT_TYPEHASH = keccak256("AuditReport(bytes32 bytecodeHash,string auditReport)");
     /// @notice Key Developer role for AccessControl.
@@ -276,17 +273,7 @@ contract VersionController is
         bytes32 _contractType,
         VersionWithAlternative memory _version
     ) public pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    BYTECODE_VERSION_TYPEHASH,
-                    _contractType,
-                    _version.version.major,
-                    _version.version.minor,
-                    _version.version.patch,
-                    _version.alternative
-                )
-            );
+        return BytecodeStore._computeBytecodeHash(_contractType, _version);
     }
 
     /// @notice Computes an audit report hash.
