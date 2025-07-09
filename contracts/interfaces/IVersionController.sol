@@ -17,7 +17,6 @@ interface IVersionController is IAccessControl {
     error SubDeveloperAlreadyInSet(address _keyDeveloper, address _subDeveloper);
     error WrongDeveloper(bytes32 _contractType, address _developer);
     error BytecodeAlreadyReleased(bytes32 _contractType);
-    error InitCodeIsEmpty();
     error BytecodeNotReleased(bytes32 _contractType);
     error NonExistingMajorVersion(bytes32 _contractType, uint64 _major);
     error NonExistingMinorVersion(bytes32 _contractType, uint64 _major, uint64 _minor);
