@@ -2,24 +2,8 @@ import { expect } from "chai";
 import { network, ethers, upgrades } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { VersionController } from "../typechain-types";
 import { CometInitCode, CometExtInitCode } from "./testData.json";
-
-interface EIP712Domain {
-    fields: string;
-    name: string;
-    version: string;
-    chainId: bigint;
-    verifyingContract: string;
-    salt: string;
-    extensions: string[]; // or BytesLike[] if using from ethers
-}
-
-interface Developers {
-    keyDeveloper: HardhatEthersSigner;
-    subDevelopers: HardhatEthersSigner[];
-    contractTypes: string[];
-}
+import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
 
 describe("VersionController", function () {
     const fixture = async () => {
@@ -79,40 +63,6 @@ describe("VersionController", function () {
 
         return { governor, auditors, WOOF, devTeam2, devTeam3, users, versionController };
     };
-
-    function domainResultToPlainObject(result: EIP712Domain) {
-        return {
-            fields: result.fields,
-            name: result.name,
-            version: result.version,
-            chainId: result.chainId,
-            verifyingContract: result.verifyingContract,
-            salt: result.salt,
-            extensions: result.extensions
-        };
-    }
-
-    async function prepareAuditReportSignature(
-        bytecodeHash: string,
-        auditReport: string,
-        verifyingContract: string,
-        auditor: HardhatEthersSigner
-    ): Promise<string> {
-        const domain = {
-            name: "VersionController",
-            version: "1",
-            chainId: network.config.chainId,
-            verifyingContract
-        };
-        const auditReportType = {
-            AuditReport: [
-                { name: "bytecodeHash", type: "bytes32" },
-                { name: "auditReport", type: "string" }
-            ]
-        };
-        const auditReportValues = { bytecodeHash, auditReport };
-        return auditor.signTypedData(domain, auditReportType, auditReportValues);
-    }
 
     const restore = async () => await loadFixture(fixture);
 
