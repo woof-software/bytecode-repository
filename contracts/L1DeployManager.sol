@@ -1,12 +1,13 @@
 pragma solidity 0.8.30;
 
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
 import { IRouterClient } from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
 import { IVersionController } from "./interfaces/IVersionController.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 
-contract L1DeployManager is IL1DeployManager {
+contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
     /// @notice Key Developer role for AccessControl.
     bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
@@ -23,6 +24,10 @@ contract L1DeployManager is IL1DeployManager {
     constructor(IVersionController _versionController, IRouterClient _routerClient) {
         versionController = _versionController;
         routerClient = _routerClient;
+    }
+
+    function initialize() external initializer {
+        __UUPSUpgradeable_init();
     }
 
     modifier onlyGovernor() {
@@ -104,4 +109,6 @@ contract L1DeployManager is IL1DeployManager {
         if (feeValue > address(this).balance) revert InsufficientBalance();
         routerClient.ccipSend{ value: feeValue }(config.destinationChainSelector, evm2AnyMessage);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovernor {}
 }
