@@ -10,7 +10,6 @@ interface IL1DeployManager {
     error UnsupportedChain(uint256 _chainId);
     error OnlyGovernor();
     error OnlyDeveloper();
-    error InsufficientBalance();
     error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
 
     struct DeployData {

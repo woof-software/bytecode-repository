@@ -1,5 +1,6 @@
 pragma solidity 0.8.30;
 
+import { Address, Errors } from "@openzeppelin/contracts/utils/Address.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
 import { IRouterClient } from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
@@ -29,6 +30,8 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         routerClient = _routerClient;
         _disableInitializers();
     }
+
+    receive() external payable {}
 
     function initialize() external initializer {
         __UUPSUpgradeable_init();
@@ -64,6 +67,10 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         contractTypeFactory[_contractType] = _factory;
 
         emit FactorySet(_contractType, address(_factory));
+    }
+
+    function withdrawETH() external onlyGovernor {
+        Address.sendValue(payable(msg.sender), address(this).balance);
     }
 
     /* Developer functions */
@@ -110,7 +117,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
             feeToken: address(0)
         });
         uint256 feeValue = routerClient.getFee(config.destinationChainSelector, evm2AnyMessage);
-        if (feeValue > address(this).balance) revert InsufficientBalance();
+        if (feeValue > address(this).balance) revert Errors.InsufficientBalance(address(this).balance, feeValue);
         routerClient.ccipSend{ value: feeValue }(config.destinationChainSelector, evm2AnyMessage);
     }
 
