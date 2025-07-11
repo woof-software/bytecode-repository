@@ -12,11 +12,13 @@ interface IL1DeployManager {
     error OnlyDeveloper();
     error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
 
-    struct DeployData {
-        bytes32 contractType;
-        uint256 chainId;
-    }
-
+    /**
+     * @notice Represents a chain config.
+     * @dev Fields:
+     * - `l2DeployManager`: Address of L2DeployManager on the specific network
+     * - `destinationChainSelector`: Chain selector for Chainlink CCIP. See https://docs.chain.link/ccip/directory/mainnet for details
+     * - `gasLimit`: Gas limit for sending the message to the specific network
+     */
     struct ChainConfig {
         address l2DeployManager;
         uint64 destinationChainSelector;
