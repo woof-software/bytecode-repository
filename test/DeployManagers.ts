@@ -143,7 +143,9 @@ describe("L1/L2 DeployManager", function () {
             l1DeployManager
                 .connect(WOOF.subDevelopers[0])
                 .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee - 1000n })
-        ).revertedWithCustomError(l1DeployManager, "InsufficientBalance");
+        )
+            .revertedWithCustomError(l1DeployManager, "InsufficientBalance")
+            .withArgs(mockRouterFee - 1000n, mockRouterFee);
     });
 
     it("Should revert if setter called by non-governor address in L1DeployManager", async () => {
@@ -206,5 +208,23 @@ describe("L1/L2 DeployManager", function () {
         )
             .revertedWithCustomError(l1DeployManager, "UnsupportedChain")
             .withArgs(unsupportedChainId);
+    });
+
+    it("Should allow to send bytecode using already deposited ETH", async () => {
+        const { WOOF, l1DeployManager, bytecodeVersion_1_0_0, users, bytecodeHash_1_0_0 } = await restore();
+        await users[0].sendTransaction({ to: l1DeployManager, value: ethers.parseEther("1") });
+        const tx = await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId);
+        expect(await l1DeployManager.isVersionSentToChain(mockOtherChainId, bytecodeHash_1_0_0)).to.be.true;
+        await expect(tx).changeEtherBalance(l1DeployManager, -mockRouterFee);
+    });
+
+    it("Should let governor withdraw ETH", async () => {
+        const { l1DeployManager, users, governor } = await restore();
+        const amount = ethers.parseEther("1");
+        await users[0].sendTransaction({ to: l1DeployManager, value: amount });
+        const tx = await l1DeployManager.connect(governor).withdrawETH();
+        await expect(tx).changeEtherBalances([l1DeployManager, governor], [-amount, amount]);
     });
 });
