@@ -66,7 +66,6 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         if (abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager) revert InvalidSender();
         (bytes32 bytecodeHash, bytes memory initCode) = abi.decode(any2EvmMessage.data, (bytes32, bytes));
-        if (storedBytecodePtrs[bytecodeHash].length != 0) revert BytecodeAlreadyReceived(bytecodeHash);
         storedBytecodePtrs[bytecodeHash] = BytecodeStore._writeInitCode(initCode);
 
         emit BytecodeReceived(any2EvmMessage.messageId, bytecodeHash);

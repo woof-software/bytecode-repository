@@ -15,15 +15,19 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
     /// @notice Auditor role for AccessControl.
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IVersionController public immutable versionController;
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRouterClient public immutable routerClient;
     mapping(uint256 => ChainConfig) public chainConfigs;
     mapping(uint256 => mapping(bytes32 => bool)) public isVersionSentToChain;
     mapping(bytes32 => IFactory) public contractTypeFactory;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(IVersionController _versionController, IRouterClient _routerClient) {
         versionController = _versionController;
         routerClient = _routerClient;
+        _disableInitializers();
     }
 
     function initialize() external initializer {
