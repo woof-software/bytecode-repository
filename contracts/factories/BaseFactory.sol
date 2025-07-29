@@ -32,6 +32,26 @@ abstract contract BaseFactory {
         return Create2.deploy(0, uniqueSalt, _bytecodeWithParams);
     }
 
+    function _computeContractTypeAddress(
+        IVersionController.BytecodeVersion memory _bytecodeVersion,
+        bytes memory _constructorArgs,
+        bytes32 _salt,
+        address _deployer
+    ) internal view returns (address) {
+        bytes memory initCode = _getInitCode(_bytecodeVersion);
+        bytes memory bytecodeWithParams = abi.encode(initCode, _constructorArgs);
+        return _computeContractAddress(bytecodeWithParams, _salt, _deployer);
+    }
+
+    function _computeContractAddress(
+        bytes memory _bytecodeWithParams,
+        bytes32 _salt,
+        address _deployer
+    ) internal view returns (address) {
+        bytes32 uniqueSalt = keccak256(abi.encode(_salt, _deployer));
+        return Create2.computeAddress(uniqueSalt, keccak256(_bytecodeWithParams));
+    }
+
     function addressToBytes32(address addr) internal pure returns (bytes32 result) {
         assembly {
             result := shl(96, addr) // shift left by 12 bytes (96 bits) to pad with zeros

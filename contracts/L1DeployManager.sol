@@ -125,6 +125,20 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         return Create2.deploy(0, uniqueSalt, bytecodeWithParams);
     }
 
+    function computeAddress(
+        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        bytes32 _salt,
+        bytes calldata _constructorParams,
+        address _deployer
+    ) external view returns (address) {
+        bytes32 uniqueSalt = keccak256(abi.encode(_salt, _deployer));
+        bytes memory bytecodeWithParams = abi.encode(
+            versionController.getVerifiedBytecode(_bytecodeVersion),
+            _constructorParams
+        );
+        return Create2.computeAddress(uniqueSalt, keccak256(bytecodeWithParams));
+    }
+
     /* Cross-chain internal helper functions */
 
     /// @notice Initiates a cross-chain message through the Chainlink CCIP.

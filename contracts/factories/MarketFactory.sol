@@ -59,4 +59,43 @@ contract MarketFactory is BaseFactory {
 
         return (cometExt, comet, cometProxy);
     }
+
+    function computeCometAddresses(
+        IVersionController.VersionWithAlternative calldata _cometExtVersion,
+        IVersionController.VersionWithAlternative calldata _cometVersion,
+        bytes calldata _encodedParams,
+        bytes32 _salt,
+        address _deployer,
+        bool withAssetList
+    ) external view returns (address, address, address) {
+        (ExtConfiguration memory extParams, Configuration memory params) = abi.decode(
+            _encodedParams,
+            (ExtConfiguration, Configuration)
+        );
+
+        address cometExt = _computeContractTypeAddress(
+            IVersionController.BytecodeVersion(
+                withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
+                _cometExtVersion
+            ),
+            withAssetList ? abi.encode(extParams, assetListFactory) : abi.encode(extParams),
+            _salt,
+            _deployer
+        );
+        // Deploy Comet
+        address comet = _computeContractTypeAddress(
+            IVersionController.BytecodeVersion(withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
+            abi.encode(params),
+            addressToBytes32(cometExt),
+            _deployer
+        );
+        // Deploy Proxy
+        address cometProxy = _computeContractAddress(
+            abi.encode(type(TransparentUpgradeableProxy).creationCode, abi.encode(comet, cometProxyAdmin, "")),
+            addressToBytes32(comet),
+            _deployer
+        );
+
+        return (cometExt, comet, cometProxy);
+    }
 }
