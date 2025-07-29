@@ -1,5 +1,6 @@
 pragma solidity 0.8.30;
 
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address, Errors } from "@openzeppelin/contracts/utils/Address.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
@@ -27,8 +28,6 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     mapping(uint256 => ChainConfig) public chainConfigs;
     /// @notice Inidicates whether a specific version of contract type was sent to a certain chain.
     mapping(uint256 => mapping(bytes32 => bool)) public isVersionSentToChain;
-    /// @notice Stores a factory per each supported contract type on Ethereum.
-    mapping(bytes32 => IFactory) public contractTypeFactory;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(IVersionController _versionController, IRouterClient _routerClient) {
@@ -78,15 +77,6 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         emit ChainConfigSet(_chainId, _config);
     }
 
-    /// @notice Sets a factory for specific contract type for deploying smart contract on Ethereum.
-    /// @param _contractType A type of contract for which to set the factory.
-    /// @param _factory Address of the factory on Ethereum.
-    function setContractTypeFactory(bytes32 _contractType, IFactory _factory) external onlyGovernor {
-        contractTypeFactory[_contractType] = _factory;
-
-        emit FactorySet(_contractType, address(_factory));
-    }
-
     /// @notice Allows the Governor to withdraw all the ETH stored on the smart contract's balance.
     function withdrawETH() external onlyGovernor {
         Address.sendValue(payable(msg.sender), address(this).balance);
@@ -118,7 +108,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
 
     /// @notice Allows anyone to deploy a certain version of bytecode on the Ethereum.
     /// @dev Bytecode must be uploaded and verified in the VersionController.
-    /// @dev Bytecode will be deployed through the appropriate Factory if it is set. Otherwise, L1DeployManager will try to deploy it via Create2.
+    /// @dev Bytecode is deployed via Create2.
     /// @param _bytecodeVersion A specific version of contract type to deploy.
     /// @param _salt A value necessary to generate a unique salt for Create2.
     /// @param _constructorParams parameters necessary to deploy a specified contract.
@@ -126,14 +116,13 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         IVersionController.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
-    ) external {
-        // TODO Add deployment of contract in case factory is not set.
-        contractTypeFactory[_bytecodeVersion.contractType].deploy(
-            _bytecodeVersion.contractType,
-            _salt,
+    ) external returns (address) {
+        bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
+        bytes memory bytecodeWithParams = abi.encode(
             versionController.getVerifiedBytecode(_bytecodeVersion),
             _constructorParams
         );
+        return Create2.deploy(0, uniqueSalt, bytecodeWithParams);
     }
 
     /* Cross-chain internal helper functions */
