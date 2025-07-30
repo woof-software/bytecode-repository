@@ -111,7 +111,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @dev Bytecode is deployed via Create2.
     /// @param _bytecodeVersion A specific version of contract type to deploy.
     /// @param _salt A value necessary to generate a unique salt for Create2.
-    /// @param _constructorParams parameters necessary to deploy a specified contract.
+    /// @param _constructorParams encoded parameters necessary to deploy a specified contract.
     function deploy(
         IVersionController.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
@@ -125,6 +125,13 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         return Create2.deploy(0, uniqueSalt, bytecodeWithParams);
     }
 
+    /* View functions */
+
+    /// @notice Computes a pre-deployed addresses of specified contract type and version.
+    /// @param _salt A value necessary to generate a unique salt for Create2.
+    /// @param _constructorParams encoded parameters necessary to deploy a specified contract.
+    /// @param _deployer Address of deployer. Necessary for unique salt generation.
+    /// @return Address of computed pre-deployed smart contract.
     function computeAddress(
         IVersionController.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,

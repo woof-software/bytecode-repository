@@ -7,11 +7,17 @@ import { Configuration, ExtConfiguration } from "../integration/CometConfigurati
 import { BaseFactory } from "./BaseFactory.sol";
 
 contract MarketFactory is BaseFactory {
+    /// @notice CometExt contract type.
     bytes32 public constant COMET_EXT_CT = "CometExt";
+    /// @notice Comet contract type.
     bytes32 public constant COMET_CT = "Comet";
+    /// @notice CometExt With AssetList contract type.
     bytes32 public constant COMET_EXT_ASSET_LIST_CT = "CometExtWithAssetList";
+    /// @notice CometWithExtendedAssetList contract type.
     bytes32 public constant COMET_ASSET_LIST_CT = "CometWithAssetList";
+    /// @notice Address of the CometProxyAdmin to use during deployment of all Comets.
     address public immutable cometProxyAdmin;
+    /// @notice Address of the AssetListFactory to use during deployment of CometWithExtendedAssetList.
     address public immutable assetListFactory;
 
     constructor(
@@ -25,27 +31,36 @@ contract MarketFactory is BaseFactory {
 
     /* Deploy functions */
 
+    /// @notice Deploys CometExt, Comet and Comet Proxy with specified version and parameters.
+    /// @dev Uses stored Comet Proxy Admin and Asset List Factory addresses.
+    /// @param _cometExtVersion Version of CometExt to deploy.
+    /// @param _cometVersion Version of Comet to deploy.
+    /// @param _extParams CometExt constructor arguments.
+    /// @param _params Comet constructor arguments.
+    /// @param _salt Parameter necessary for deployment via Create2.
+    /// @param _withAssetList Flag which indicates if implementations with Extended Asset List should be used.
+    /// @return Addresses of deployed CometExt, Comet and Comet Proxy.
     function deployComet(
         IVersionController.VersionWithAlternative calldata _cometExtVersion,
         IVersionController.VersionWithAlternative calldata _cometVersion,
         ExtConfiguration calldata _extParams,
         Configuration memory _params,
         bytes32 _salt,
-        bool withAssetList
+        bool _withAssetList
     ) external returns (address, address, address) {
         // Deploy CometExt
         address cometExt = _deployContractType(
             IVersionController.BytecodeVersion(
-                withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
+                _withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
                 _cometExtVersion
             ),
-            withAssetList ? abi.encode(_extParams, assetListFactory) : abi.encode(_extParams),
+            _withAssetList ? abi.encode(_extParams, assetListFactory) : abi.encode(_extParams),
             _salt
         );
         _params.extensionDelegate = cometExt;
         // Deploy Comet
         address comet = _deployContractType(
-            IVersionController.BytecodeVersion(withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
+            IVersionController.BytecodeVersion(_withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
             abi.encode(_params),
             addressToBytes32(cometExt)
         );
@@ -58,6 +73,17 @@ contract MarketFactory is BaseFactory {
         return (cometExt, comet, cometProxy);
     }
 
+    /* View functions */
+
+    /// @notice Computes a pre-deployed addresses of CometExt, Comet and Comet Proxy.
+    /// @param _cometExtVersion Version of CometExt to deploy.
+    /// @param _cometVersion Version of Comet to deploy.
+    /// @param _extParams CometExt constructor arguments.
+    /// @param _params Comet constructor arguments.
+    /// @param _salt Parameter necessary for deployment via Create2.
+    /// @param _deployer Address of deployer. Necessary for unique salt generation.
+    /// @param _withAssetList Flag which indicates if implementations with Extended Asset List should be used.
+    /// @return Computed addresses of pre-deployed CometExt, Comet and Comet Proxy.
     function computeCometAddresses(
         IVersionController.VersionWithAlternative calldata _cometExtVersion,
         IVersionController.VersionWithAlternative calldata _cometVersion,
@@ -65,22 +91,22 @@ contract MarketFactory is BaseFactory {
         Configuration memory _params,
         bytes32 _salt,
         address _deployer,
-        bool withAssetList
+        bool _withAssetList
     ) external view returns (address, address, address) {
         // Compute CometExt address
         address cometExt = _computeContractTypeAddress(
             IVersionController.BytecodeVersion(
-                withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
+                _withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
                 _cometExtVersion
             ),
-            withAssetList ? abi.encode(_extParams, assetListFactory) : abi.encode(_extParams),
+            _withAssetList ? abi.encode(_extParams, assetListFactory) : abi.encode(_extParams),
             _salt,
             _deployer
         );
         _params.extensionDelegate = cometExt;
         // Compute Comet address
         address comet = _computeContractTypeAddress(
-            IVersionController.BytecodeVersion(withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
+            IVersionController.BytecodeVersion(_withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
             abi.encode(_params),
             addressToBytes32(cometExt),
             _deployer

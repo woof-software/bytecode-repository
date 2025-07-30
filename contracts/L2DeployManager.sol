@@ -53,6 +53,11 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
             );
     }
 
+    /// @notice Computes a pre-deployed addresses of specified contract type and version.
+    /// @param _salt A value necessary to generate a unique salt for Create2.
+    /// @param _constructorParams encoded parameters necessary to deploy a specified contract.
+    /// @param _deployer Address of deployer. Necessary for unique salt generation.
+    /// @return Address of computed pre-deployed smart contract.
     function computeAddress(
         IVersionController.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
