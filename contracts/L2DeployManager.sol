@@ -32,7 +32,7 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
         bytes memory initCode = getVerifiedBytecode(_bytecodeVersion);
         if (initCode.length == 0) revert BytecodeIsEmpty();
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
-        bytes memory bytecodeWithParams = abi.encode(initCode, _constructorParams);
+        bytes memory bytecodeWithParams = abi.encodePacked(initCode, _constructorParams);
         return Create2.deploy(0, uniqueSalt, bytecodeWithParams);
     }
 
@@ -51,6 +51,17 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
                     BytecodeStore._computeBytecodeHash(_bytecodeVersion.contractType, _bytecodeVersion.version)
                 ]
             );
+    }
+
+    function computeAddress(
+        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        bytes32 _salt,
+        bytes calldata _constructorParams,
+        address _deployer
+    ) external view returns (address) {
+        bytes32 uniqueSalt = keccak256(abi.encode(_salt, _deployer));
+        bytes memory bytecodeWithParams = abi.encodePacked(getVerifiedBytecode(_bytecodeVersion), _constructorParams);
+        return Create2.computeAddress(uniqueSalt, keccak256(bytecodeWithParams));
     }
 
     /* Internal helpers */
