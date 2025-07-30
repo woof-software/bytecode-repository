@@ -118,7 +118,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         bytes calldata _constructorParams
     ) external returns (address) {
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
-        bytes memory bytecodeWithParams = abi.encode(
+        bytes memory bytecodeWithParams = abi.encodePacked(
             versionController.getVerifiedBytecode(_bytecodeVersion),
             _constructorParams
         );
@@ -132,7 +132,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         address _deployer
     ) external view returns (address) {
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, _deployer));
-        bytes memory bytecodeWithParams = abi.encode(
+        bytes memory bytecodeWithParams = abi.encodePacked(
             versionController.getVerifiedBytecode(_bytecodeVersion),
             _constructorParams
         );

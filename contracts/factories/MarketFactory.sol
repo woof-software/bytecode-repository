@@ -28,32 +28,30 @@ contract MarketFactory is BaseFactory {
     function deployComet(
         IVersionController.VersionWithAlternative calldata _cometExtVersion,
         IVersionController.VersionWithAlternative calldata _cometVersion,
-        bytes calldata _encodedParams,
+        ExtConfiguration calldata _extParams,
+        Configuration memory _params,
         bytes32 _salt,
         bool withAssetList
     ) external returns (address, address, address) {
-        (ExtConfiguration memory extParams, Configuration memory params) = abi.decode(
-            _encodedParams,
-            (ExtConfiguration, Configuration)
-        );
         // Deploy CometExt
         address cometExt = _deployContractType(
             IVersionController.BytecodeVersion(
                 withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
                 _cometExtVersion
             ),
-            withAssetList ? abi.encode(extParams, assetListFactory) : abi.encode(extParams),
+            withAssetList ? abi.encode(_extParams, assetListFactory) : abi.encode(_extParams),
             _salt
         );
+        _params.extensionDelegate = cometExt;
         // Deploy Comet
         address comet = _deployContractType(
             IVersionController.BytecodeVersion(withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
-            abi.encode(params),
+            abi.encode(_params),
             addressToBytes32(cometExt)
         );
         // Deploy Proxy
         address cometProxy = _deployContract(
-            abi.encode(type(TransparentUpgradeableProxy).creationCode, abi.encode(comet, cometProxyAdmin, "")),
+            abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, abi.encode(comet, cometProxyAdmin, "")),
             addressToBytes32(comet)
         );
 
@@ -63,35 +61,33 @@ contract MarketFactory is BaseFactory {
     function computeCometAddresses(
         IVersionController.VersionWithAlternative calldata _cometExtVersion,
         IVersionController.VersionWithAlternative calldata _cometVersion,
-        bytes calldata _encodedParams,
+        ExtConfiguration calldata _extParams,
+        Configuration memory _params,
         bytes32 _salt,
         address _deployer,
         bool withAssetList
     ) external view returns (address, address, address) {
-        (ExtConfiguration memory extParams, Configuration memory params) = abi.decode(
-            _encodedParams,
-            (ExtConfiguration, Configuration)
-        );
-
+        // Compute CometExt address
         address cometExt = _computeContractTypeAddress(
             IVersionController.BytecodeVersion(
                 withAssetList ? COMET_EXT_ASSET_LIST_CT : COMET_EXT_CT,
                 _cometExtVersion
             ),
-            withAssetList ? abi.encode(extParams, assetListFactory) : abi.encode(extParams),
+            withAssetList ? abi.encode(_extParams, assetListFactory) : abi.encode(_extParams),
             _salt,
             _deployer
         );
-        // Deploy Comet
+        _params.extensionDelegate = cometExt;
+        // Compute Comet address
         address comet = _computeContractTypeAddress(
             IVersionController.BytecodeVersion(withAssetList ? COMET_ASSET_LIST_CT : COMET_CT, _cometVersion),
-            abi.encode(params),
+            abi.encode(_params),
             addressToBytes32(cometExt),
             _deployer
         );
-        // Deploy Proxy
+        // Compute Proxy address
         address cometProxy = _computeContractAddress(
-            abi.encode(type(TransparentUpgradeableProxy).creationCode, abi.encode(comet, cometProxyAdmin, "")),
+            abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, abi.encode(comet, cometProxyAdmin, "")),
             addressToBytes32(comet),
             _deployer
         );

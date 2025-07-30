@@ -23,7 +23,7 @@ abstract contract BaseFactory {
         bytes32 _salt
     ) internal returns (address) {
         bytes memory initCode = _getInitCode(_bytecodeVersion);
-        bytes memory bytecodeWithParams = abi.encode(initCode, _constructorArgs);
+        bytes memory bytecodeWithParams = abi.encodePacked(initCode, _constructorArgs);
         return _deployContract(bytecodeWithParams, _salt);
     }
 
@@ -39,7 +39,7 @@ abstract contract BaseFactory {
         address _deployer
     ) internal view returns (address) {
         bytes memory initCode = _getInitCode(_bytecodeVersion);
-        bytes memory bytecodeWithParams = abi.encode(initCode, _constructorArgs);
+        bytes memory bytecodeWithParams = abi.encodePacked(initCode, _constructorArgs);
         return _computeContractAddress(bytecodeWithParams, _salt, _deployer);
     }
 
