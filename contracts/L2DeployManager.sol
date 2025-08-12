@@ -5,10 +5,11 @@ import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol
 import { CCIPReceiver } from "@chainlink/contracts-ccip/contracts/applications/CCIPReceiver.sol";
 import { BytecodeStore } from "./libraries/BytecodeStore.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
-import { IVersionController } from "./interfaces/IVersionController.sol";
+import { Types } from "./interfaces/Types.sol";
+import { IBytecodeProvider } from "./interfaces/IBytecodeProvider.sol";
 import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
 
-contract L2DeployManager is IL2DeployManager, CCIPReceiver {
+contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     address public immutable l1DeployManager;
     mapping(bytes32 => address[]) private storedBytecodePtrs;
 
@@ -25,7 +26,7 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
     /// @param _salt A value necessary to generate a unique salt for Create2.
     /// @param _constructorParams parameters necessary to deploy a specified contract.
     function deploy(
-        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
     ) external returns (address) {
@@ -40,17 +41,18 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
 
     /// @notice Returns a bytecode of the specified version.
     /// @dev Can be used to validate if bytecode was sent to the current network.
-    /// @param _bytecodeVersion A version of bytecode for which to return bytecode.
+    /// @param _version A version of bytecode for which to return bytecode.
     /// @return Bytecode of the specified contract type and its version.
-    function getVerifiedBytecode(
-        IVersionController.BytecodeVersion calldata _bytecodeVersion
-    ) public view returns (bytes memory) {
+    function getVerifiedBytecode(Types.BytecodeVersion calldata _version) public view returns (bytes memory) {
         return
             BytecodeStore._readInitCode(
-                storedBytecodePtrs[
-                    BytecodeStore._computeBytecodeHash(_bytecodeVersion.contractType, _bytecodeVersion.version)
-                ]
+                storedBytecodePtrs[BytecodeStore._computeBytecodeHash(_version.contractType, _version.version)]
             );
+    }
+
+    function versionExists(Types.BytecodeVersion calldata _version) external view returns (bool) {
+        return
+            storedBytecodePtrs[BytecodeStore._computeBytecodeHash(_version.contractType, _version.version)].length != 0;
     }
 
     /// @notice Computes a pre-deployed addresses of specified contract type and version.
@@ -59,7 +61,7 @@ contract L2DeployManager is IL2DeployManager, CCIPReceiver {
     /// @param _deployer Address of deployer. Necessary for unique salt generation.
     /// @return Address of computed pre-deployed smart contract.
     function computeAddress(
-        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams,
         address _deployer

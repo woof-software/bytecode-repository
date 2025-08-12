@@ -5,7 +5,7 @@ import { Address, Errors } from "@openzeppelin/contracts/utils/Address.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
 import { IRouterClient } from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
-import { IVersionController } from "./interfaces/IVersionController.sol";
+import { IVersionController, Types } from "./interfaces/IVersionController.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 
@@ -92,7 +92,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @param _bytecodeVersion A specific version of contract type.
     /// @param _chainId ID of the network to which to send bytecode. Chain ID must be registered by the Governor.
     function sendBytecodeToOtherChain(
-        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        Types.BytecodeVersion calldata _bytecodeVersion,
         uint256 _chainId
     ) external payable onlyDeveloper supportedChain(_chainId) {
         bytes32 bytecodeHash = versionController.computeBytecodeHash(
@@ -113,7 +113,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @param _salt A value necessary to generate a unique salt for Create2.
     /// @param _constructorParams encoded parameters necessary to deploy a specified contract.
     function deploy(
-        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
     ) external returns (address) {
@@ -133,7 +133,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @param _deployer Address of deployer. Necessary for unique salt generation.
     /// @return Address of computed pre-deployed smart contract.
     function computeAddress(
-        IVersionController.BytecodeVersion calldata _bytecodeVersion,
+        Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams,
         address _deployer

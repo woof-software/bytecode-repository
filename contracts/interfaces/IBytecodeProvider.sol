@@ -1,9 +1,9 @@
 pragma solidity 0.8.30;
 
-import { IVersionController } from "./IVersionController.sol";
+import { Types } from "./Types.sol";
 
 interface IBytecodeProvider {
-    function getVerifiedBytecode(
-        IVersionController.BytecodeVersion calldata _version
-    ) external view returns (bytes memory);
+    function getVerifiedBytecode(Types.BytecodeVersion calldata _version) external view returns (bytes memory);
+
+    function versionExists(Types.BytecodeVersion calldata _version) external view returns (bool);
 }

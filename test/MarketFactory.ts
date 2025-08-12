@@ -294,4 +294,67 @@ describe("MarketFactory", function () {
         const comet = await ethers.getContractAt(["function governor() view returns (address)"], resultAddresses[2]);
         expect(await comet.governor()).to.equal(governor);
     });
+
+    it("Should deploy Comet with extended asset list", async () => {
+        const { marketFactory, governor, mockBaseToken, mockCollateralToken, constantPriceFeedAddr, version, users } =
+            await restore();
+        const configuration = {
+            governor: governor,
+            pauseGuardian: governor,
+            baseToken: mockBaseToken,
+            baseTokenPriceFeed: constantPriceFeedAddr,
+            extensionDelegate: ethers.ZeroAddress,
+            supplyKink: "900000000000000000",
+            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateBase: 0,
+            borrowKink: "900000000000000000",
+            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            storeFrontPriceFactor: "600000000000000000",
+            trackingIndexScale: "1000000000000000",
+            baseTrackingSupplySpeed: 810185185185,
+            baseTrackingBorrowSpeed: 821759259259,
+            baseMinForRewards: 1000000000000,
+            baseBorrowMin: 100000000,
+            targetReserves: 20000000000000,
+            assetConfigs: [
+                {
+                    asset: mockCollateralToken,
+                    priceFeed: constantPriceFeedAddr,
+                    decimals: 18,
+                    borrowCollateralFactor: "500000000000000000",
+                    liquidateCollateralFactor: "700000000000000000",
+                    liquidationFactor: "750000000000000000",
+                    supplyCap: "100000000000000000000000"
+                }
+            ]
+        };
+        const extConfiguration = {
+            name32: ethers.encodeBytes32String("Compound Mock Base"),
+            symbol32: ethers.encodeBytes32String("cMockBaseV3")
+        };
+
+        const resultAddresses = await marketFactory.computeCometAddresses(
+            version,
+            version,
+            extConfiguration,
+            configuration,
+            ethers.ZeroHash,
+            users[0],
+            true
+        );
+
+        await marketFactory
+            .connect(users[0])
+            .deployComet(version, version, extConfiguration, configuration, ethers.ZeroHash, true);
+
+        // Check comet
+        expect(await ethers.provider.getCode(resultAddresses[0])).to.not.equal("0x");
+        expect(await ethers.provider.getCode(resultAddresses[1])).to.not.equal("0x");
+        expect(await ethers.provider.getCode(resultAddresses[2])).to.not.equal("0x");
+        const comet = await ethers.getContractAt(["function assetList() view returns (address)"], resultAddresses[2]);
+        expect(await comet.assetList()).to.not.equal(ethers.ZeroAddress);
+    });
 });

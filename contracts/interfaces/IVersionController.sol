@@ -1,8 +1,10 @@
 pragma solidity 0.8.30;
 
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { Types } from "./Types.sol";
+import { IBytecodeProvider } from "./IBytecodeProvider.sol";
 
-interface IVersionController is IAccessControl {
+interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     event PrimaryAuditorSet(address _primaryAuditor);
     event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper);
     event BytecodeUploaded(bytes32 _contractType, Version _version);
@@ -27,82 +29,6 @@ interface IVersionController is IAccessControl {
     error WrongKeyDeveloper(address account, address _subDeveloper);
     error VersionAlreadyExists(bytes32 _contractType, VersionWithAlternative _version);
     error NonExistingVersion(bytes32 _contractType, VersionWithAlternative _version);
-
-    /**
-     * @notice Represents a version.
-     * @dev Fields:
-     * - `major`: major version
-     * - `minor`: minor version
-     * - `patch`: patch version
-     */
-    struct Version {
-        uint64 major;
-        uint64 minor;
-        uint64 patch;
-    }
-
-    /**
-     * @notice Represents a version with alternative.
-     * @dev Fields:
-     * - `version`: core version
-     * - `alternative`: alternative version
-     */
-    struct VersionWithAlternative {
-        Version version;
-        string alternative;
-    }
-
-    /**
-     * @notice Represents params necessary for releasing bytecode.
-     * @dev Fields:
-     * - `contractType`: a type of contract to release
-     * - `initCode`: bytecode to upload
-     * - `sourceURL`: link to repository containing the source code of bytecode
-     */
-    struct BytecodeInput {
-        bytes32 contractType;
-        bytes initCode;
-        string sourceURL;
-    }
-
-    /**
-     * @notice Represents information about audit status of bytecode.
-     * @dev Fields:
-     * - `auditors`: array of auditors who have approved the bytecode
-     * - `verified`: a boolean flag indicating if the bytecode has been approved by at least a single auditor
-     * - `auditReports`: a mapping containing audit report URL of a given auditor
-     */
-    struct AuditStatus {
-        address[] auditors;
-        bool verified;
-        mapping(address => string) auditReports;
-    }
-
-    /**
-     * @notice Represents information about stored bytecode.
-     * @dev Fields:
-     * - `contractType`: a type of contract of given bytecode
-     * - `initCodePtrs`: address pointers at which parts of bytecode are stored
-     * - `sourceURL`: link to repository where source code of bytecode is stored
-     * - `author`: address of the author of bytecode
-     */
-    struct Bytecode {
-        bytes32 contractType;
-        address[] initCodePtrs;
-        string sourceURL;
-        address author;
-    }
-
-    /**
-     * @notice Represents a contract type with its version
-     * @dev Fields:
-     * - `contractType`: a type of contract
-     * - `version`: version with alternative for given contract type
-     */
-    struct BytecodeVersion {
-        bytes32 contractType;
-        VersionWithAlternative version;
-    }
 
     // Governor
     function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external;
@@ -156,11 +82,7 @@ interface IVersionController is IAccessControl {
 
     function getAuditReport(BytecodeVersion calldata _version, address _auditor) external view returns (string memory);
 
-    function versionExists(BytecodeVersion calldata _version) external view returns (bool);
-
     function versionExists(bytes32 _bytecodeHash) external view returns (bool);
-
-    function getVerifiedBytecode(BytecodeVersion calldata _version) external view returns (bytes memory);
 
     function getAllAlternativeVersions(bytes32 _contractType) external view returns (VersionWithAlternative[] memory);
 }
