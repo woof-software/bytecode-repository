@@ -4,7 +4,6 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
 import { CCIPReceiver } from "@chainlink/contracts-ccip/contracts/applications/CCIPReceiver.sol";
 import { BytecodeStore } from "./libraries/BytecodeStore.sol";
-import { IFactory } from "./interfaces/IFactory.sol";
 import { Types } from "./interfaces/Types.sol";
 import { IBytecodeProvider } from "./interfaces/IBytecodeProvider.sol";
 import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";

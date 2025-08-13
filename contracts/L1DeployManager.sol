@@ -6,7 +6,6 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
 import { IRouterClient } from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
 import { IVersionController, Types } from "./interfaces/IVersionController.sol";
-import { IFactory } from "./interfaces/IFactory.sol";
 import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 
 /**
