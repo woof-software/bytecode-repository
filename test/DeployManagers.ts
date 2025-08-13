@@ -42,23 +42,19 @@ describe("L1/L2 DeployManager", function () {
 
         const mockRouter = await (await ethers.getContractFactory("MockCCIPRouter")).deploy();
         await mockRouter.setFee(mockRouterFee);
-        const mockFactoryL1 = await (await ethers.getContractFactory("MockFactory")).deploy();
-        const mockFactoryL2 = await (await ethers.getContractFactory("MockFactory")).deploy();
 
         const l1DeployManager = await upgrades.deployProxy(await ethers.getContractFactory("L1DeployManager"), [], {
             kind: "uups",
             constructorArgs: [await versionController.getAddress(), await mockRouter.getAddress()]
         });
-        await l1DeployManager.connect(governor).setContractTypeFactory(WOOF.contractTypes[0], mockFactoryL1);
 
         const l2DeployManager = await (
             await ethers.getContractFactory("L2DeployManager")
-        ).deploy(l1DeployManager, localTimelockL2, mockRouter);
-        await l2DeployManager.connect(localTimelockL2).setContractTypeFactory(WOOF.contractTypes[0], mockFactoryL2);
+        ).deploy(l1DeployManager, mockRouter);
         await l1DeployManager.connect(governor).setChainConfig(mockOtherChainId, {
             l2DeployManager: l2DeployManager,
             destinationChainSelector: mockChainSelectorId,
-            gasLimit: 1_000_000
+            gasLimit: 5_000_000
         });
 
         // Release bytecode
@@ -99,8 +95,6 @@ describe("L1/L2 DeployManager", function () {
             users,
             versionController,
             mockRouter,
-            mockFactoryL1,
-            mockFactoryL2,
             l1DeployManager,
             l2DeployManager,
             bytecodeVersion_1_0_0,
@@ -118,7 +112,8 @@ describe("L1/L2 DeployManager", function () {
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
 
         const expectedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
-        expect(await l2DeployManager.getBytecode(bytecodeVersion_1_0_0)).to.equal(expectedBytecode);
+        expect(await l2DeployManager.getVerifiedBytecode(bytecodeVersion_1_0_0)).to.equal(expectedBytecode);
+        expect(await l2DeployManager.versionExists(bytecodeVersion_1_0_0)).to.be.true;
         expect(await l1DeployManager.isVersionSentToChain(mockOtherChainId, bytecodeHash_1_0_0)).to.be.true;
     });
 
@@ -166,13 +161,6 @@ describe("L1/L2 DeployManager", function () {
                 .connect(users[1])
                 .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee })
         ).revertedWithCustomError(l1DeployManager, "OnlyDeveloper");
-    });
-
-    it("Should revert if setter called by non-local timelock in L2DeployManager", async () => {
-        const { users, l2DeployManager, WOOF } = await restore();
-        await expect(
-            l2DeployManager.connect(users[2]).setContractTypeFactory(WOOF.contractTypes[0], ethers.ZeroAddress)
-        ).revertedWithCustomError(l2DeployManager, "OnlyTimelock");
     });
 
     it("Should not receive bytecode if sender is not L1DeployManager", async () => {
