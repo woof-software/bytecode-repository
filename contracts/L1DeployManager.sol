@@ -9,6 +9,32 @@ import { IVersionController, Types } from "./interfaces/IVersionController.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 
+/**
+ * @title L1DeployManager
+ * @author WOOF! Software
+ * @custom:security-contact dmitriy@woof.software
+ * @notice This contract orchestrates smart contract deployments on Ethereum L1 and facilitates secure cross-chain bytecode distribution to L2 networks via Chainlink CCIP.
+ * - The contract retrieves audited bytecode from VersionController and deploys contracts using deterministic CREATE2 addresses for multi-chain consistency.
+ * - Cross-chain bytecode transmission uses Chainlink CCIP for cryptographically secure message passing with decentralized validation and replay protection.
+ * - Role-based access control ensures only authorized developers can deploy contracts and initiate cross-chain bytecode synchronization.
+ * - Developers (Key Developer and Sub Developer roles) are able to:
+ *   1. Deploy audited bytecode directly on Ethereum mainnet using CREATE2 for deterministic addresses.
+ *   2. Send verified bytecode to configured L2 networks via Chainlink CCIP for multi-chain deployment consistency.
+ *   3. Compute deployment addresses before actual deployment for predictable multi-chain contract addresses.
+ *   4. Utilize integrated factory contracts for specialized deployment patterns requiring multiple coordinated deployments.
+ * - Governors are able to:
+ *   1. Configure supported L2 networks with their CCIP chain selectors and corresponding L2DeployManager addresses.
+ *   2. Enable or disable cross-chain bytecode transmission to specific networks based on operational requirements.
+ *   3. Withdraw ETH from the contract's balance.
+ *   4. Upgrade the contract implementation via UUPS proxy pattern.
+ * - Anyone is able to:
+ *   1. Donate ETH to the contract to subsidize cross-chain message costs for developers and community deployments.
+ *   2. Query chain configurations and deployment status for transparency and integration planning.
+ * - The contract validates bytecode audit status before deployment, ensuring only auditor-verified contracts reach production networks.
+ * - CCIP message encoding includes bytecode hash and full initCode, with automatic chunking via SSTORE2 for large contracts exceeding network limits.
+ * - Address computation matches L2DeployManager behavior exactly, guaranteeing identical contract addresses across all supported networks.
+ * - The contract serves as the canonical L1 coordinator for the BytecodeRepository ecosystem, bridging audited bytecode storage with multi-chain deployment execution.
+ */
 contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Admin role for AccessControl.
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;

@@ -9,6 +9,31 @@ import { Types } from "./interfaces/Types.sol";
 import { IBytecodeProvider } from "./interfaces/IBytecodeProvider.sol";
 import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
 
+/**
+ * @title L2DeployManager
+ * @author WOOF! Software
+ * @custom:security-contact dmitriy@woof.software
+ * @notice This contract receives audited bytecode from L1 via Chainlink CCIP and enables secure, deterministic contract deployment on Layer 2 networks.
+ * - The contract acts as a CCIP receiver, validating and storing bytecode transmitted from the trusted L1DeployManager with cryptographic integrity guarantees.
+ * - Bytecode is stored using SSTORE2 optimization for gas-efficient persistence on L2 networks, supporting contracts larger than 24KB through intelligent chunking.
+ * - Deployment functionality mirrors L1DeployManager exactly, ensuring identical CREATE2 addresses across all networks for seamless multi-chain UX.
+ * - Integration as a BytecodeProvider enables specialized factories to retrieve stored bytecode for complex multi-contract deployment patterns.
+ * - CCIP message validation ensures only bytecode from authorized L1DeployManager can be stored, preventing unauthorized bytecode injection.
+ * - Anyone is able to:
+ *   1. Deploy stored bytecode using CREATE2 with deterministic addresses matching L1 deployments for consistent multi-chain contract addresses.
+ *   2. Compute deployment addresses before actual deployment for predictable contract planning and integration.
+ *   3. Query stored bytecode availability to verify cross-chain synchronization status and plan deployments.
+ *   4. Retrieve bytecode for custom deployment logic or verification purposes through the BytecodeProvider interface.
+ * - The contract automatically handles:
+ *   1. CCIP message reception and validation from trusted L1DeployManager to ensure bytecode authenticity and prevent malicious injections.
+ *   2. Bytecode storage using SSTORE2 with automatic chunking for large contracts exceeding network gas limits or size constraints.
+ *   3. Address computation using identical salt generation as L1DeployManager, guaranteeing cross-chain address consistency.
+ *   4. Integration with factory contracts via BytecodeProvider interface for specialized deployment patterns and protocol-specific logic.
+ * - Bytecode integrity is maintained through cryptographic hashing and validation, ensuring deployed contracts match exactly with L1-approved versions.
+ * - The contract serves as the canonical L2 endpoint for BytecodeRepository ecosystem, enabling trustless multi-chain deployment with audit verification.
+ * - Factory contracts and custom deployment tools can retrieve bytecode through the IBytecodeProvider interface for specialized deployment patterns.
+ * - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
+ */
 contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     address public immutable l1DeployManager;
     mapping(bytes32 => address[]) private storedBytecodePtrs;

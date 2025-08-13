@@ -6,6 +6,33 @@ import { IBytecodeProvider } from "../interfaces/IBytecodeProvider.sol";
 import { Configuration, ExtConfiguration } from "../integration/CometConfiguration.sol";
 import { BaseFactory } from "./BaseFactory.sol";
 
+/**
+ * @title MarketFactory
+ * @author WOOF! Software
+ * @custom:security-contact dmitriy@woof.software
+ * @notice This factory contract orchestrates complex multi-contract Comet market deployments with automatic dependency resolution and proxy pattern integration.
+ * - The contract deploys complete Comet markets consisting of CometExt (extension), Comet (implementation), and TransparentUpgradeableProxy in a single transaction.
+ * - Automatic dependency injection sets extension delegate addresses and manages inter-contract relationships during deployment for fully configured markets.
+ * - Support for both standard and extended asset list variants enables markets with different collateral capacity requirements and gas optimization strategies.
+ * - Integration with OpenZeppelin's TransparentUpgradeableProxy pattern provides upgradeable market implementations while maintaining security and governance controls.
+ * - Address pre-computation enables predictable market addresses before deployment for integration planning and cross-chain coordination.
+ * - The contract utilizes immutable dependencies for CometProxyAdmin and AssetListFactory, ensuring consistent upgrade authority and asset list management across deployments.
+ * - Anyone is able to:
+ *   1. Deploy complete Comet markets with CometExt, Comet implementation, and upgradeable proxy in a coordinated three-contract deployment.
+ *   2. Choose between standard Comet (limited assets) and extended variants (CometExtWithAssetList/CometWithAssetList) based on market requirements.
+ *   3. Compute all three contract addresses before deployment for integration planning and verification purposes.
+ *   4. Deploy markets with custom configurations including interest rate models, governance parameters, and collateral asset specifications.
+ * - The contract automatically handles:
+ *   1. Sequential deployment of CometExt with appropriate constructor parameters and asset list factory integration when required.
+ *   2. Dependency injection by setting the deployed CometExt address as extensionDelegate in the Comet configuration before deployment.
+ *   3. Comet implementation deployment with updated configuration containing correct extension delegate and protocol parameters.
+ *   4. TransparentUpgradeableProxy deployment pointing to the Comet implementation with configured proxy admin for upgrade authority.
+ *   5. Salt derivation using address-based salts for deterministic yet unique deployment addresses across related contracts.
+ * - Extended asset list support automatically selects appropriate contract variants (CometExtWithAssetList/CometWithAssetList) when the withAssetList flag is enabled.
+ * - Asset list factory integration provides enhanced collateral management for markets requiring support for numerous or dynamic asset lists.
+ * - The factory maintains full compatibility with Compound V3 governance patterns while adding BytecodeRepository audit verification and multi-chain deployment capabilities.
+ * - Proxy admin integration ensures proper upgrade authority while maintaining security boundaries between market implementations and governance controls.
+ */
 contract MarketFactory is BaseFactory {
     /// @notice CometExt contract type.
     bytes32 public constant COMET_EXT_CT = "CometExt";

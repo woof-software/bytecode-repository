@@ -11,6 +11,33 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { BytecodeStore } from "./libraries/BytecodeStore.sol";
 import { IVersionController } from "./interfaces/IVersionController.sol";
 
+/**
+ * @title VersionController
+ * @author WOOF! Software
+ * @custom:security-contact dmitriy@woof.software
+ * @notice This contract manages versioned smart contract bytecode storage, developer role assignment, and cryptographic audit verification for cross-chain deployment systems.
+ * - The contract implements semantic versioning (Major.Minor.Patch) with support for alternative versions (e.g., "gas-optimized", "minimal") for the same base version.
+ * - Bytecode is stored using SSTORE2 optimization.
+ * - Role-based access control with hierarchical permissions: Governor (admin) → Key Developer (contract type owner) → Sub Developer (team member, max 3 per key developer).
+ * - Audit verification system using EIP-712 cryptographic signatures ensures only verified bytecode can be deployed.
+ * - Governor is able to:
+ *   1. Assign key developers to specific contract types (bytes32 identifiers) for specialized development workflows.
+ *   2. Grant and revoke auditor roles for bytecode verification authority.
+ *   3. Manage system-wide permissions and upgrade the contract via UUPS proxy pattern.
+ * - Key Developers are able to:
+ *   1. Release bytecode versions (initial, major, minor, patch, alternative) for their assigned contract types.
+ *   2. Add and remove sub-developers (maximum 3) to scale their development team.
+ *   3. Manage version history and alternative implementations for their contract types.
+ * - Sub Developers are able to:
+ *   1. Release bytecode versions for their key developer's assigned contract types.
+ *   2. Access the same versioning functions as key developers within their permitted scope.
+ * - Auditors are able to:
+ *   1. Submit EIP-712 signed audit reports verifying bytecode security and compliance.
+ *   2. Attach audit report URLs (IPFS/Arweave) to specific bytecode hashes for transparency.
+ * - Version management follows semantic versioning principles with automatic incrementing and validation of version dependencies.
+ * - All bytecode is stored immutably with cryptographic integrity guarantees, and audit signatures provide unforgeable verification records.
+ * - The contract serves as the canonical repository for all the bytecodes for L1 (Ethereum) and integrates with L1DeployManager for cross-chain bytecode distribution via Chainlink CCIP.
+ */
 contract VersionController is
     AccessControlEnumerableUpgradeable,
     UUPSUpgradeable,
