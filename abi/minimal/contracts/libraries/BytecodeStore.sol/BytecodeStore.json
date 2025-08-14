@@ -1,0 +1,5 @@
+[
+    "error InitCodeIsEmpty()",
+    "function BYTECODE_VERSION_TYPEHASH() view returns (bytes32)",
+    "function CHUNK_SIZE() view returns (uint256)"
+]

@@ -1,0 +1,5 @@
+[
+    "error StringsInsufficientHexLength(uint256 value, uint256 length)",
+    "error StringsInvalidAddressFormat()",
+    "error StringsInvalidChar()"
+]

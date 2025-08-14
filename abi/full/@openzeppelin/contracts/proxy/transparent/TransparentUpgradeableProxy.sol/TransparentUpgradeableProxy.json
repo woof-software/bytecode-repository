@@ -1,0 +1,11 @@
+[
+    "constructor(address _logic, address initialOwner, bytes _data) payable",
+    "error AddressEmptyCode(address target)",
+    "error ERC1967InvalidAdmin(address admin)",
+    "error ERC1967InvalidImplementation(address implementation)",
+    "error ERC1967NonPayable()",
+    "error FailedCall()",
+    "error ProxyDeniedAdminAccess()",
+    "event AdminChanged(address previousAdmin, address newAdmin)",
+    "event Upgraded(address indexed implementation)"
+]

@@ -1,0 +1,15 @@
+[
+    {
+        "inputs": [],
+        "name": "bytecodeProvider",
+        "outputs": [
+            {
+                "internalType": "contract IBytecodeProvider",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]

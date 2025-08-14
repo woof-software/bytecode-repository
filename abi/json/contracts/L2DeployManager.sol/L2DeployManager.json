@@ -1,0 +1,475 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_l1DeployManager",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_router",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "BytecodeIsEmpty",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "Create2EmptyBytecode",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "FailedDeployment",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InitCodeIsEmpty",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "balance",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "needed",
+                "type": "uint256"
+            }
+        ],
+        "name": "InsufficientBalance",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "router",
+                "type": "address"
+            }
+        ],
+        "name": "InvalidRouter",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidSender",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "OnlyTimelock",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_messageId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeReceived",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_factory",
+                "type": "address"
+            }
+        ],
+        "name": "FactorySet",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "messageId",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "uint64",
+                        "name": "sourceChainSelector",
+                        "type": "uint64"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "sender",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "data",
+                        "type": "bytes"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "address",
+                                "name": "token",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "amount",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Client.EVMTokenAmount[]",
+                        "name": "destTokenAmounts",
+                        "type": "tuple[]"
+                    }
+                ],
+                "internalType": "struct Client.Any2EVMMessage",
+                "name": "message",
+                "type": "tuple"
+            }
+        ],
+        "name": "ccipReceive",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_bytecodeVersion",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_salt",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_constructorParams",
+                "type": "bytes"
+            },
+            {
+                "internalType": "address",
+                "name": "_deployer",
+                "type": "address"
+            }
+        ],
+        "name": "computeAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_bytecodeVersion",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_salt",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_constructorParams",
+                "type": "bytes"
+            }
+        ],
+        "name": "deploy",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getRouter",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "getVerifiedBytecode",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "l1DeployManager",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes4",
+                "name": "interfaceId",
+                "type": "bytes4"
+            }
+        ],
+        "name": "supportsInterface",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "versionExists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]

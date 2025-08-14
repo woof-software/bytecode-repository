@@ -1,0 +1,21 @@
+[
+    "constructor(address,address)",
+    "error BytecodeIsEmpty()",
+    "error Create2EmptyBytecode()",
+    "error FailedDeployment()",
+    "error InitCodeIsEmpty()",
+    "error InsufficientBalance(uint256,uint256)",
+    "error InvalidRouter(address)",
+    "error InvalidSender()",
+    "error OnlyTimelock()",
+    "event BytecodeReceived(bytes32,bytes32)",
+    "event FactorySet(bytes32,address)",
+    "function ccipReceive(tuple(bytes32,uint64,bytes,bytes,tuple(address,uint256)[]))",
+    "function computeAddress(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes32,bytes,address) view returns (address)",
+    "function deploy(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes32,bytes) returns (address)",
+    "function getRouter() view returns (address)",
+    "function getVerifiedBytecode(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string))) view returns (bytes)",
+    "function l1DeployManager() view returns (address)",
+    "function supportsInterface(bytes4) view returns (bool)",
+    "function versionExists(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string))) view returns (bool)"
+]

@@ -1,0 +1,6 @@
+[
+    "event AdminChanged(address,address)",
+    "event BeaconUpgraded(address indexed)",
+    "event Upgraded(address indexed)",
+    "function upgradeToAndCall(address,bytes) payable"
+]
