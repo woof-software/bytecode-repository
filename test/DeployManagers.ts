@@ -1,9 +1,11 @@
 import { expect } from "chai";
 import { network, ethers, upgrades } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { CometInitCode, CometExtInitCode } from "./testData.json";
+import { CometInitCode, CometExtInitCode, ConstantPriceFeedInitCode } from "./testData.json";
 import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+
+const abiCoder = new ethers.AbiCoder();
 
 const mockRouterFee = ethers.parseEther("0.1");
 const mockChainSelectorId = "16015286601757825753";
@@ -87,6 +89,57 @@ describe("L1/L2 DeployManager", function () {
         const bytecodeVersion_1_0_0 = { contractType: WOOF.contractTypes[0], version };
         await versionController.connect(auditors[0]).verifyBytecode(bytecodeVersion_1_0_0, auditReport, signature);
 
+        // Deploy mock tokens and oracle for Comet configuration
+        const mockBaseToken = await (await ethers.getContractFactory("MockERC20")).deploy("Base Token", "BT");
+        const mockCollateralToken = await (
+            await ethers.getContractFactory("MockERC20")
+        ).deploy("Collateral Token", "CT");
+
+        // Deploy constant price feed for oracle
+        const constantPriceFeedContractType = ethers.encodeBytes32String("ConstantPriceFeed");
+        await versionController
+            .connect(governor)
+            .assignDeveloperForContractType(constantPriceFeedContractType, WOOF.keyDeveloper);
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: constantPriceFeedContractType,
+            initCode: ConstantPriceFeedInitCode,
+            sourceURL: "https://github.com/compound-finance/comet/blob/main/contracts/ConstantPriceFeed.sol"
+        });
+        const priceFeedVersion = { version: { major: 1, minor: 0, patch: 0 }, alternative: "" };
+        const priceFeedBytecodeHash = await versionController.computeBytecodeHash(
+            constantPriceFeedContractType,
+            priceFeedVersion
+        );
+        const priceFeedSignature = await prepareAuditReportSignature(
+            priceFeedBytecodeHash,
+            auditReport,
+            await versionController.getAddress(),
+            auditors[0]
+        );
+        await versionController
+            .connect(auditors[0])
+            .verifyBytecode(
+                { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+                auditReport,
+                priceFeedSignature
+            );
+
+        // Compute and deploy the price feed
+        const constantPriceFeedAddr = await l1DeployManager.computeAddress(
+            { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+            ethers.ZeroHash,
+            abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
+            governor.address
+        );
+
+        await l1DeployManager
+            .connect(governor)
+            .deploy(
+                { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+                ethers.ZeroHash,
+                abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)])
+            );
+
         return {
             governor,
             auditors,
@@ -98,7 +151,10 @@ describe("L1/L2 DeployManager", function () {
             l1DeployManager,
             l2DeployManager,
             bytecodeVersion_1_0_0,
-            bytecodeHash_1_0_0
+            bytecodeHash_1_0_0,
+            mockBaseToken,
+            mockCollateralToken,
+            constantPriceFeedAddr
         };
     };
 
@@ -214,5 +270,305 @@ describe("L1/L2 DeployManager", function () {
         await users[0].sendTransaction({ to: l1DeployManager, value: amount });
         const tx = await l1DeployManager.connect(governor).withdrawETH();
         await expect(tx).changeEtherBalances([l1DeployManager, governor], [-amount, amount]);
+    });
+
+    it("Should revert when non-governor tries to withdraw ETH", async () => {
+        const { l1DeployManager, users } = await restore();
+        const amount = ethers.parseEther("1");
+        await users[0].sendTransaction({ to: l1DeployManager, value: amount });
+        await expect(l1DeployManager.connect(users[0]).withdrawETH()).to.be.revertedWithCustomError(
+            l1DeployManager,
+            "OnlyGovernor"
+        );
+    });
+
+    it("Should deploy contract on L2 after bytecode is sent", async () => {
+        const {
+            WOOF,
+            l1DeployManager,
+            l2DeployManager,
+            bytecodeVersion_1_0_0,
+            users,
+            mockBaseToken,
+            mockCollateralToken,
+            constantPriceFeedAddr,
+            governor
+        } = await restore();
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+
+        // Prepare Comet constructor parameters
+        const cometConfiguration = {
+            governor: governor.address,
+            pauseGuardian: governor.address,
+            baseToken: await mockBaseToken.getAddress(),
+            baseTokenPriceFeed: constantPriceFeedAddr,
+            extensionDelegate: ethers.ZeroAddress,
+            supplyKink: "900000000000000000",
+            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateBase: 0,
+            borrowKink: "900000000000000000",
+            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            storeFrontPriceFactor: "600000000000000000",
+            trackingIndexScale: "1000000000000000",
+            baseTrackingSupplySpeed: 810185185185,
+            baseTrackingBorrowSpeed: 821759259259,
+            baseMinForRewards: 1000000000000,
+            baseBorrowMin: 100000000,
+            targetReserves: 20000000000000,
+            assetConfigs: [
+                {
+                    asset: await mockCollateralToken.getAddress(),
+                    priceFeed: constantPriceFeedAddr,
+                    decimals: 18,
+                    borrowCollateralFactor: "500000000000000000",
+                    liquidateCollateralFactor: "700000000000000000",
+                    liquidationFactor: "750000000000000000",
+                    supplyCap: "100000000000000000000000"
+                }
+            ]
+        };
+
+        // Deploy on L2
+        const salt = ethers.solidityPackedKeccak256(["string"], ["test-salt"]);
+        const constructorParams = abiCoder.encode(
+            [
+                "tuple(address governor,address pauseGuardian,address baseToken,address baseTokenPriceFeed,address extensionDelegate,uint64 supplyKink,uint64 supplyPerYearInterestRateSlopeLow,uint64 supplyPerYearInterestRateSlopeHigh,uint64 supplyPerYearInterestRateBase,uint64 borrowKink,uint64 borrowPerYearInterestRateSlopeLow,uint64 borrowPerYearInterestRateSlopeHigh,uint64 borrowPerYearInterestRateBase,uint64 storeFrontPriceFactor,uint64 trackingIndexScale,uint64 baseTrackingSupplySpeed,uint64 baseTrackingBorrowSpeed,uint104 baseMinForRewards,uint104 baseBorrowMin,uint104 targetReserves,tuple(address asset,address priceFeed,uint8 decimals,uint64 borrowCollateralFactor,uint64 liquidateCollateralFactor,uint64 liquidationFactor,uint128 supplyCap)[] assetConfigs)"
+            ],
+            [cometConfiguration]
+        );
+
+        const deployedAddress = await l2DeployManager
+            .connect(users[0])
+            .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
+
+        await l2DeployManager.connect(users[0]).deploy(bytecodeVersion_1_0_0, salt, constructorParams);
+
+        // Verify contract was deployed
+        expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
+    });
+
+    it("Should revert deploy when bytecode is not available on L2", async () => {
+        const {
+            l2DeployManager,
+            bytecodeVersion_1_0_0,
+            users,
+            mockBaseToken,
+            mockCollateralToken,
+            constantPriceFeedAddr,
+            governor
+        } = await restore();
+
+        // Prepare Comet constructor parameters
+        const cometConfiguration = {
+            governor: governor.address,
+            pauseGuardian: governor.address,
+            baseToken: await mockBaseToken.getAddress(),
+            baseTokenPriceFeed: constantPriceFeedAddr,
+            extensionDelegate: ethers.ZeroAddress,
+            supplyKink: "900000000000000000",
+            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateBase: 0,
+            borrowKink: "900000000000000000",
+            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            storeFrontPriceFactor: "600000000000000000",
+            trackingIndexScale: "1000000000000000",
+            baseTrackingSupplySpeed: 810185185185,
+            baseTrackingBorrowSpeed: 821759259259,
+            baseMinForRewards: 1000000000000,
+            baseBorrowMin: 100000000,
+            targetReserves: 20000000000000,
+            assetConfigs: [
+                {
+                    asset: await mockCollateralToken.getAddress(),
+                    priceFeed: constantPriceFeedAddr,
+                    decimals: 18,
+                    borrowCollateralFactor: "500000000000000000",
+                    liquidateCollateralFactor: "700000000000000000",
+                    liquidationFactor: "750000000000000000",
+                    supplyCap: "100000000000000000000000"
+                }
+            ]
+        };
+
+        const salt = ethers.solidityPackedKeccak256(["string"], ["test-salt"]);
+        const constructorParams = abiCoder.encode(
+            [
+                "tuple(address governor,address pauseGuardian,address baseToken,address baseTokenPriceFeed,address extensionDelegate,uint64 supplyKink,uint64 supplyPerYearInterestRateSlopeLow,uint64 supplyPerYearInterestRateSlopeHigh,uint64 supplyPerYearInterestRateBase,uint64 borrowKink,uint64 borrowPerYearInterestRateSlopeLow,uint64 borrowPerYearInterestRateSlopeHigh,uint64 borrowPerYearInterestRateBase,uint64 storeFrontPriceFactor,uint64 trackingIndexScale,uint64 baseTrackingSupplySpeed,uint64 baseTrackingBorrowSpeed,uint104 baseMinForRewards,uint104 baseBorrowMin,uint104 targetReserves,tuple(address asset,address priceFeed,uint8 decimals,uint64 borrowCollateralFactor,uint64 liquidateCollateralFactor,uint64 liquidationFactor,uint128 supplyCap)[] assetConfigs)"
+            ],
+            [cometConfiguration]
+        );
+
+        await expect(
+            l2DeployManager.connect(users[0]).deploy(bytecodeVersion_1_0_0, salt, constructorParams)
+        ).to.be.revertedWithCustomError(l2DeployManager, "BytecodeIsEmpty");
+    });
+
+    it("Should compute correct address on L2", async () => {
+        const {
+            WOOF,
+            l1DeployManager,
+            l2DeployManager,
+            bytecodeVersion_1_0_0,
+            users,
+            mockBaseToken,
+            mockCollateralToken,
+            constantPriceFeedAddr,
+            governor
+        } = await restore();
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+
+        // Prepare Comet constructor parameters
+        const cometConfiguration = {
+            governor: governor.address,
+            pauseGuardian: governor.address,
+            baseToken: await mockBaseToken.getAddress(),
+            baseTokenPriceFeed: constantPriceFeedAddr,
+            extensionDelegate: ethers.ZeroAddress,
+            supplyKink: "900000000000000000",
+            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateBase: 0,
+            borrowKink: "900000000000000000",
+            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            storeFrontPriceFactor: "600000000000000000",
+            trackingIndexScale: "1000000000000000",
+            baseTrackingSupplySpeed: 810185185185,
+            baseTrackingBorrowSpeed: 821759259259,
+            baseMinForRewards: 1000000000000,
+            baseBorrowMin: 100000000,
+            targetReserves: 20000000000000,
+            assetConfigs: [
+                {
+                    asset: await mockCollateralToken.getAddress(),
+                    priceFeed: constantPriceFeedAddr,
+                    decimals: 18,
+                    borrowCollateralFactor: "500000000000000000",
+                    liquidateCollateralFactor: "700000000000000000",
+                    liquidationFactor: "750000000000000000",
+                    supplyCap: "100000000000000000000000"
+                }
+            ]
+        };
+
+        const salt = ethers.solidityPackedKeccak256(["string"], ["test-salt"]);
+        const constructorParams = abiCoder.encode(
+            [
+                "tuple(address governor,address pauseGuardian,address baseToken,address baseTokenPriceFeed,address extensionDelegate,uint64 supplyKink,uint64 supplyPerYearInterestRateSlopeLow,uint64 supplyPerYearInterestRateSlopeHigh,uint64 supplyPerYearInterestRateBase,uint64 borrowKink,uint64 borrowPerYearInterestRateSlopeLow,uint64 borrowPerYearInterestRateSlopeHigh,uint64 borrowPerYearInterestRateBase,uint64 storeFrontPriceFactor,uint64 trackingIndexScale,uint64 baseTrackingSupplySpeed,uint64 baseTrackingBorrowSpeed,uint104 baseMinForRewards,uint104 baseBorrowMin,uint104 targetReserves,tuple(address asset,address priceFeed,uint8 decimals,uint64 borrowCollateralFactor,uint64 liquidateCollateralFactor,uint64 liquidationFactor,uint128 supplyCap)[] assetConfigs)"
+            ],
+            [cometConfiguration]
+        );
+        const deployer = users[0].address;
+
+        // Compute address before deployment
+        const computedAddress = await l2DeployManager.computeAddress(
+            bytecodeVersion_1_0_0,
+            salt,
+            constructorParams,
+            deployer
+        );
+
+        // Deploy and get actual address
+        const actualAddress = await l2DeployManager
+            .connect(users[0])
+            .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
+
+        // Addresses should match
+        expect(computedAddress).to.equal(actualAddress);
+    });
+
+    it("Should compute different addresses for different deployers", async () => {
+        const {
+            WOOF,
+            l1DeployManager,
+            l2DeployManager,
+            bytecodeVersion_1_0_0,
+            users,
+            mockBaseToken,
+            mockCollateralToken,
+            constantPriceFeedAddr,
+            governor
+        } = await restore();
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+
+        // Prepare Comet constructor parameters
+        const cometConfiguration = {
+            governor: governor.address,
+            pauseGuardian: governor.address,
+            baseToken: await mockBaseToken.getAddress(),
+            baseTokenPriceFeed: constantPriceFeedAddr,
+            extensionDelegate: ethers.ZeroAddress,
+            supplyKink: "900000000000000000",
+            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateBase: 0,
+            borrowKink: "900000000000000000",
+            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            storeFrontPriceFactor: "600000000000000000",
+            trackingIndexScale: "1000000000000000",
+            baseTrackingSupplySpeed: 810185185185,
+            baseTrackingBorrowSpeed: 821759259259,
+            baseMinForRewards: 1000000000000,
+            baseBorrowMin: 100000000,
+            targetReserves: 20000000000000,
+            assetConfigs: [
+                {
+                    asset: await mockCollateralToken.getAddress(),
+                    priceFeed: constantPriceFeedAddr,
+                    decimals: 18,
+                    borrowCollateralFactor: "500000000000000000",
+                    liquidateCollateralFactor: "700000000000000000",
+                    liquidationFactor: "750000000000000000",
+                    supplyCap: "100000000000000000000000"
+                }
+            ]
+        };
+
+        const salt = ethers.solidityPackedKeccak256(["string"], ["test-salt"]);
+        const constructorParams = abiCoder.encode(
+            [
+                "tuple(address governor,address pauseGuardian,address baseToken,address baseTokenPriceFeed,address extensionDelegate,uint64 supplyKink,uint64 supplyPerYearInterestRateSlopeLow,uint64 supplyPerYearInterestRateSlopeHigh,uint64 supplyPerYearInterestRateBase,uint64 borrowKink,uint64 borrowPerYearInterestRateSlopeLow,uint64 borrowPerYearInterestRateSlopeHigh,uint64 borrowPerYearInterestRateBase,uint64 storeFrontPriceFactor,uint64 trackingIndexScale,uint64 baseTrackingSupplySpeed,uint64 baseTrackingBorrowSpeed,uint104 baseMinForRewards,uint104 baseBorrowMin,uint104 targetReserves,tuple(address asset,address priceFeed,uint8 decimals,uint64 borrowCollateralFactor,uint64 liquidateCollateralFactor,uint64 liquidationFactor,uint128 supplyCap)[] assetConfigs)"
+            ],
+            [cometConfiguration]
+        );
+
+        // Compute addresses for different deployers
+        const address1 = await l2DeployManager.computeAddress(
+            bytecodeVersion_1_0_0,
+            salt,
+            constructorParams,
+            users[0].address
+        );
+
+        const address2 = await l2DeployManager.computeAddress(
+            bytecodeVersion_1_0_0,
+            salt,
+            constructorParams,
+            users[1].address
+        );
+
+        // Addresses should be different
+        expect(address1).to.not.equal(address2);
     });
 });
