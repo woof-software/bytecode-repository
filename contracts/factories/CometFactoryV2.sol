@@ -60,12 +60,11 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
     /// @dev The new version's major version must be equal to previous version's major version + 1.
     /// @dev New version must be released.
     /// @param _newVersion New version of the contract type.
-    function setVersion(Types.VersionWithAlternative calldata _newVersion) external {
-        Types.VersionWithAlternative storage _version = version;
+    function setVersion(Types.VersionWithAlternative memory _newVersion) external {
         if (msg.sender != timelock) revert OnlyTimelock();
         if (!bytecodeProvider.versionExists(Types.BytecodeVersion(COMET_CT, _newVersion))) revert NonExistingVersion();
-        if (_version.version.major + 1 != _newVersion.version.major) revert OnlyIterativeUpdate();
-        version = _version;
+        if (version.version.major + 1 != _newVersion.version.major) revert OnlyIterativeUpdate();
+        version = _newVersion;
 
         emit VersionSet(_newVersion);
     }
