@@ -238,13 +238,13 @@ contract VersionController is
         alternativeVersions[_bytecodeInput.contractType].push(_version);
     }
 
-    /* Auditor functions */
+    /* Verification function */
 
     /// @notice Uploads an audit report for specified bytecode.
     /// @dev Can only be called by the auditors.
     /// @dev Uploaded audit report must be unique for specified bytecode version.
     /// @dev Auditor should provide a signature following the https://eips.ethereum.org/EIPS/eip-712.
-    /// @dev Caller must be the author of the signature.
+    /// @dev Caller must be the developer of contract type.
     /// @param _bytecodeVersion A version of bytecode to verify.
     /// @param _auditReport a URL to the audit report.
     /// @param _signature a signature signed by auditor verifying that the auditor intents to approve the bytecode.
@@ -252,14 +252,20 @@ contract VersionController is
         BytecodeVersion calldata _bytecodeVersion,
         string calldata _auditReport,
         bytes calldata _signature
-    ) external onlyRole(AUDITOR_ROLE) bytecodeReleased(_bytecodeVersion.contractType) {
+    ) external checkDeveloper(_bytecodeVersion.contractType, msg.sender) {
+        if (bytes(_auditReport).length == 0) revert AuditReportEmpty();
+        if (!versionExists(_bytecodeVersion))
+            revert NonExistingVersion(_bytecodeVersion.contractType, _bytecodeVersion.version);
+
         bytes32 bytecodeHash = computeBytecodeHash(_bytecodeVersion.contractType, _bytecodeVersion.version);
         AuditStatus storage auditStatus = bytecodeAuditStatus[bytecodeHash];
-        if (bytes(auditStatus.auditReports[msg.sender]).length > 0)
-            revert AuditReportAlreadySubmitted(msg.sender, _auditReport);
         bytes32 reportHash = computeAuditReportHash(bytecodeHash, _auditReport);
         address author = ECDSA.recover(_hashTypedDataV4(reportHash), _signature);
-        if (author != msg.sender) revert InvalidAuditor(author);
+        _checkRole(AUDITOR_ROLE, author);
+
+        if (bytes(auditStatus.auditReports[author]).length > 0)
+            revert AuditReportAlreadySubmitted(author, _auditReport);
+
         // Store report
         auditStatus.auditors.push(author);
         auditStatus.auditReports[author] = _auditReport;
@@ -364,7 +370,7 @@ contract VersionController is
     /// @notice Validates if a specified bytecode version exists based on struct with contract type and version.
     /// @param _version A bytecode version to check.
     /// @return A boolean flag indicating if the version exists. True if exists, false otherwise.
-    function versionExists(BytecodeVersion calldata _version) external view returns (bool) {
+    function versionExists(BytecodeVersion calldata _version) public view returns (bool) {
         return versionExists(computeBytecodeHash(_version.contractType, _version.version));
     }
 

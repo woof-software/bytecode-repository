@@ -168,7 +168,7 @@ describe("VersionController", function () {
             auditors[0]
         );
         const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
-        await versionController.connect(auditors[0]).verifyBytecode(bytecodeVersion, auditReport, signature);
+        await versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature);
         expect(await versionController.isBytecodeVerified(bytecodeVersion)).to.be.true;
         const signedAuditors = await versionController.getAuditorsForBytecodeVersion(bytecodeVersion);
         expect(signedAuditors.length).to.equal(1);
@@ -199,7 +199,7 @@ describe("VersionController", function () {
             auditors[0]
         );
         const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
-        await versionController.connect(auditors[0]).verifyBytecode(bytecodeVersion, auditReport, signature);
+        await versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature);
         // Get bytecode
         expect(await versionController.getVerifiedBytecode(bytecodeVersion)).to.equal(CometInitCode);
     });
@@ -684,7 +684,96 @@ describe("VersionController", function () {
             .withArgs(WOOF.contractTypes[0], [[1, 0, 1], ""]);
     });
 
-    it("Should revert if not auditor tries to verify bytecode", async () => {
+    it("Should revert if audit report is empty", async () => {
+        const { WOOF, auditors, versionController } = await restore();
+        // Release bytecode
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        // Sign bytecode with empty audit report
+        const version = {
+            version: { major: 1, minor: 0, patch: 0 },
+            alternative: ""
+        };
+        const bytecodeHash = await versionController.computeBytecodeHash(WOOF.contractTypes[0], version);
+        const auditReport = ""; // Empty audit report
+        const signature = await prepareAuditReportSignature(
+            bytecodeHash,
+            auditReport,
+            await versionController.getAddress(),
+            auditors[0]
+        );
+        const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature)
+        ).revertedWithCustomError(versionController, "AuditReportEmpty");
+    });
+
+    it("Should revert if version does not exist", async () => {
+        const { WOOF, auditors, versionController } = await restore();
+        // Release bytecode
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        // Try to verify non-existing version
+        const nonExistingVersion = {
+            version: { major: 2, minor: 0, patch: 0 }, // This version doesn't exist
+            alternative: ""
+        };
+        const bytecodeHash = await versionController.computeBytecodeHash(WOOF.contractTypes[0], nonExistingVersion);
+        const auditReport = "AUDIT_REPORT_URL";
+        const signature = await prepareAuditReportSignature(
+            bytecodeHash,
+            auditReport,
+            await versionController.getAddress(),
+            auditors[0]
+        );
+        const bytecodeVersion = { contractType: WOOF.contractTypes[0], version: nonExistingVersion };
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature)
+        )
+            .revertedWithCustomError(versionController, "NonExistingVersion")
+            .withArgs(WOOF.contractTypes[0], [[2, 0, 0], ""]);
+    });
+
+    it("Should revert if caller is wrong developer for contract type", async () => {
+        const { WOOF, devTeam2, auditors, versionController } = await restore();
+        // Release bytecode
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        // Sign bytecode
+        const version = {
+            version: { major: 1, minor: 0, patch: 0 },
+            alternative: ""
+        };
+        const bytecodeHash = await versionController.computeBytecodeHash(WOOF.contractTypes[0], version);
+        const auditReport = "AUDIT_REPORT_URL";
+        const signature = await prepareAuditReportSignature(
+            bytecodeHash,
+            auditReport,
+            await versionController.getAddress(),
+            auditors[0]
+        );
+        const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
+        // Try to verify with wrong developer (devTeam2 is not assigned to WOOF contract type)
+        await expect(
+            versionController.connect(devTeam2.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature)
+        )
+            .revertedWithCustomError(versionController, "WrongDeveloper")
+            .withArgs(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+    });
+
+    it("Should revert if not developer tries to verify bytecode", async () => {
         const { WOOF, users, auditors, versionController } = await restore();
         // Release bytecode
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
@@ -708,8 +797,8 @@ describe("VersionController", function () {
         );
         const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
         await expect(versionController.connect(users[0]).verifyBytecode(bytecodeVersion, auditReport, signature))
-            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
-            .withArgs(users[0], await versionController.AUDITOR_ROLE());
+            .revertedWithCustomError(versionController, "NotDeveloper")
+            .withArgs(users[0]);
     });
 
     it("Should not let submit same audit report for same contract type twice", async () => {
@@ -735,15 +824,17 @@ describe("VersionController", function () {
             auditors[0]
         );
         const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
-        await versionController.connect(auditors[0]).verifyBytecode(bytecodeVersion, auditReport, signature);
+        await versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature);
         // Try to verify again with same report
-        await expect(versionController.connect(auditors[0]).verifyBytecode(bytecodeVersion, auditReport, signature))
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature)
+        )
             .revertedWithCustomError(versionController, "AuditReportAlreadySubmitted")
             .withArgs(auditors[0], auditReport);
     });
 
-    it("Should revert if caller is not the author of report", async () => {
-        const { WOOF, auditors, versionController } = await restore();
+    it("Should revert if signature is not from valid auditor", async () => {
+        const { WOOF, auditors, users, versionController } = await restore();
         // Release bytecode
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
         await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
@@ -762,12 +853,14 @@ describe("VersionController", function () {
             bytecodeHash,
             auditReport,
             await versionController.getAddress(),
-            auditors[0]
+            users[0] // Sign with non-auditor
         );
         const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
-        await expect(versionController.connect(auditors[1]).verifyBytecode(bytecodeVersion, auditReport, signature))
-            .revertedWithCustomError(versionController, "InvalidAuditor")
-            .withArgs(auditors[0]);
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature)
+        )
+            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
+            .withArgs(users[0], await versionController.AUDITOR_ROLE());
     });
 
     it("Should not let assign dev for contract type if caller is neither admin nor key dev of contract type", async () => {

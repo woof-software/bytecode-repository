@@ -78,7 +78,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[0], version }, auditReport, signature);
 
         // CometExt
@@ -94,7 +94,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[1], version }, auditReport, signature);
 
         // CometWithExtendedAssetList
@@ -110,7 +110,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[2], version }, auditReport, signature);
 
         // CometExtAssetList
@@ -126,7 +126,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[3], version }, auditReport, signature);
 
         // ConstantPriceFeed
@@ -142,7 +142,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[4], version }, auditReport, signature);
 
         // CometProxyAdmin
@@ -158,7 +158,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[5], version }, auditReport, signature);
 
         // AssetList
@@ -174,7 +174,7 @@ describe("MarketFactory", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[6], version }, auditReport, signature);
 
         // Deploy Mock tokens, Comet Proxy Admin, AssetList, Oracle

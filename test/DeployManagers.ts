@@ -87,7 +87,9 @@ describe("L1/L2 DeployManager", function () {
             auditors[0]
         );
         const bytecodeVersion_1_0_0 = { contractType: WOOF.contractTypes[0], version };
-        await versionController.connect(auditors[0]).verifyBytecode(bytecodeVersion_1_0_0, auditReport, signature);
+        await versionController
+            .connect(WOOF.keyDeveloper)
+            .verifyBytecode(bytecodeVersion_1_0_0, auditReport, signature);
 
         // Deploy mock tokens and oracle for Comet configuration
         const mockBaseToken = await (await ethers.getContractFactory("MockERC20")).deploy("Base Token", "BT");
@@ -117,7 +119,7 @@ describe("L1/L2 DeployManager", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode(
                 { contractType: constantPriceFeedContractType, version: priceFeedVersion },
                 auditReport,

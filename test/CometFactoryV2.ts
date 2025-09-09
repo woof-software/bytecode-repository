@@ -77,7 +77,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[0], version: version_1_0_0 }, auditReport, signature);
 
         // Release CometWithAssetList v1.0.0
@@ -93,7 +93,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[1], version: version_1_0_0 }, auditReport, signature);
 
         // Release Comet v2.0.0 for version upgrade tests
@@ -109,7 +109,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[0], version: version_2_0_0 }, auditReport, signature);
 
         // Deploy CometExt for extension delegates
@@ -125,7 +125,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[2], version: version_1_0_0 }, auditReport, signature);
 
         // Deploy CometExtWithAssetList for CometWithAssetList extension delegates
@@ -141,7 +141,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[3], version: version_1_0_0 }, auditReport, signature);
 
         // Deploy ConstantPriceFeed for Comet configuration
@@ -157,7 +157,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[4], version: version_1_0_0 }, auditReport, signature);
 
         // Deploy AssetListFactory for CometWithAssetList
@@ -173,7 +173,7 @@ describe("CometFactoryV2", function () {
             auditors[0]
         );
         await versionController
-            .connect(auditors[0])
+            .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[5], version: version_1_0_0 }, auditReport, signature);
 
         // Deploy mock tokens and price feed
