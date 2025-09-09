@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { network, ethers, upgrades } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { CometInitCode, CometExtInitCode } from "./testData.json";
+import { CometInitCode, CometExtInitCode, CometWithExtendedAssetListInitCode } from "./testData.json";
 import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
 
 describe("VersionController", function () {
@@ -496,7 +496,7 @@ describe("VersionController", function () {
         await versionController.connect(WOOF.subDevelopers[2]).releaseMinorVersion(
             {
                 contractType: WOOF.contractTypes[0],
-                initCode: CometExtInitCode,
+                initCode: CometWithExtendedAssetListInitCode,
                 sourceURL: "NEW_URL"
             },
             1
@@ -585,7 +585,7 @@ describe("VersionController", function () {
         await versionController.connect(WOOF.subDevelopers[1]).releasePatchVersion(
             {
                 contractType: WOOF.contractTypes[0],
-                initCode: CometExtInitCode,
+                initCode: CometWithExtendedAssetListInitCode,
                 sourceURL: "NEW_URL"
             },
             1,
@@ -986,7 +986,7 @@ describe("VersionController", function () {
             versionController.connect(WOOF.subDevelopers[1]).releaseAlternativeVersion(
                 {
                     contractType: WOOF.contractTypes[0],
-                    initCode: CometExtInitCode,
+                    initCode: CometWithExtendedAssetListInitCode,
                     sourceURL: NEW_URL
                 },
                 alternativeVersion
@@ -1027,5 +1027,83 @@ describe("VersionController", function () {
                 sourceURL: URL
             })
         ).revertedWithCustomError(versionController, "InitCodeIsEmpty");
+    });
+
+    it("Should not allow uploading same initCode twice", async () => {
+        const { WOOF, devTeam2, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release bytecode with WOOF team first
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Try to upload same initCode for different contract type with different team
+        const bytecodeHash = ethers.keccak256(CometInitCode);
+        await expect(
+            versionController.connect(devTeam2.keyDeveloper).releaseBytecode({
+                contractType: devTeam2.contractTypes[0],
+                initCode: CometInitCode,
+                sourceURL: URL
+            })
+        )
+            .revertedWithCustomError(versionController, "BytecodeAlreadyUploaded")
+            .withArgs(bytecodeHash);
+    });
+
+    it("Should not allow uploading same initCode in different versions", async () => {
+        const { WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release initial bytecode
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Try to upload same initCode as major version
+        const bytecodeHash = ethers.keccak256(CometInitCode);
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+                contractType: WOOF.contractTypes[0],
+                initCode: CometInitCode,
+                sourceURL: URL
+            })
+        )
+            .revertedWithCustomError(versionController, "BytecodeAlreadyUploaded")
+            .withArgs(bytecodeHash);
+    });
+
+    it("Should not allow uploading same initCode in alternative versions", async () => {
+        const { WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release initial bytecode
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Try to upload same initCode as alternative version
+        const bytecodeHash = ethers.keccak256(CometInitCode);
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseAlternativeVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: CometInitCode,
+                    sourceURL: URL
+                },
+                {
+                    version: { major: 1, minor: 0, patch: 0 },
+                    alternative: "optimized"
+                }
+            )
+        )
+            .revertedWithCustomError(versionController, "BytecodeAlreadyUploaded")
+            .withArgs(bytecodeHash);
     });
 });

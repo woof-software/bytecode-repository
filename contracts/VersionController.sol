@@ -75,6 +75,8 @@ contract VersionController is
     mapping(bytes32 => Bytecode) public bytecodes;
     /// @notice Stores the audits information for given bytecode hash.
     mapping(bytes32 => AuditStatus) private bytecodeAuditStatus;
+    /// @notice Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
+    mapping(bytes32 => bool) public isBytecodeUploaded;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -405,8 +407,14 @@ contract VersionController is
         VersionWithAlternative memory _version
     ) internal {
         address[] memory initCodePointers = BytecodeStore._writeInitCode(_bytecodeInput.initCode);
+        bytes32 bytecodeHash = keccak256(_bytecodeInput.initCode);
+
+        if (isBytecodeUploaded[bytecodeHash]) revert BytecodeAlreadyUploaded(bytecodeHash);
+        isBytecodeUploaded[bytecodeHash] = true;
+
         Bytecode memory bc = Bytecode({
             contractType: _bytecodeInput.contractType,
+            bytecodeHash: bytecodeHash,
             initCodePtrs: initCodePointers,
             sourceURL: _bytecodeInput.sourceURL,
             author: _keyDeveloper
