@@ -72,6 +72,7 @@ describe("CometFactoryV2", function () {
         });
         let signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[0], version_1_0_0),
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -88,6 +89,7 @@ describe("CometFactoryV2", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[1], version_1_0_0),
+            ethers.keccak256(CometWithExtendedAssetListInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -99,11 +101,12 @@ describe("CometFactoryV2", function () {
         // Release Comet v2.0.0 for version upgrade tests
         await versionController.connect(WOOF.subDevelopers[0]).releaseMajorVersion({
             contractType: WOOF.contractTypes[0], // Comet
-            initCode: CometInitCode, // Using same bytecode for simplicity
+            initCode: CometExtInitCode, // Using different bytecode to avoid BytecodeAlreadyUploaded error
             sourceURL: URL
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[0], version_2_0_0),
+            ethers.keccak256(CometExtInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -120,6 +123,7 @@ describe("CometFactoryV2", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[2], version_1_0_0),
+            ethers.keccak256(CometExtInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -136,6 +140,7 @@ describe("CometFactoryV2", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[3], version_1_0_0),
+            ethers.keccak256(CometExtAssetList),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -152,6 +157,7 @@ describe("CometFactoryV2", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[4], version_1_0_0),
+            ethers.keccak256(ConstantPriceFeedInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -168,6 +174,7 @@ describe("CometFactoryV2", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[5], version_1_0_0),
+            ethers.keccak256(AssetListFactoryInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -361,12 +368,13 @@ describe("CometFactoryV2", function () {
             });
             const signature = await prepareAuditReportSignature(
                 await versionController.computeBytecodeHash(await cometFactory.COMET_CT(), version_3_0_0),
+                ethers.keccak256(CometInitCode),
                 "AUDIT_REPORT_URL",
                 await versionController.getAddress(),
                 auditors[0]
             );
             await versionController
-                .connect(auditors[0])
+                .connect(WOOF.keyDeveloper)
                 .verifyBytecode(
                     { contractType: await cometFactory.COMET_CT(), version: version_3_0_0 },
                     "AUDIT_REPORT_URL",

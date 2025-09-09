@@ -73,6 +73,7 @@ describe("MarketFactory", function () {
         });
         let signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[0], version),
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -89,6 +90,7 @@ describe("MarketFactory", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[1], version),
+            ethers.keccak256(CometExtInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -105,6 +107,7 @@ describe("MarketFactory", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[2], version),
+            ethers.keccak256(CometWithExtendedAssetListInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -121,6 +124,7 @@ describe("MarketFactory", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[3], version),
+            ethers.keccak256(CometExtAssetList),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -137,6 +141,7 @@ describe("MarketFactory", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[4], version),
+            ethers.keccak256(ConstantPriceFeedInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -153,6 +158,7 @@ describe("MarketFactory", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[5], version),
+            ethers.keccak256(CometProxyAdminInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -169,6 +175,7 @@ describe("MarketFactory", function () {
         });
         signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[6], version),
+            ethers.keccak256(AssetListFactoryInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]

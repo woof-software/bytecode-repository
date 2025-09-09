@@ -82,6 +82,7 @@ describe("L1/L2 DeployManager", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash_1_0_0,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -114,6 +115,7 @@ describe("L1/L2 DeployManager", function () {
         );
         const priceFeedSignature = await prepareAuditReportSignature(
             priceFeedBytecodeHash,
+            ethers.keccak256(ConstantPriceFeedInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]

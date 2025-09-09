@@ -48,7 +48,8 @@ contract VersionController is
     using Strings for uint256;
 
     /// @notice Audit report typehash.
-    bytes32 public constant AUDIT_REPORT_TYPEHASH = keccak256("AuditReport(bytes32 bytecodeHash,string auditReport)");
+    bytes32 public constant AUDIT_REPORT_TYPEHASH =
+        keccak256("AuditReport(bytes32 bytecodeVersionHash,bytes32 bytecodeHash,string auditReport)");
     /// @notice Key Developer role for AccessControl.
     bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
     /// @notice Sub Developer role for AccessControl.
@@ -259,7 +260,7 @@ contract VersionController is
 
         bytes32 bytecodeHash = computeBytecodeHash(_bytecodeVersion.contractType, _bytecodeVersion.version);
         AuditStatus storage auditStatus = bytecodeAuditStatus[bytecodeHash];
-        bytes32 reportHash = computeAuditReportHash(bytecodeHash, _auditReport);
+        bytes32 reportHash = computeAuditReportHash(bytecodeHash, bytecodes[bytecodeHash].initCodeHash, _auditReport);
         address author = ECDSA.recover(_hashTypedDataV4(reportHash), _signature);
         _checkRole(AUDITOR_ROLE, author);
 
@@ -312,11 +313,19 @@ contract VersionController is
     }
 
     /// @notice Computes an audit report hash.
-    /// @param _bytecodeHash A hash of bytecode version for which the audit report hash is computed.
+    /// @param _bytecodeVersionHash A hash of bytecode version for which the audit report hash is computed.
+    /// @param _bytecodeHash A hash of bytecode.
     /// @param _auditReport a URL of the audit report.
     /// @return Hash of specified audit report.
-    function computeAuditReportHash(bytes32 _bytecodeHash, string calldata _auditReport) public pure returns (bytes32) {
-        return keccak256(abi.encode(AUDIT_REPORT_TYPEHASH, _bytecodeHash, keccak256(bytes(_auditReport))));
+    function computeAuditReportHash(
+        bytes32 _bytecodeVersionHash,
+        bytes32 _bytecodeHash,
+        string calldata _auditReport
+    ) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(AUDIT_REPORT_TYPEHASH, _bytecodeVersionHash, _bytecodeHash, keccak256(bytes(_auditReport)))
+            );
     }
 
     /// @notice Returns the key developer for given account.
@@ -420,7 +429,7 @@ contract VersionController is
 
         Bytecode memory bc = Bytecode({
             contractType: _bytecodeInput.contractType,
-            bytecodeHash: bytecodeHash,
+            initCodeHash: bytecodeHash,
             initCodePtrs: initCodePointers,
             sourceURL: _bytecodeInput.sourceURL,
             author: _keyDeveloper

@@ -61,7 +61,7 @@ interface Types {
      */
     struct Bytecode {
         bytes32 contractType;
-        bytes32 bytecodeHash;
+        bytes32 initCodeHash;
         address[] initCodePtrs;
         string sourceURL;
         address author;

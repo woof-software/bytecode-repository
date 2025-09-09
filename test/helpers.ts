@@ -30,6 +30,7 @@ function domainResultToPlainObject(result: EIP712Domain) {
 }
 
 async function prepareAuditReportSignature(
+    bytecodeVersionHash: string,
     bytecodeHash: string,
     auditReport: string,
     verifyingContract: string,
@@ -43,11 +44,12 @@ async function prepareAuditReportSignature(
     };
     const auditReportType = {
         AuditReport: [
+            { name: "bytecodeVersionHash", type: "bytes32" },
             { name: "bytecodeHash", type: "bytes32" },
             { name: "auditReport", type: "string" }
         ]
     };
-    const auditReportValues = { bytecodeHash, auditReport };
+    const auditReportValues = { bytecodeVersionHash, bytecodeHash, auditReport };
     return auditor.signTypedData(domain, auditReportType, auditReportValues);
 }
 

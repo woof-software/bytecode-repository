@@ -68,6 +68,7 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     ) external pure returns (bytes32);
 
     function computeAuditReportHash(
+        bytes32 _bytecodeVersionHash,
         bytes32 _bytecodeHash,
         string calldata _auditReport
     ) external pure returns (bytes32);

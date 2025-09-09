@@ -163,6 +163,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -194,6 +195,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -702,6 +704,7 @@ describe("VersionController", function () {
         const auditReport = ""; // Empty audit report
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -730,6 +733,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -760,6 +764,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -791,6 +796,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -819,6 +825,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -851,6 +858,7 @@ describe("VersionController", function () {
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
             bytecodeHash,
+            ethers.keccak256(CometInitCode),
             auditReport,
             await versionController.getAddress(),
             users[0] // Sign with non-auditor
