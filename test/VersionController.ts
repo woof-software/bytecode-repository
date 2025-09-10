@@ -45,10 +45,10 @@ describe("VersionController", function () {
         const AUDITOR_ROLE = await versionController.AUDITOR_ROLE();
         for (const auditor of auditors) await versionController.connect(governor).grantRole(AUDITOR_ROLE, auditor);
 
-        const KEY_DEVELOPER_ROLE = await versionController.KEY_DEVELOPER_ROLE();
-        await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, WOOF.keyDeveloper);
-        await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, devTeam2.keyDeveloper);
-        await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, devTeam3.keyDeveloper);
+        // const KEY_DEVELOPER_ROLE = await versionController.KEY_DEVELOPER_ROLE();
+        // await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, WOOF.keyDeveloper);
+        // await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, devTeam2.keyDeveloper);
+        // await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, devTeam3.keyDeveloper);
 
         for (const contractType of WOOF.contractTypes)
             await versionController.connect(governor).assignDeveloperForContractType(contractType, WOOF.keyDeveloper);
@@ -896,26 +896,26 @@ describe("VersionController", function () {
             .withArgs(users[0], await versionController.AUDITOR_ROLE());
     });
 
-    it("Should not let assign dev for contract type if caller is neither admin nor key dev of contract type", async () => {
+    it("Should not let non-admin assign dev for contract type", async () => {
         const { users, versionController } = await restore();
         const newContractType = ethers.encodeBytes32String("New_Contract_Type");
         await expect(versionController.connect(users[0]).assignDeveloperForContractType(newContractType, users[1]))
-            .revertedWithCustomError(versionController, "NotAuthorizedForContractType")
-            .withArgs(newContractType, users[0]);
+            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
+            .withArgs(users[0], await versionController.DEFAULT_ADMIN_ROLE());
     });
 
-    it("Should not let assign dev for contract type if caller is not key dev of contract type", async () => {
+    it("Should not let key developer assign dev for contract type (admin-only function)", async () => {
         const { WOOF, devTeam2, devTeam3, versionController } = await restore();
         await expect(
             versionController
                 .connect(devTeam2.keyDeveloper)
                 .assignDeveloperForContractType(WOOF.contractTypes[0], devTeam3.keyDeveloper)
         )
-            .revertedWithCustomError(versionController, "NotAuthorizedForContractType")
-            .withArgs(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
+            .withArgs(devTeam2.keyDeveloper, await versionController.DEFAULT_ADMIN_ROLE());
     });
 
-    it("Should not let assign dev for contract type if caller no longer has a key dev role", async () => {
+    it("Should not let revoked key developer assign dev for contract type", async () => {
         const { WOOF, devTeam2, governor, versionController } = await restore();
         // revoke role
         await versionController
@@ -924,7 +924,7 @@ describe("VersionController", function () {
         await expect(
             versionController
                 .connect(WOOF.keyDeveloper)
-                .assignDeveloperForContractType(WOOF.contractTypes[0], devTeam2.keyDeveloper)
+                .transferContractTypeOwnership(WOOF.contractTypes[0], devTeam2.keyDeveloper)
         )
             .revertedWithCustomError(versionController, "NotAuthorizedForContractType")
             .withArgs(WOOF.contractTypes[0], WOOF.keyDeveloper);
@@ -939,13 +939,22 @@ describe("VersionController", function () {
             .withArgs(WOOF.keyDeveloper);
     });
 
-    it("Should not let assign contract type to not key developer", async () => {
+    it("Should allow admin to assign contract type to user and grant key developer role automatically", async () => {
         const { WOOF, governor, users, versionController } = await restore();
+
+        // Verify user doesn't have key developer role initially
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), users[0])).to.be.false;
+
+        // Admin assigns contract type (should grant role automatically)
         await expect(
             versionController.connect(governor).assignDeveloperForContractType(WOOF.contractTypes[0], users[0])
         )
-            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
-            .withArgs(users[0], await versionController.KEY_DEVELOPER_ROLE());
+            .to.emit(versionController, "KeyDeveloperAssigned")
+            .withArgs(WOOF.contractTypes[0], users[0]);
+
+        // Verify role was granted and assignment was made
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), users[0])).to.be.true;
+        expect(await versionController.contractTypeKeyDeveloper(WOOF.contractTypes[0])).to.equal(users[0]);
     });
 
     it("Should not let add same sub developer", async () => {
@@ -1797,5 +1806,242 @@ describe("VersionController", function () {
                 version: { version: { major: 2, minor: 2, patch: 0 }, alternative: "" }
             })
         ).to.be.false;
+    });
+
+    /* Developer Assignment and Transfer Tests */
+
+    it("Should allow admin to change key developer for existing contract type", async () => {
+        const { governor, WOOF, devTeam2, versionController } = await restore();
+
+        // Change WOOF contract type to devTeam2 key developer
+        await expect(
+            versionController
+                .connect(governor)
+                .assignDeveloperForContractType(WOOF.contractTypes[0], devTeam2.keyDeveloper)
+        )
+            .to.emit(versionController, "KeyDeveloperAssigned")
+            .withArgs(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+
+        // Verify assignment changed
+        expect(await versionController.contractTypeKeyDeveloper(WOOF.contractTypes[0])).to.equal(devTeam2.keyDeveloper);
+        // Both should still have key developer role
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper)).to.be
+            .true;
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.keyDeveloper)).to
+            .be.true;
+    });
+
+    it("Should allow admin to reset contract type ownership with zero address", async () => {
+        const { governor, WOOF, versionController } = await restore();
+
+        // Reset ownership by assigning zero address
+        await expect(
+            versionController
+                .connect(governor)
+                .assignDeveloperForContractType(WOOF.contractTypes[0], ethers.ZeroAddress)
+        )
+            .to.emit(versionController, "KeyDeveloperAssigned")
+            .withArgs(WOOF.contractTypes[0], ethers.ZeroAddress);
+
+        // Verify assignment was reset
+        expect(await versionController.contractTypeKeyDeveloper(WOOF.contractTypes[0])).to.equal(ethers.ZeroAddress);
+        // Original key developer should still have the role (not revoked)
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper)).to.be
+            .true;
+    });
+
+    it("Should not grant role when admin assigns zero address", async () => {
+        const { governor, users, versionController } = await restore();
+        const newContractType = ethers.encodeBytes32String("NewContractType");
+
+        // First assign a real developer
+        await versionController.connect(governor).assignDeveloperForContractType(newContractType, users[0]);
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), users[0])).to.be.true;
+
+        // Then reset with zero address - should not affect role
+        await versionController.connect(governor).assignDeveloperForContractType(newContractType, ethers.ZeroAddress);
+        expect(await versionController.contractTypeKeyDeveloper(newContractType)).to.equal(ethers.ZeroAddress);
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), ethers.ZeroAddress)).to.be
+            .false;
+    });
+
+    it("Should allow key developer to transfer contract type ownership to another key developer", async () => {
+        const { WOOF, devTeam2, versionController } = await restore();
+
+        // WOOF key developer transfers ownership to devTeam2 key developer
+        await expect(
+            versionController
+                .connect(WOOF.keyDeveloper)
+                .transferContractTypeOwnership(WOOF.contractTypes[0], devTeam2.keyDeveloper)
+        )
+            .to.emit(versionController, "KeyDeveloperAssigned")
+            .withArgs(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+
+        // Verify ownership transferred
+        expect(await versionController.contractTypeKeyDeveloper(WOOF.contractTypes[0])).to.equal(devTeam2.keyDeveloper);
+
+        // Verify both still have key developer roles (no role changes)
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper)).to.be
+            .true;
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.keyDeveloper)).to
+            .be.true;
+    });
+
+    it("Should revert when non-key-developer tries to transfer contract type ownership", async () => {
+        const { WOOF, users, versionController } = await restore();
+
+        await expect(versionController.connect(users[0]).transferContractTypeOwnership(WOOF.contractTypes[0], users[1]))
+            .revertedWithCustomError(versionController, "NotAuthorizedForContractType")
+            .withArgs(WOOF.contractTypes[0], users[0]);
+    });
+
+    it("Should revert when key developer tries to transfer ownership of contract type they don't own", async () => {
+        const { WOOF, devTeam2, versionController } = await restore();
+
+        // devTeam2 key developer tries to transfer WOOF's contract type
+        await expect(
+            versionController
+                .connect(devTeam2.keyDeveloper)
+                .transferContractTypeOwnership(WOOF.contractTypes[0], devTeam2.keyDeveloper)
+        )
+            .revertedWithCustomError(versionController, "NotAuthorizedForContractType")
+            .withArgs(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+    });
+
+    it("Should revert when trying to transfer to same key developer", async () => {
+        const { WOOF, versionController } = await restore();
+
+        await expect(
+            versionController
+                .connect(WOOF.keyDeveloper)
+                .transferContractTypeOwnership(WOOF.contractTypes[0], WOOF.keyDeveloper)
+        )
+            .revertedWithCustomError(versionController, "SameKeyDeveloper")
+            .withArgs(WOOF.keyDeveloper);
+    });
+
+    it("Should revert when transferring to address without key developer role", async () => {
+        const { WOOF, users, versionController } = await restore();
+
+        // Verify user doesn't have key developer role
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), users[0])).to.be.false;
+
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).transferContractTypeOwnership(WOOF.contractTypes[0], users[0])
+        )
+            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
+            .withArgs(users[0], await versionController.KEY_DEVELOPER_ROLE());
+    });
+
+    it("Should revert when revoked key developer tries to transfer ownership", async () => {
+        const { WOOF, devTeam2, governor, versionController } = await restore();
+
+        // Revoke WOOF key developer role
+        await versionController
+            .connect(governor)
+            .revokeRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper);
+
+        await expect(
+            versionController
+                .connect(WOOF.keyDeveloper)
+                .transferContractTypeOwnership(WOOF.contractTypes[0], devTeam2.keyDeveloper)
+        )
+            .revertedWithCustomError(versionController, "NotAuthorizedForContractType")
+            .withArgs(WOOF.contractTypes[0], WOOF.keyDeveloper);
+    });
+
+    it("Should allow key developer to transfer ownership after admin reset", async () => {
+        const { governor, WOOF, devTeam2, users, versionController } = await restore();
+
+        // Admin resets ownership
+        await versionController
+            .connect(governor)
+            .assignDeveloperForContractType(WOOF.contractTypes[0], ethers.ZeroAddress);
+        expect(await versionController.contractTypeKeyDeveloper(WOOF.contractTypes[0])).to.equal(ethers.ZeroAddress);
+
+        // Admin reassigns to a different key developer
+        await versionController
+            .connect(governor)
+            .assignDeveloperForContractType(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+
+        // New owner should be able to transfer
+        await versionController.connect(governor).grantRole(await versionController.KEY_DEVELOPER_ROLE(), users[0]);
+        await versionController
+            .connect(devTeam2.keyDeveloper)
+            .transferContractTypeOwnership(WOOF.contractTypes[0], users[0]);
+
+        expect(await versionController.contractTypeKeyDeveloper(WOOF.contractTypes[0])).to.equal(users[0]);
+    });
+
+    it("Should maintain functionality after ownership transfer", async () => {
+        const { WOOF, devTeam2, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Original key developer releases bytecode
+        await versionController.connect(WOOF.keyDeveloper).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Transfer ownership
+        await versionController
+            .connect(WOOF.keyDeveloper)
+            .transferContractTypeOwnership(WOOF.contractTypes[0], devTeam2.keyDeveloper);
+
+        // New owner should be able to manage the contract type
+        await time.increase(time.duration.days(90)); // Skip cooldown
+        await versionController.connect(devTeam2.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometExtInitCode,
+            sourceURL: "NEW_URL"
+        });
+
+        const latestVersion = await versionController.latestVersions(WOOF.contractTypes[0]);
+        expect(latestVersion.major).to.equal(2);
+
+        // Old owner should no longer be able to manage the contract type - try to release another major version
+        await time.increase(time.duration.days(90)); // Skip cooldown
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+                contractType: WOOF.contractTypes[0],
+                initCode: CometWithExtendedAssetListInitCode,
+                sourceURL: "ANOTHER_URL"
+            })
+        )
+            .revertedWithCustomError(versionController, "WrongDeveloper")
+            .withArgs(WOOF.contractTypes[0], WOOF.keyDeveloper);
+    });
+
+    it("Should allow complex ownership transfer chain", async () => {
+        const { governor, WOOF, devTeam2, devTeam3, versionController } = await restore();
+        const contractType = WOOF.contractTypes[0];
+
+        // Initial: WOOF owns contract type
+        expect(await versionController.contractTypeKeyDeveloper(contractType)).to.equal(WOOF.keyDeveloper);
+
+        // Transfer: WOOF -> devTeam2
+        await versionController
+            .connect(WOOF.keyDeveloper)
+            .transferContractTypeOwnership(contractType, devTeam2.keyDeveloper);
+        expect(await versionController.contractTypeKeyDeveloper(contractType)).to.equal(devTeam2.keyDeveloper);
+
+        // Transfer: devTeam2 -> devTeam3
+        await versionController
+            .connect(devTeam2.keyDeveloper)
+            .transferContractTypeOwnership(contractType, devTeam3.keyDeveloper);
+        expect(await versionController.contractTypeKeyDeveloper(contractType)).to.equal(devTeam3.keyDeveloper);
+
+        // Admin override: devTeam3 -> WOOF
+        await versionController.connect(governor).assignDeveloperForContractType(contractType, WOOF.keyDeveloper);
+        expect(await versionController.contractTypeKeyDeveloper(contractType)).to.equal(WOOF.keyDeveloper);
+
+        // Verify all still have key developer roles
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper)).to.be
+            .true;
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.keyDeveloper)).to
+            .be.true;
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam3.keyDeveloper)).to
+            .be.true;
     });
 });

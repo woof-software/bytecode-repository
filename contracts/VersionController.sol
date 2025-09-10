@@ -130,20 +130,18 @@ contract VersionController is
         _;
     }
 
-    /* Governor functions */
+    /* Contract type management functions */
 
     /// @notice Assigns a new key developer for a certain contract type.
     /// @dev Governor can use this function to initializes contract type and forcibly assign new key developer.
-    /// @dev Key developer can use this functions to transfer developer rights over contract type to another key developer.
-    /// @dev Key developer must already have a KEY_DEVELOPER_ROLE.
+    /// @dev Grants a key developer role to a given account.
     /// @param _contractType A type of contract to assign developer for.
     /// @param _keyDeveloper An address of key developer to assign.
-    function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external {
-        if (
-            !hasRole(DEFAULT_ADMIN_ROLE, msg.sender) &&
-            (!hasRole(KEY_DEVELOPER_ROLE, msg.sender) || contractTypeKeyDeveloper[_contractType] != msg.sender)
-        ) revert NotAuthorizedForContractType(_contractType, msg.sender);
-        _checkRole(KEY_DEVELOPER_ROLE, _keyDeveloper);
+    function assignDeveloperForContractType(
+        bytes32 _contractType,
+        address _keyDeveloper
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_keyDeveloper != address(0)) _grantRole(KEY_DEVELOPER_ROLE, _keyDeveloper);
         if (contractTypeKeyDeveloper[_contractType] == _keyDeveloper) revert SameKeyDeveloper(_keyDeveloper);
         contractTypeKeyDeveloper[_contractType] = _keyDeveloper;
 
@@ -164,6 +162,21 @@ contract VersionController is
         else delete minPatchReleaseTimestamp[_contractType];
 
         emit CooldownReset(_contractType, _version, _major);
+    }
+
+    /// @notice Transfers ownership over contract type to a new key developer.
+    /// @dev Key developer can use this functions to transfer developer rights over contract type to another key developer.
+    /// @dev New key developer must already have a KEY_DEVELOPER_ROLE.
+    /// @param _contractType A type of contract to assign developer for.
+    /// @param _newKeyDeveloper An address of key developer to assign.
+    function transferContractTypeOwnership(bytes32 _contractType, address _newKeyDeveloper) external {
+        if (!hasRole(KEY_DEVELOPER_ROLE, msg.sender) || contractTypeKeyDeveloper[_contractType] != msg.sender)
+            revert NotAuthorizedForContractType(_contractType, msg.sender);
+        if (contractTypeKeyDeveloper[_contractType] == _newKeyDeveloper) revert SameKeyDeveloper(_newKeyDeveloper);
+        _checkRole(KEY_DEVELOPER_ROLE, _newKeyDeveloper);
+        contractTypeKeyDeveloper[_contractType] = _newKeyDeveloper;
+
+        emit KeyDeveloperAssigned(_contractType, _newKeyDeveloper);
     }
 
     /* Upload bytecode functions */
