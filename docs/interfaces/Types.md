@@ -2,6 +2,16 @@
 
 ## Types
 
+### VersionType
+
+```solidity
+enum VersionType {
+  Major,
+  Minor,
+  Patch
+}
+```
+
 ### Version
 
 Represents a version.
@@ -74,6 +84,7 @@ Represents information about stored bytecode.
 
 _Fields:
 - `contractType`: a type of contract of given bytecode
+- `initCodeHash`: a hash of init code
 - `initCodePtrs`: address pointers at which parts of bytecode are stored
 - `sourceURL`: link to repository where source code of bytecode is stored
 - `author`: address of the author of bytecode_
@@ -81,6 +92,7 @@ _Fields:
 ```solidity
 struct Bytecode {
   bytes32 contractType;
+  bytes32 initCodeHash;
   address[] initCodePtrs;
   string sourceURL;
   address author;

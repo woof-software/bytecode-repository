@@ -26,6 +26,12 @@ event BytecodeUploaded(bytes32 _contractType, struct Types.Version _version)
 event AuditReportSubmitted(address _author, string _auditReport, bytes32 _bytecodeHash, bytes _signature)
 ```
 
+### CooldownReset
+
+```solidity
+event CooldownReset(bytes32 _contractType, enum Types.VersionType _version, uint64 _major)
+```
+
 ### NotAuthorizedForContractType
 
 ```solidity
@@ -140,6 +146,24 @@ error VersionAlreadyExists(bytes32 _contractType, struct Types.VersionWithAltern
 error NonExistingVersion(bytes32 _contractType, struct Types.VersionWithAlternative _version)
 ```
 
+### BytecodeAlreadyUploaded
+
+```solidity
+error BytecodeAlreadyUploaded(bytes32 _bytecodeHash)
+```
+
+### AuditReportEmpty
+
+```solidity
+error AuditReportEmpty()
+```
+
+### CantReleaseYet
+
+```solidity
+error CantReleaseYet()
+```
+
 ### assignDeveloperForContractType
 
 ```solidity
@@ -203,7 +227,7 @@ function computeBytecodeHash(bytes32 _contractType, struct Types.VersionWithAlte
 ### computeAuditReportHash
 
 ```solidity
-function computeAuditReportHash(bytes32 _bytecodeHash, string _auditReport) external pure returns (bytes32)
+function computeAuditReportHash(bytes32 _bytecodeVersionHash, bytes32 _bytecodeHash, string _auditReport) external pure returns (bytes32)
 ```
 
 ### getKeyDeveloper

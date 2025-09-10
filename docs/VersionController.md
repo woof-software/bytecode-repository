@@ -65,6 +65,30 @@ uint256 SUB_DEVELOPERS_LIMIT
 
 A limit of sub developers per key developer.
 
+### MAJOR_RELEASE_COOLDOWN
+
+```solidity
+uint256 MAJOR_RELEASE_COOLDOWN
+```
+
+A period of time which should pass before releasing a new major version.
+
+### MINOR_RELEASE_COOLDOWN
+
+```solidity
+uint256 MINOR_RELEASE_COOLDOWN
+```
+
+A period of time which should pass before releasing a new minor version.
+
+### PATCH_RELEASE_COOLDOWN
+
+```solidity
+uint256 PATCH_RELEASE_COOLDOWN
+```
+
+A period of time which should pass before releasing a new patch version.
+
 ### contractTypeKeyDeveloper
 
 ```solidity
@@ -113,6 +137,38 @@ mapping(bytes32 => struct Types.Bytecode) bytecodes
 
 Stores the bytecode information for given bytecode hash.
 
+### minMajorReleaseTimestamp
+
+```solidity
+mapping(bytes32 => uint64) minMajorReleaseTimestamp
+```
+
+Stores the next minimum release timestamp of major version for given contract type.
+
+### minPatchReleaseTimestamp
+
+```solidity
+mapping(bytes32 => uint64) minPatchReleaseTimestamp
+```
+
+Stores the next minimum release timestamp of patch version for all versions for given contract type.
+
+### minMinorReleaseTimestamp
+
+```solidity
+mapping(bytes32 => mapping(uint256 => uint64)) minMinorReleaseTimestamp
+```
+
+Stores the next minimum release timestamp of minor version for given contract type and its major version.
+
+### isBytecodeUploaded
+
+```solidity
+mapping(bytes32 => bool) isBytecodeUploaded
+```
+
+Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
+
 ### constructor
 
 ```solidity
@@ -156,6 +212,20 @@ Validates if initial bytecode for specified contract type is already released.
 | ---- | ---- | ----------- |
 | _contractType | bytes32 | A type of contract for which to validate if bytecode is released. |
 
+### checkReleaseTimestamp
+
+```solidity
+modifier checkReleaseTimestamp(uint64 _minNextReleaseTimestamp)
+```
+
+Validates if provided release timestamp is reached and a new version can be released.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _minNextReleaseTimestamp | uint64 | Minimum next release timestamp. |
+
 ### assignDeveloperForContractType
 
 ```solidity
@@ -165,8 +235,7 @@ function assignDeveloperForContractType(bytes32 _contractType, address _keyDevel
 Assigns a new key developer for a certain contract type.
 
 _Governor can use this function to initializes contract type and forcibly assign new key developer.
-Key developer can use this functions to transfer developer rights over contract type to another key developer.
-Key developer must already have a KEY_DEVELOPER_ROLE._
+Grants a key developer role to a given account._
 
 #### Parameters
 
@@ -174,6 +243,40 @@ Key developer must already have a KEY_DEVELOPER_ROLE._
 | ---- | ---- | ----------- |
 | _contractType | bytes32 | A type of contract to assign developer for. |
 | _keyDeveloper | address | An address of key developer to assign. |
+
+### resetCooldown
+
+```solidity
+function resetCooldown(enum Types.VersionType _version, bytes32 _contractType, uint64 _major) external
+```
+
+Allows the Governance to reset cooldown for publishing new version.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _version | enum Types.VersionType | A type of version to reset cooldown for: major, minor or patch. |
+| _contractType | bytes32 | A type of contract for which to reset cooldown. |
+| _major | uint64 | An optional parameter required for restoring determine for which major version to reset the minor. Thus, only used with Minor version. |
+
+### transferContractTypeOwnership
+
+```solidity
+function transferContractTypeOwnership(bytes32 _contractType, address _newKeyDeveloper) external
+```
+
+Transfers ownership over contract type to a new key developer.
+
+_Key developer can use this functions to transfer developer rights over contract type to another key developer.
+New key developer must already have a KEY_DEVELOPER_ROLE._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _contractType | bytes32 | A type of contract to assign developer for. |
+| _newKeyDeveloper | address | An address of key developer to assign. |
 
 ### releaseBytecode
 
@@ -280,7 +383,7 @@ Uploads an audit report for specified bytecode.
 _Can only be called by the auditors.
 Uploaded audit report must be unique for specified bytecode version.
 Auditor should provide a signature following the https://eips.ethereum.org/EIPS/eip-712.
-Caller must be the author of the signature._
+Caller must be the developer of contract type._
 
 #### Parameters
 
@@ -349,7 +452,7 @@ Computes a bytecode hash for specified contract type and its version.
 ### computeAuditReportHash
 
 ```solidity
-function computeAuditReportHash(bytes32 _bytecodeHash, string _auditReport) public pure returns (bytes32)
+function computeAuditReportHash(bytes32 _bytecodeVersionHash, bytes32 _bytecodeHash, string _auditReport) public pure returns (bytes32)
 ```
 
 Computes an audit report hash.
@@ -358,7 +461,8 @@ Computes an audit report hash.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _bytecodeHash | bytes32 | A hash of bytecode version for which the audit report hash is computed. |
+| _bytecodeVersionHash | bytes32 | A hash of bytecode version for which the audit report hash is computed. |
+| _bytecodeHash | bytes32 | A hash of bytecode. |
 | _auditReport | string | a URL of the audit report. |
 
 #### Return Values
@@ -499,7 +603,7 @@ _Can also be used to check if a certain auditor verified the bytecode version._
 ### versionExists
 
 ```solidity
-function versionExists(struct Types.BytecodeVersion _version) external view returns (bool)
+function versionExists(struct Types.BytecodeVersion _version) public view returns (bool)
 ```
 
 Validates if a specified bytecode version exists based on struct with contract type and version.
