@@ -51,10 +51,8 @@ A cross-chain smart contract bytecode repository system that enables secure, ver
 
 **💾 BytecodeStore** - Gas-optimized storage library using SSTORE2 magic
 
-- Intelligent chunking system splitting large contracts into 24.5KB pieces for Ethereum compatibility
 - 87% gas cost reduction by storing data as contract bytecode instead of storage slots
-- Immutable storage guarantees - once deployed, bytecode cannot be modified
-- Support for contracts exceeding Ethereum's 24KB size limit through seamless chunk management
+- Immutable bytecode storage
 
 ## Overview
 
@@ -143,7 +141,7 @@ Role-based access control provides the Governance of the organization to maintai
 
 - Hierarchical permissions (Governor → Key Developer → Sub Developer)
 - Contract type specialization (developers assigned to specific contract categories)
-- Audit verification requirements with cryptographic proof
+- Audit verification requirements with signature
 
 ## Bytecode Lifecycle
 
@@ -590,7 +588,7 @@ assert(l2Proxy == cometProxy);
 **⚡ Gas Optimization**: SSTORE2 reduces storage costs by 87% for large contract bytecode
 **🌐 Multi-chain Consistency**: CREATE2 + CCIP ensures identical deployments across all networks
 **🏭 Factory Specialization**: Domain-specific factories like MarketFactory add protocol-specific logic
-**📝 Immutable Audit Trail**: EIP-712 signatures create permanent, unforgeable audit records
+**📝 Immutable Audit Trail**: EIP-712 signatures used for audit records
 
 This lifecycle ensures that every deployed contract is **audited**, **versioned**, **consistent**, and **traceable** across the entire multi-chain ecosystem.
 
