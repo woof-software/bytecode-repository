@@ -64,6 +64,11 @@
         "type": "error"
     },
     {
+        "inputs": [],
+        "name": "AuditReportEmpty",
+        "type": "error"
+    },
+    {
         "inputs": [
             {
                 "internalType": "bytes32",
@@ -72,6 +77,17 @@
             }
         ],
         "name": "BytecodeAlreadyReleased",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeAlreadyUploaded",
         "type": "error"
     },
     {
@@ -135,6 +151,11 @@
             }
         ],
         "name": "BytecodeNotVerified",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "CantReleaseYet",
         "type": "error"
     },
     {
@@ -547,6 +568,31 @@
     },
     {
         "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "enum Types.VersionType",
+                "name": "_version",
+                "type": "uint8"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            }
+        ],
+        "name": "CooldownReset",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
         "inputs": [],
         "name": "EIP712DomainChanged",
         "type": "event"
@@ -738,6 +784,45 @@
     },
     {
         "inputs": [],
+        "name": "MAJOR_RELEASE_COOLDOWN",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "MINOR_RELEASE_COOLDOWN",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "PATCH_RELEASE_COOLDOWN",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "SUB_DEVELOPERS_LIMIT",
         "outputs": [
             {
@@ -822,6 +907,11 @@
                 "type": "bytes32"
             },
             {
+                "internalType": "bytes32",
+                "name": "initCodeHash",
+                "type": "bytes32"
+            },
+            {
                 "internalType": "string",
                 "name": "sourceURL",
                 "type": "string"
@@ -837,6 +927,11 @@
     },
     {
         "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeVersionHash",
+                "type": "bytes32"
+            },
             {
                 "internalType": "bytes32",
                 "name": "_bytecodeHash",
@@ -1403,6 +1498,25 @@
     {
         "inputs": [
             {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "isBytecodeUploaded",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "components": [
                     {
                         "internalType": "bytes32",
@@ -1536,6 +1650,68 @@
             {
                 "internalType": "uint64",
                 "name": "patch",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "minMajorReleaseTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "minMinorReleaseTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "minPatchReleaseTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
                 "type": "uint64"
             }
         ],
@@ -1788,6 +1964,29 @@
     {
         "inputs": [
             {
+                "internalType": "enum Types.VersionType",
+                "name": "_version",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            }
+        ],
+        "name": "resetCooldown",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "bytes32",
                 "name": "role",
                 "type": "bytes32"
@@ -1839,6 +2038,24 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_newKeyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "transferContractTypeOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
