@@ -1,9 +1,16 @@
 import { expect } from "chai";
 import { network, ethers, upgrades } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { CometInitCode, CometExtInitCode, CometWithExtendedAssetListInitCode } from "./testData.json";
 import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+
+// Additional test bytecodes to avoid conflicts
+const TestBytecode1 = "0x608060405234801561001057600080fd5b50600080fd5b3480156100";
+const TestBytecode2 = "0x608060405234801561001057600080fd5b50600180fd5b3480156100";
+const TestBytecode3 = "0x608060405234801561001057600080fd5b50600280fd5b3480156100";
+const TestBytecode4 = "0x608060405234801561001057600080fd5b50600380fd5b3480156100";
+const TestBytecode5 = "0x608060405234801561001057600080fd5b50600480fd5b3480156100";
 
 describe("VersionController", function () {
     const fixture = async () => {
@@ -215,6 +222,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown period for major version release
+        await time.increase(time.duration.days(90)); // 3 months
         // Release new major version
         const NEW_URL = "https://github.com/compound-finance/comet/blob/main/contracts/CometExt.sol";
         await versionController.connect(WOOF.subDevelopers[1]).releaseMajorVersion({
@@ -264,6 +273,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown period for minor version release
+        await time.increase(time.duration.days(30)); // 1 month
         // Release new minor version
         const NEW_URL = "https://github.com/compound-finance/comet/blob/main/contracts/CometExt.sol";
         await versionController.connect(WOOF.subDevelopers[1]).releaseMinorVersion(
@@ -316,6 +327,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown period for patch version release
+        await time.increase(time.duration.hours(1)); // 1 hour
         // Release new patch version
         const NEW_URL = "https://github.com/compound-finance/comet/blob/main/contracts/CometExt.sol";
         await versionController.connect(WOOF.subDevelopers[1]).releasePatchVersion(
@@ -487,6 +500,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown period for major version release
+        await time.increase(time.duration.days(90)); // 3 months
         // Release new major version
         const NEW_URL = "https://github.com/compound-finance/comet/blob/main/contracts/CometExt.sol";
         await versionController.connect(WOOF.subDevelopers[1]).releaseMajorVersion({
@@ -494,6 +509,8 @@ describe("VersionController", function () {
             initCode: CometExtInitCode,
             sourceURL: NEW_URL
         });
+        // Skip cooldown period for minor version release for major version 1
+        await time.increase(time.duration.days(30)); // 1 month
         // Release minor for previous major version
         await versionController.connect(WOOF.subDevelopers[2]).releaseMinorVersion(
             {
@@ -524,6 +541,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown to bypass cooldown check and hit validation
+        await time.increase(time.duration.hours(1));
         // Try to release patch
         const nonExistingMajor = 2;
         await expect(
@@ -550,6 +569,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown to bypass cooldown check and hit validation
+        await time.increase(time.duration.hours(1));
         // Try to release patch
         const nonExistingMinor = 2;
         await expect(
@@ -576,6 +597,8 @@ describe("VersionController", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        // Skip cooldown period for major version release
+        await time.increase(time.duration.days(90)); // 3 months
         // Release new major version
         const NEW_URL = "https://github.com/compound-finance/comet/blob/main/contracts/CometExt.sol";
         await versionController.connect(WOOF.subDevelopers[1]).releaseMajorVersion({
@@ -583,6 +606,8 @@ describe("VersionController", function () {
             initCode: CometExtInitCode,
             sourceURL: NEW_URL
         });
+        // Skip cooldown period for patch version release
+        await time.increase(time.duration.hours(1)); // 1 hour
         // Release patch for previous version
         await versionController.connect(WOOF.subDevelopers[1]).releasePatchVersion(
             {
@@ -1165,6 +1190,9 @@ describe("VersionController", function () {
             sourceURL: URL
         });
 
+        // Skip cooldown to bypass cooldown check and hit validation
+        await time.increase(time.duration.days(90));
+
         // Try to upload same initCode as major version
         const bytecodeHash = ethers.keccak256(CometInitCode);
         await expect(
@@ -1206,5 +1234,568 @@ describe("VersionController", function () {
         )
             .revertedWithCustomError(versionController, "BytecodeAlreadyUploaded")
             .withArgs(bytecodeHash);
+    });
+
+    /* Cooldown tests */
+
+    it("Should enforce cooldown after releaseBytecode() - can't release any newer versions before cooldown passes", async () => {
+        const { WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release initial bytecode
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Try to release major version before cooldown passes
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL"
+            })
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Try to release minor version before cooldown passes
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode2,
+                    sourceURL: "NEW_URL"
+                },
+                1
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Try to release patch version before cooldown passes
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode3,
+                    sourceURL: "NEW_URL"
+                },
+                1,
+                0
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Skip cooldown for patch and verify it works
+        await time.increase(time.duration.hours(1));
+        await versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode3,
+                sourceURL: "NEW_URL"
+            },
+            1,
+            0
+        );
+
+        // Skip cooldown for minor and verify it works
+        await time.increase(time.duration.days(30));
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL2"
+            },
+            1
+        );
+
+        // Skip cooldown for major and verify it works
+        await time.increase(time.duration.days(90));
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: TestBytecode1,
+            sourceURL: "NEW_URL3"
+        });
+    });
+
+    it("Should enforce cooldown after releaseMajorVersion() - can't release new major versions for given contract type", async () => {
+        const { WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release initial bytecode and skip cooldown
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        await time.increase(time.duration.days(90)); // Skip initial cooldown
+
+        // Release major version
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometExtInitCode,
+            sourceURL: "NEW_URL"
+        });
+
+        // Try to release another major version before cooldown passes
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+                contractType: WOOF.contractTypes[0],
+                initCode: CometWithExtendedAssetListInitCode,
+                sourceURL: "NEW_URL2"
+            })
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Skip cooldown and verify it works
+        await time.increase(time.duration.days(90)); // 3 months
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometWithExtendedAssetListInitCode,
+            sourceURL: "NEW_URL2"
+        });
+
+        const latestVersion = await versionController.latestVersions(WOOF.contractTypes[0]);
+        expect(latestVersion.major).to.equal(3);
+    });
+
+    it("Should enforce cooldown after releaseMinorVersion() - can't release new minor version for specified major version, but can release for other major versions", async () => {
+        const { WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Setup: Release initial bytecode and create major version 2
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        await time.increase(time.duration.days(90)); // Skip cooldown
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometExtInitCode,
+            sourceURL: "NEW_URL"
+        });
+
+        // Skip cooldown for minor version release for major version 1
+        await time.increase(time.duration.days(30));
+
+        // Release minor version for major version 1
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL2"
+            },
+            1
+        );
+
+        // Try to release another minor version for major version 1 before cooldown passes
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode2,
+                    sourceURL: "NEW_URL3"
+                },
+                1
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // But should be able to release minor version for major version 2 (no cooldown for different major)
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode3,
+                sourceURL: "NEW_URL4"
+            },
+            2
+        );
+
+        // Verify both versions exist
+        expect(
+            await versionController["versionExists((bytes32,((uint64,uint64,uint64),string)))"]({
+                contractType: WOOF.contractTypes[0],
+                version: { version: { major: 1, minor: 1, patch: 0 }, alternative: "" }
+            })
+        ).to.be.true;
+
+        expect(
+            await versionController["versionExists((bytes32,((uint64,uint64,uint64),string)))"]({
+                contractType: WOOF.contractTypes[0],
+                version: { version: { major: 2, minor: 1, patch: 0 }, alternative: "" }
+            })
+        ).to.be.true;
+
+        // Skip cooldown and verify we can release for major version 1 again
+        await time.increase(time.duration.days(30));
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL5"
+            },
+            1
+        );
+
+        expect(
+            await versionController["versionExists((bytes32,((uint64,uint64,uint64),string)))"]({
+                contractType: WOOF.contractTypes[0],
+                version: { version: { major: 1, minor: 2, patch: 0 }, alternative: "" }
+            })
+        ).to.be.true;
+    });
+
+    it("Should enforce cooldown after releasePatchVersion() - can't release new patch versions for given contract type", async () => {
+        const { WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Setup: Release initial bytecode
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Skip cooldown and release patch version for 1.0.0 -> 1.0.1
+        await time.increase(time.duration.hours(1));
+        await versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL"
+            },
+            1,
+            0
+        );
+
+        // Try to release another patch version before cooldown passes
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode2,
+                    sourceURL: "NEW_URL2"
+                },
+                1,
+                0
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Skip cooldown and verify it works (1.0.1 -> 1.0.2)
+        await time.increase(time.duration.hours(1));
+        await versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL2"
+            },
+            1,
+            0
+        );
+
+        const latestVersion = await versionController.latestVersions(WOOF.contractTypes[0]);
+        expect(latestVersion.patch).to.equal(2);
+    });
+
+    it("Cooldown doesn't affect other contract types", async () => {
+        const { WOOF, devTeam2, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release bytecode for WOOF contract type
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Should still be able to release bytecode for devTeam2 contract type (different contract type)
+        await versionController.connect(devTeam2.subDevelopers[0]).releaseBytecode({
+            contractType: devTeam2.contractTypes[0],
+            initCode: TestBytecode1,
+            sourceURL: URL
+        });
+
+        // Verify both were released
+        expect(await versionController.getLatestVersion(WOOF.contractTypes[0])).to.equal("1.0.0");
+        expect(await versionController.getLatestVersion(devTeam2.contractTypes[0])).to.equal("1.0.0");
+
+        // Try to release major version for WOOF before cooldown (should fail)
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL"
+            })
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Should be able to release major version for devTeam2 (no cooldown for different contract type)
+        await time.increase(time.duration.days(90)); // Skip cooldown
+        await versionController.connect(devTeam2.keyDeveloper).releaseMajorVersion({
+            contractType: devTeam2.contractTypes[0],
+            initCode: TestBytecode3,
+            sourceURL: "NEW_URL"
+        });
+
+        // Verify devTeam2 released major version while WOOF still can't (if we reset time)
+        expect(await versionController.getLatestVersion(devTeam2.contractTypes[0])).to.equal("2.0.0");
+
+        // Now WOOF should also be able to release (cooldown passed)
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: TestBytecode2,
+            sourceURL: "NEW_URL2"
+        });
+        expect(await versionController.getLatestVersion(WOOF.contractTypes[0])).to.equal("2.0.0");
+    });
+
+    /* Cooldown Reset Tests */
+
+    it("Should allow admin to reset major cooldown and enable immediate major version release", async () => {
+        const { governor, WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Release initial bytecode
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Try to release major version before cooldown passes (should fail)
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL"
+            })
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Admin resets major cooldown (VersionType.Major = 0)
+        await expect(versionController.connect(governor).resetCooldown(0, WOOF.contractTypes[0], 0))
+            .to.emit(versionController, "CooldownReset")
+            .withArgs(WOOF.contractTypes[0], 0, 0);
+
+        // Now major version release should work immediately
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: TestBytecode1,
+            sourceURL: "NEW_URL"
+        });
+
+        const latestVersion = await versionController.latestVersions(WOOF.contractTypes[0]);
+        expect(latestVersion.major).to.equal(2);
+    });
+
+    it("Should allow admin to reset minor cooldown and enable immediate minor version release", async () => {
+        const { governor, WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Setup: Release initial bytecode and skip major cooldown
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        await time.increase(time.duration.days(30)); // Skip minor cooldown for major version 1
+
+        // Release first minor version (1.1.0)
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL"
+            },
+            1
+        );
+
+        // Try to release another minor version for same major before cooldown passes (should fail)
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode2,
+                    sourceURL: "NEW_URL2"
+                },
+                1
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Admin resets minor cooldown for major version 1 (VersionType.Minor = 1)
+        await expect(versionController.connect(governor).resetCooldown(1, WOOF.contractTypes[0], 1))
+            .to.emit(versionController, "CooldownReset")
+            .withArgs(WOOF.contractTypes[0], 1, 1);
+
+        // Now minor version release should work immediately
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL2"
+            },
+            1
+        );
+
+        const latestVersion = await versionController.latestVersions(WOOF.contractTypes[0]);
+        expect(latestVersion.minor).to.equal(2);
+    });
+
+    it("Should allow admin to reset patch cooldown and enable immediate patch version release", async () => {
+        const { governor, WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Setup: Release initial bytecode and skip patch cooldown
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+        await time.increase(time.duration.hours(1));
+
+        // Release first patch version (1.0.1)
+        await versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL"
+            },
+            1,
+            0
+        );
+
+        // Try to release another patch version before cooldown passes (should fail)
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode2,
+                    sourceURL: "NEW_URL2"
+                },
+                1,
+                0
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Admin resets patch cooldown (VersionType.Patch = 2)
+        await expect(versionController.connect(governor).resetCooldown(2, WOOF.contractTypes[0], 0))
+            .to.emit(versionController, "CooldownReset")
+            .withArgs(WOOF.contractTypes[0], 2, 0);
+
+        // Now patch version release should work immediately
+        await versionController.connect(WOOF.keyDeveloper).releasePatchVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL2"
+            },
+            1,
+            0
+        );
+
+        const latestVersion = await versionController.latestVersions(WOOF.contractTypes[0]);
+        expect(latestVersion.patch).to.equal(2);
+    });
+
+    it("Should revert when admin tries to pass invalid enum value (3) for version type", async () => {
+        const { governor, WOOF, versionController } = await restore();
+
+        // Try to call resetCooldown with invalid enum value 3 (should revert)
+        await expect(versionController.connect(governor).resetCooldown(3, WOOF.contractTypes[0], 0)).to.be.reverted;
+    });
+
+    it("Should allow admin to reset cooldown for specific major version without affecting others", async () => {
+        const { governor, WOOF, versionController } = await restore();
+        const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
+
+        // Setup: Release initial bytecode, create major version 2, and release minor versions
+        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: URL
+        });
+
+        // Skip cooldown and release major version 2
+        await time.increase(time.duration.days(90));
+        await versionController.connect(WOOF.keyDeveloper).releaseMajorVersion({
+            contractType: WOOF.contractTypes[0],
+            initCode: CometExtInitCode,
+            sourceURL: "NEW_URL"
+        });
+
+        // Skip cooldown and release minor versions for both majors
+        await time.increase(time.duration.days(30));
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode1,
+                sourceURL: "NEW_URL2"
+            },
+            1
+        );
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode2,
+                sourceURL: "NEW_URL3"
+            },
+            2
+        );
+
+        // Now both major versions should have cooldown for minor releases
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode3,
+                    sourceURL: "NEW_URL4"
+                },
+                1
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode4,
+                    sourceURL: "NEW_URL5"
+                },
+                2
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Admin resets minor cooldown only for major version 1
+        await versionController.connect(governor).resetCooldown(1, WOOF.contractTypes[0], 1);
+
+        // Now major version 1 should allow minor release, but major version 2 should still be blocked
+        await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+            {
+                contractType: WOOF.contractTypes[0],
+                initCode: TestBytecode3,
+                sourceURL: "NEW_URL4"
+            },
+            1
+        );
+
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(
+                {
+                    contractType: WOOF.contractTypes[0],
+                    initCode: TestBytecode4,
+                    sourceURL: "NEW_URL5"
+                },
+                2
+            )
+        ).revertedWithCustomError(versionController, "CantReleaseYet");
+
+        // Verify version 1.2.0 exists but version 2.2.0 doesn't
+        expect(
+            await versionController["versionExists((bytes32,((uint64,uint64,uint64),string)))"]({
+                contractType: WOOF.contractTypes[0],
+                version: { version: { major: 1, minor: 2, patch: 0 }, alternative: "" }
+            })
+        ).to.be.true;
+
+        expect(
+            await versionController["versionExists((bytes32,((uint64,uint64,uint64),string)))"]({
+                contractType: WOOF.contractTypes[0],
+                version: { version: { major: 2, minor: 2, patch: 0 }, alternative: "" }
+            })
+        ).to.be.false;
     });
 });

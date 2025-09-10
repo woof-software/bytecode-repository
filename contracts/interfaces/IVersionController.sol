@@ -9,6 +9,7 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper);
     event BytecodeUploaded(bytes32 _contractType, Version _version);
     event AuditReportSubmitted(address _author, string _auditReport, bytes32 _bytecodeHash, bytes _signature);
+    event CooldownReset(bytes32 _contractType, VersionType _version, uint64 _major);
 
     error NotAuthorizedForContractType(bytes32 _contractType, address _caller);
     error SameKeyDeveloper(address _keyDeveloper);
@@ -31,6 +32,7 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     error NonExistingVersion(bytes32 _contractType, VersionWithAlternative _version);
     error BytecodeAlreadyUploaded(bytes32 _bytecodeHash);
     error AuditReportEmpty();
+    error CantReleaseYet();
 
     // Governor
     function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external;

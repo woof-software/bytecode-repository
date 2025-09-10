@@ -58,6 +58,12 @@ contract VersionController is
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
     /// @notice A limit of sub developers per key developer.
     uint256 public constant SUB_DEVELOPERS_LIMIT = 3;
+    /// @notice A period of time which should pass before releasing a new major version.
+    uint256 public constant MAJOR_RELEASE_COOLDOWN = 3 * 30 days;
+    /// @notice A period of time which should pass before releasing a new minor version.
+    uint256 public constant MINOR_RELEASE_COOLDOWN = 30 days;
+    /// @notice A period of time which should pass before releasing a new patch version.
+    uint256 public constant PATCH_RELEASE_COOLDOWN = 1 hours;
     /// @notice Stores current key developer for given contract type.
     mapping(bytes32 => address) public contractTypeKeyDeveloper;
     /// @notice Stores a list of sub developers for given key developer.
@@ -76,6 +82,12 @@ contract VersionController is
     mapping(bytes32 => Bytecode) public bytecodes;
     /// @notice Stores the audits information for given bytecode hash.
     mapping(bytes32 => AuditStatus) private bytecodeAuditStatus;
+    /// @notice Stores the next minimum release timestamp of major version for given contract type.
+    mapping(bytes32 => uint64) public minMajorReleaseTimestamp;
+    /// @notice Stores the next minimum release timestamp of patch version for all versions for given contract type.
+    mapping(bytes32 => uint64) public minPatchReleaseTimestamp;
+    /// @notice Stores the next minimum release timestamp of minor version for given contract type and its major version.
+    mapping(bytes32 => mapping(uint256 => uint64)) public minMinorReleaseTimestamp;
     /// @notice Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
     mapping(bytes32 => bool) public isBytecodeUploaded;
 
@@ -111,6 +123,13 @@ contract VersionController is
         _;
     }
 
+    /// @notice Validates if provided release timestamp is reached and a new version can be released.
+    /// @param _minNextReleaseTimestamp Minimum next release timestamp.
+    modifier checkReleaseTimestamp(uint64 _minNextReleaseTimestamp) {
+        if (_minNextReleaseTimestamp > block.timestamp) revert CantReleaseYet();
+        _;
+    }
+
     /* Governor functions */
 
     /// @notice Assigns a new key developer for a certain contract type.
@@ -131,6 +150,22 @@ contract VersionController is
         emit KeyDeveloperAssigned(_contractType, _keyDeveloper);
     }
 
+    /// @notice Allows the Governance to reset cooldown for publishing new version.
+    /// @param _version A type of version to reset cooldown for: major, minor or patch.
+    /// @param _contractType A type of contract for which to reset cooldown.
+    /// @param _major An optional parameter required for restoring determine for which major version to reset the minor. Thus, only used with Minor version.
+    function resetCooldown(
+        VersionType _version,
+        bytes32 _contractType,
+        uint64 _major
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_version == VersionType.Major) delete minMajorReleaseTimestamp[_contractType];
+        else if (_version == VersionType.Minor) delete minMinorReleaseTimestamp[_contractType][_major];
+        else delete minPatchReleaseTimestamp[_contractType];
+
+        emit CooldownReset(_contractType, _version, _major);
+    }
+
     /* Upload bytecode functions */
 
     /// @notice Releases an initial version of the contract type.
@@ -147,6 +182,9 @@ contract VersionController is
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
 
         latestVersions[_bytecodeInput.contractType] = version.version;
+        minMajorReleaseTimestamp[_bytecodeInput.contractType] = uint64(block.timestamp + MAJOR_RELEASE_COOLDOWN);
+        minMinorReleaseTimestamp[_bytecodeInput.contractType][1] = uint64(block.timestamp + MINOR_RELEASE_COOLDOWN);
+        minPatchReleaseTimestamp[_bytecodeInput.contractType] = uint64(block.timestamp + PATCH_RELEASE_COOLDOWN);
     }
 
     /// @notice Releases a new major version of the contract type.
@@ -156,7 +194,12 @@ contract VersionController is
     /// @param _bytecodeInput A struct of params necessary to upload the bytecode.
     function releaseMajorVersion(
         BytecodeInput calldata _bytecodeInput
-    ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+    )
+        external
+        bytecodeReleased(_bytecodeInput.contractType)
+        checkDeveloper(_bytecodeInput.contractType, msg.sender)
+        checkReleaseTimestamp(minMajorReleaseTimestamp[_bytecodeInput.contractType])
+    {
         VersionWithAlternative memory version = VersionWithAlternative(
             Version(latestVersions[_bytecodeInput.contractType].major + 1, 0, 0),
             ""
@@ -165,6 +208,7 @@ contract VersionController is
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
 
         latestVersions[_bytecodeInput.contractType] = version.version;
+        minMajorReleaseTimestamp[_bytecodeInput.contractType] = uint64(block.timestamp + MAJOR_RELEASE_COOLDOWN);
     }
 
     /// @notice Released a new minor version of the contract type for specified major version.
@@ -178,7 +222,12 @@ contract VersionController is
     function releaseMinorVersion(
         BytecodeInput calldata _bytecodeInput,
         uint64 _major
-    ) external bytecodeReleased(_bytecodeInput.contractType) checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+    )
+        external
+        bytecodeReleased(_bytecodeInput.contractType)
+        checkDeveloper(_bytecodeInput.contractType, msg.sender)
+        checkReleaseTimestamp(minMinorReleaseTimestamp[_bytecodeInput.contractType][_major])
+    {
         Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
         if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
         VersionWithAlternative memory version = VersionWithAlternative(
@@ -187,6 +236,9 @@ contract VersionController is
         );
         address keyDeveloper = getKeyDeveloper(msg.sender);
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
+        minMinorReleaseTimestamp[_bytecodeInput.contractType][_major] = uint64(
+            block.timestamp + MINOR_RELEASE_COOLDOWN
+        );
 
         if (_major == latestVersion.major) {
             latestVersion.minor = version.version.minor;
@@ -206,7 +258,11 @@ contract VersionController is
         BytecodeInput calldata _bytecodeInput,
         uint64 _major,
         uint64 _minor
-    ) external checkDeveloper(_bytecodeInput.contractType, msg.sender) {
+    )
+        external
+        checkDeveloper(_bytecodeInput.contractType, msg.sender)
+        checkReleaseTimestamp(minPatchReleaseTimestamp[_bytecodeInput.contractType])
+    {
         Version storage latestVersion = latestVersions[_bytecodeInput.contractType];
         if (_major > latestVersion.major) revert NonExistingMajorVersion(_bytecodeInput.contractType, _major);
         uint64 latestMinorVersion = latestMinor[_bytecodeInput.contractType][_major];
@@ -218,6 +274,7 @@ contract VersionController is
         );
         address keyDeveloper = getKeyDeveloper(msg.sender);
         _uploadBytecode(_bytecodeInput, keyDeveloper, version);
+        minPatchReleaseTimestamp[_bytecodeInput.contractType] = uint64(block.timestamp + PATCH_RELEASE_COOLDOWN);
 
         if (_major == latestVersion.major && _minor == latestVersion.minor) latestVersion.patch = version.version.patch;
     }

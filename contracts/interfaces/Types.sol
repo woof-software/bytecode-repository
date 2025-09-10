@@ -1,6 +1,11 @@
 pragma solidity 0.8.30;
 
 interface Types {
+    enum VersionType {
+        Major,
+        Minor,
+        Patch
+    }
     /**
      * @notice Represents a version.
      * @dev Fields:
@@ -55,6 +60,7 @@ interface Types {
      * @notice Represents information about stored bytecode.
      * @dev Fields:
      * - `contractType`: a type of contract of given bytecode
+     * - `initCodeHash`: a hash of init code
      * - `initCodePtrs`: address pointers at which parts of bytecode are stored
      * - `sourceURL`: link to repository where source code of bytecode is stored
      * - `author`: address of the author of bytecode
