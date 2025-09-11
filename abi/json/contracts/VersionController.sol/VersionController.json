@@ -37,6 +37,11 @@
         "type": "error"
     },
     {
+        "inputs": [],
+        "name": "AdminCantAddSubDevs",
+        "type": "error"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -61,11 +66,6 @@
             }
         ],
         "name": "AuditReportAlreadySubmitted",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "AuditReportEmpty",
         "type": "error"
     },
     {
@@ -199,6 +199,11 @@
     {
         "inputs": [],
         "name": "ERC1967NonPayable",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EmptyURL",
         "type": "error"
     },
     {
@@ -497,6 +502,11 @@
             }
         ],
         "name": "WrongKeyDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ZeroAddress",
         "type": "error"
     },
     {
