@@ -226,6 +226,12 @@ Validates if provided release timestamp is reached and a new version can be rele
 | ---- | ---- | ----------- |
 | _minNextReleaseTimestamp | uint64 | Minimum next release timestamp. |
 
+### checkURL
+
+```solidity
+modifier checkURL(string _url)
+```
+
 ### assignDeveloperForContractType
 
 ```solidity
@@ -720,13 +726,11 @@ Returns given version in human-readable format. E.g. "4.3.0".
 | ---- | ---- | ----------- |
 | [0] | string | A string containing the version. |
 
-### _grantRole
+### grantRole
 
 ```solidity
-function _grantRole(bytes32 role, address account) internal returns (bool)
+function grantRole(bytes32 role, address account) public
 ```
-
-_Overload {AccessControl-_grantRole} to track enumerable memberships_
 
 ### _revokeRole
 

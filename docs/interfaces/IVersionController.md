@@ -152,16 +152,28 @@ error NonExistingVersion(bytes32 _contractType, struct Types.VersionWithAlternat
 error BytecodeAlreadyUploaded(bytes32 _bytecodeHash)
 ```
 
-### AuditReportEmpty
+### EmptyURL
 
 ```solidity
-error AuditReportEmpty()
+error EmptyURL()
 ```
 
 ### CantReleaseYet
 
 ```solidity
 error CantReleaseYet()
+```
+
+### ZeroAddress
+
+```solidity
+error ZeroAddress()
+```
+
+### AdminCantAddSubDevs
+
+```solidity
+error AdminCantAddSubDevs()
 ```
 
 ### assignDeveloperForContractType
