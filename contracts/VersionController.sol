@@ -1,7 +1,8 @@
 pragma solidity 0.8.30;
 
 import {
-    AccessControlEnumerableUpgradeable
+    AccessControlEnumerableUpgradeable,
+    AccessControlUpgradeable
 } from "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -9,7 +10,7 @@ import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableS
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { BytecodeStore } from "./libraries/BytecodeStore.sol";
-import { IVersionController } from "./interfaces/IVersionController.sol";
+import { IVersionController, IAccessControl } from "./interfaces/IVersionController.sol";
 
 /**
  * @title VersionController
@@ -97,6 +98,7 @@ contract VersionController is
     }
 
     function initialize(address _governor) external initializer {
+        if (_governor == address(0)) revert ZeroAddress();
         __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
         __EIP712_init("VersionController", "1");
@@ -108,9 +110,10 @@ contract VersionController is
     /// @param _contractType A type of contract for which to validate developer.
     /// @param _developer An address of developer to validate.
     modifier checkDeveloper(bytes32 _contractType, address _developer) {
-        address contractTypeKeyDev = contractTypeKeyDeveloper[_contractType];
         if (!hasRole(KEY_DEVELOPER_ROLE, _developer) && !hasRole(SUB_DEVELOPER_ROLE, _developer))
             revert NotDeveloper(_developer);
+
+        address contractTypeKeyDev = contractTypeKeyDeveloper[_contractType];
         if (contractTypeKeyDev != _developer && subToKeyDeveloper[_developer] != contractTypeKeyDev)
             revert WrongDeveloper(_contractType, _developer);
         _;
@@ -127,6 +130,11 @@ contract VersionController is
     /// @param _minNextReleaseTimestamp Minimum next release timestamp.
     modifier checkReleaseTimestamp(uint64 _minNextReleaseTimestamp) {
         if (_minNextReleaseTimestamp > block.timestamp) revert CantReleaseYet();
+        _;
+    }
+
+    modifier checkURL(string calldata _url) {
+        if (bytes(_url).length == 0) revert EmptyURL();
         _;
     }
 
@@ -323,8 +331,7 @@ contract VersionController is
         BytecodeVersion calldata _bytecodeVersion,
         string calldata _auditReport,
         bytes calldata _signature
-    ) external checkDeveloper(_bytecodeVersion.contractType, msg.sender) {
-        if (bytes(_auditReport).length == 0) revert AuditReportEmpty();
+    ) external checkDeveloper(_bytecodeVersion.contractType, msg.sender) checkURL(_auditReport) {
         if (!versionExists(_bytecodeVersion))
             revert NonExistingVersion(_bytecodeVersion.contractType, _bytecodeVersion.version);
 
@@ -352,7 +359,11 @@ contract VersionController is
     /// @dev Key developer can add up to `SUB_DEVELOPERS_LIMIT` developers.
     /// @dev New sub developer should not already have a SUB_DEVELOPER_ROLE.
     /// @param _subDeveloper Address of sub developer to add.
-    function addSubDeveloper(address _subDeveloper) external {
+    function addSubDeveloper(address _subDeveloper) external onlyRole(KEY_DEVELOPER_ROLE) {
+        EnumerableSet.AddressSet storage subDevelopersSet = subDevelopers[msg.sender];
+        if (!subDevelopersSet.add(_subDeveloper)) revert SubDeveloperAlreadyInSet(msg.sender, _subDeveloper);
+        if (subDevelopersSet.length() > SUB_DEVELOPERS_LIMIT) revert TooManySubDevelopers(msg.sender);
+        subToKeyDeveloper[_subDeveloper] = msg.sender;
         bool result = _grantRole(SUB_DEVELOPER_ROLE, _subDeveloper);
         // _grantRole() returns false if account already has a specified role
         if (!result) revert AlreadySubDeveloper(_subDeveloper);
@@ -490,7 +501,7 @@ contract VersionController is
         BytecodeInput calldata _bytecodeInput,
         address _keyDeveloper,
         VersionWithAlternative memory _version
-    ) internal {
+    ) internal checkURL(_bytecodeInput.sourceURL) {
         address[] memory initCodePointers = BytecodeStore._writeInitCode(_bytecodeInput.initCode);
         bytes32 bytecodeHash = keccak256(_bytecodeInput.initCode);
 
@@ -529,15 +540,9 @@ contract VersionController is
 
     /* Overriden AccessControl functions */
 
-    function _grantRole(bytes32 role, address account) internal override returns (bool) {
-        if (role == SUB_DEVELOPER_ROLE) {
-            _checkRole(KEY_DEVELOPER_ROLE, msg.sender);
-            EnumerableSet.AddressSet storage subDevelopersSet = subDevelopers[msg.sender];
-            if (!subDevelopersSet.add(account)) revert SubDeveloperAlreadyInSet(msg.sender, account);
-            if (subDevelopersSet.length() > SUB_DEVELOPERS_LIMIT) revert TooManySubDevelopers(msg.sender);
-            subToKeyDeveloper[account] = msg.sender;
-        }
-        return super._grantRole(role, account);
+    function grantRole(bytes32 role, address account) public override(IAccessControl, AccessControlUpgradeable) {
+        if (role == SUB_DEVELOPER_ROLE) revert AdminCantAddSubDevs();
+        super.grantRole(role, account);
     }
 
     function _revokeRole(bytes32 role, address account) internal override returns (bool) {

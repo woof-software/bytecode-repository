@@ -122,6 +122,14 @@ describe("VersionController", function () {
             expect(await versionController.contractTypeKeyDeveloper(contractType)).to.equal(devTeam3.keyDeveloper);
     });
 
+    it("Should revert when initializing with zero address", async () => {
+        await expect(
+            upgrades.deployProxy(await ethers.getContractFactory("VersionController"), [ethers.ZeroAddress], {
+                kind: "uups"
+            })
+        ).to.be.revertedWithCustomError(await ethers.getContractFactory("VersionController"), "ZeroAddress");
+    });
+
     it("Should release bytecode", async () => {
         const { WOOF, versionController } = await restore();
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
@@ -436,6 +444,18 @@ describe("VersionController", function () {
             .withArgs(bytecodeInput.contractType, devTeam2.subDevelopers[1]);
     });
 
+    it("Should revert when releasing bytecode with empty source URL", async () => {
+        const { WOOF, versionController } = await restore();
+        const bytecodeInput = {
+            contractType: WOOF.contractTypes[0],
+            initCode: CometInitCode,
+            sourceURL: ""
+        };
+        await expect(
+            versionController.connect(WOOF.keyDeveloper).releaseBytecode(bytecodeInput)
+        ).to.be.revertedWithCustomError(versionController, "EmptyURL");
+    });
+
     it("Should not let release same bytecode more than once", async () => {
         const { WOOF, versionController } = await restore();
         // Release bytecode
@@ -737,7 +757,7 @@ describe("VersionController", function () {
         const bytecodeVersion = { contractType: WOOF.contractTypes[0], version };
         await expect(
             versionController.connect(WOOF.keyDeveloper).verifyBytecode(bytecodeVersion, auditReport, signature)
-        ).revertedWithCustomError(versionController, "AuditReportEmpty");
+        ).revertedWithCustomError(versionController, "EmptyURL");
     });
 
     it("Should revert if version does not exist", async () => {
@@ -976,9 +996,7 @@ describe("VersionController", function () {
 
         await expect(
             versionController.connect(governor).grantRole(await versionController.SUB_DEVELOPER_ROLE(), users[1])
-        )
-            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
-            .withArgs(governor, await versionController.KEY_DEVELOPER_ROLE());
+        ).revertedWithCustomError(versionController, "AdminCantAddSubDevs");
     });
 
     it("Should revert if sub dev is already in set", async () => {

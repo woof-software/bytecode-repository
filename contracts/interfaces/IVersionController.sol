@@ -31,8 +31,10 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     error VersionAlreadyExists(bytes32 _contractType, VersionWithAlternative _version);
     error NonExistingVersion(bytes32 _contractType, VersionWithAlternative _version);
     error BytecodeAlreadyUploaded(bytes32 _bytecodeHash);
-    error AuditReportEmpty();
+    error EmptyURL();
     error CantReleaseYet();
+    error ZeroAddress();
+    error AdminCantAddSubDevs();
 
     // Governor
     function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external;
