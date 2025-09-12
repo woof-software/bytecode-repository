@@ -3,7 +3,8 @@ import { network, ethers, upgrades } from "hardhat";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { CometInitCode, CometExtInitCode, ConstantPriceFeedInitCode } from "./testData.json";
-import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import { domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import type { EIP712Domain, Developers } from "./helpers";
 
 const abiCoder = new ethers.AbiCoder();
 
@@ -134,7 +135,7 @@ describe("L1/L2 DeployManager", function () {
             { contractType: constantPriceFeedContractType, version: priceFeedVersion },
             ethers.ZeroHash,
             abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
-            governor.address
+            WOOF.keyDeveloper.address
         );
 
         await l1DeployManager
@@ -349,9 +350,9 @@ describe("L1/L2 DeployManager", function () {
             [cometConfiguration]
         );
 
-        // const deployedAddress = await l2DeployManager
-        //     .connect(WOOF.keyDeveloper)
-        //     .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
+        const deployedAddress = await l2DeployManager
+            .connect(WOOF.keyDeveloper)
+            .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
 
         await l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams);
 
@@ -478,7 +479,7 @@ describe("L1/L2 DeployManager", function () {
             ],
             [cometConfiguration]
         );
-        const deployer = users[0].address;
+        const deployer = WOOF.keyDeveloper.address;
 
         // Compute address before deployment
         const computedAddress = await l2DeployManager.computeAddress(

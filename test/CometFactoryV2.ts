@@ -12,7 +12,8 @@ import {
     ConstantPriceFeedInitCode,
     AssetListFactoryInitCode
 } from "./testData.json";
-import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import { domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import type { EIP712Domain, Developers } from "./helpers";
 
 const abiCoder = new ethers.AbiCoder();
 
@@ -203,7 +204,7 @@ describe("CometFactoryV2", function () {
             { contractType: WOOF.contractTypes[4], version: version_1_0_0 },
             ethers.ZeroHash,
             abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
-            governor.address
+            WOOF.keyDeveloper.address
         );
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
@@ -218,7 +219,7 @@ describe("CometFactoryV2", function () {
             { contractType: WOOF.contractTypes[5], version: version_1_0_0 },
             ethers.ZeroHash,
             "0x",
-            governor.address
+            WOOF.keyDeveloper.address
         );
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
@@ -498,7 +499,7 @@ describe("CometFactoryV2", function () {
                 { contractType: WOOF.contractTypes[3], version: version_1_0_0 }, // CometExtWithAssetList
                 ethers.ZeroHash,
                 abiCoder.encode(["tuple(bytes32,bytes32)", "address"], [extConfiguration, assetListFactoryAddr]),
-                users[0].address
+                WOOF.keyDeveloper.address
             );
 
             await l1DeployManager.connect(WOOF.keyDeveloper).deploy(

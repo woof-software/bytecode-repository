@@ -11,7 +11,8 @@ import {
     CometProxyAdminInitCode,
     AssetListFactoryInitCode
 } from "./testData.json";
-import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import { domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import type { EIP712Domain, Developers } from "./helpers";
 
 const abiCoder = new ethers.AbiCoder();
 
@@ -193,7 +194,7 @@ describe("MarketFactory", function () {
             { contractType: ethers.encodeBytes32String("CometProxyAdmin"), version },
             ethers.ZeroHash,
             "0x",
-            users[0]
+            WOOF.keyDeveloper.address
         );
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
@@ -202,7 +203,7 @@ describe("MarketFactory", function () {
             { contractType: ethers.encodeBytes32String("ConstantPriceFeed"), version },
             ethers.ZeroHash,
             abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
-            users[0]
+            WOOF.keyDeveloper.address
         );
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
@@ -215,7 +216,7 @@ describe("MarketFactory", function () {
             { contractType: ethers.encodeBytes32String("AssetListFactory"), version },
             ethers.ZeroHash,
             "0x",
-            users[0]
+            WOOF.keyDeveloper.address
         );
         await l1DeployManager
             .connect(WOOF.keyDeveloper)

@@ -53,4 +53,5 @@ async function prepareAuditReportSignature(
     return auditor.signTypedData(domain, auditReportType, auditReportValues);
 }
 
-export { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature };
+export type { EIP712Domain, Developers };
+export { domainResultToPlainObject, prepareAuditReportSignature };

@@ -3,7 +3,8 @@ import { network, ethers, upgrades } from "hardhat";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { CometInitCode, CometExtInitCode, CometWithExtendedAssetListInitCode } from "./testData.json";
-import { EIP712Domain, Developers, domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import { domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
+import type { EIP712Domain, Developers } from "./helpers";
 
 // Additional test bytecodes to avoid conflicts
 const TestBytecode1 = "0x608060405234801561001057600080fd5b50600080fd5b3480156100";
