@@ -517,9 +517,9 @@ contract VersionController is
             author: _keyDeveloper
         });
 
-        bytes32 hash = computeBytecodeHash(_bytecodeInput.contractType, _version);
-        if (versionExists(hash)) revert VersionAlreadyExists(_bytecodeInput.contractType, _version);
-        bytecodes[hash] = bc;
+        bytes32 versionHash = computeBytecodeHash(_bytecodeInput.contractType, _version);
+        if (versionExists(versionHash)) revert VersionAlreadyExists(_bytecodeInput.contractType, _version);
+        bytecodes[versionHash] = bc;
 
         emit BytecodeUploaded(_bytecodeInput.contractType, _version.version);
     }
