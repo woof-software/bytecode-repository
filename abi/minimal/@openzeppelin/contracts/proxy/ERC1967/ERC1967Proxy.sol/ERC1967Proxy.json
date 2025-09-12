@@ -1,8 +1,0 @@
-[
-    "constructor(address,bytes) payable",
-    "error AddressEmptyCode(address)",
-    "error ERC1967InvalidImplementation(address)",
-    "error ERC1967NonPayable()",
-    "error FailedCall()",
-    "event Upgraded(address indexed)"
-]

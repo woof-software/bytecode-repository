@@ -1,6 +1,0 @@
-[
-    "error InvalidInitialization()",
-    "error NotInitializing()",
-    "event Initialized(uint64 version)",
-    "function supportsInterface(bytes4 interfaceId) view returns (bool)"
-]

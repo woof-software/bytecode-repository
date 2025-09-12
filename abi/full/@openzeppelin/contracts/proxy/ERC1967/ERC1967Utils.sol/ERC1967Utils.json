@@ -1,6 +1,0 @@
-[
-    "error ERC1967InvalidAdmin(address admin)",
-    "error ERC1967InvalidBeacon(address beacon)",
-    "error ERC1967InvalidImplementation(address implementation)",
-    "error ERC1967NonPayable()"
-]

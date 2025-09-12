@@ -1,7 +1,0 @@
-[
-    "error InvalidInitialization()",
-    "error NotInitializing()",
-    "event EIP712DomainChanged()",
-    "event Initialized(uint64 version)",
-    "function eip712Domain() view returns (bytes1 fields, string name, string version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] extensions)"
-]

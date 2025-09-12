@@ -1,5 +1,0 @@
-[
-    "error NoContract()",
-    "error NoGasForCallExactCheck()",
-    "error NotEnoughGasForCall()"
-]

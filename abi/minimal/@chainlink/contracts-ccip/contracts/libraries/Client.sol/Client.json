@@ -1,9 +1,0 @@
-[
-    "function EVM_EXTRA_ARGS_V1_TAG() view returns (bytes4)",
-    "function GENERIC_EXTRA_ARGS_V2_TAG() view returns (bytes4)",
-    "function SVM_ACCOUNT_BYTE_SIZE() view returns (uint256)",
-    "function SVM_EXTRA_ARGS_MAX_ACCOUNTS() view returns (uint256)",
-    "function SVM_EXTRA_ARGS_V1_TAG() view returns (bytes4)",
-    "function SVM_MESSAGING_ACCOUNTS_OVERHEAD() view returns (uint256)",
-    "function SVM_TOKEN_TRANSFER_DATA_OVERHEAD() view returns (uint256)"
-]

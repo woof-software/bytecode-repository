@@ -45,3 +45,14 @@ contracts-exposed/
 
 # The project settings for IntelliJ IDE.
 /.idea/
+
+# Abi
+/abi/full/@chainlink/
+/abi/full/@openzeppelin/
+/abi/full/solady/
+/abi/json/@chainlink/
+/abi/json/@openzeppelin/
+/abi/json/solady/
+/abi/minimal/@chainlink/
+/abi/minimal/@openzeppelin/
+/abi/minimal/solady/
