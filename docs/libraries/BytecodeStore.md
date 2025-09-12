@@ -39,7 +39,8 @@ function _writeInitCode(bytes _initCode) internal returns (address[])
 Writes the bytecode in the storage.
 
 _Utilizes SSTORE2 for storing the bytecode.
-Bytecode must not be empty._
+Bytecode must not be empty.
+The size of chunk is set to 24500 to leave small buffer for SSTORE2 metadata._
 
 #### Parameters
 

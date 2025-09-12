@@ -185,7 +185,7 @@ unless the ETH is already donated through the receive() function._
 function deploy(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams) external returns (address)
 ```
 
-Allows anyone to deploy a certain version of bytecode on the Ethereum.
+Allows developers to deploy a certain version of bytecode on the Ethereum.
 
 _Bytecode must be uploaded and verified in the VersionController.
 Bytecode is deployed via Create2._

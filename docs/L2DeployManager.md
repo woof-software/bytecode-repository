@@ -18,7 +18,7 @@ This contract receives audited bytecode from L1 via Chainlink CCIP and enables s
   2. Bytecode storage using SSTORE2 with automatic chunking for large contracts exceeding network gas limits or size constraints.
   3. Address computation using identical salt generation as L1DeployManager, guaranteeing cross-chain address consistency.
   4. Integration with factory contracts via BytecodeProvider interface for specialized deployment patterns and protocol-specific logic.
-- Bytecode integrity is maintained through cryptographic hashing and validation, ensuring deployed contracts match exactly with L1-approved versions.
+- All bytecodes are sent through VersionController, ensuring deployed contracts match exactly with L1-approved versions.
 - The contract serves as the canonical L2 endpoint for BytecodeRepository ecosystem, enabling trustless multi-chain deployment with audit verification.
 - Factory contracts and custom deployment tools can retrieve bytecode through the IBytecodeProvider interface for specialized deployment patterns.
 - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
@@ -62,7 +62,8 @@ function getVerifiedBytecode(struct Types.BytecodeVersion _version) public view 
 
 Returns a bytecode of the specified version.
 
-_Can be used to validate if bytecode was sent to the current network._
+_Can be used to validate if bytecode was sent to the current network.
+All bytecodes sent to L2 are already verified as only verified bytecodes can be sent._
 
 #### Parameters
 

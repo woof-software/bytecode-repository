@@ -2,6 +2,7 @@
 
 ## VersionController
 
+assignDeveloperForContractType
 This contract manages versioned smart contract bytecode storage, developer role assignment, and cryptographic audit verification for cross-chain deployment systems.
 - The contract implements semantic versioning (Major.Minor.Patch) with support for alternative versions (e.g., "gas-optimized", "minimal") for the same base version.
 - Bytecode is stored using SSTORE2 optimization.
@@ -241,14 +242,15 @@ function assignDeveloperForContractType(bytes32 _contractType, address _keyDevel
 Assigns a new key developer for a certain contract type.
 
 _Governor can use this function to initializes contract type and forcibly assign new key developer.
-Grants a key developer role to a given account._
+Grants a key developer role to a given account.
+Correctness of  contract type should be checked by the Governance before calling this function._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _contractType | bytes32 | A type of contract to assign developer for. |
-| _keyDeveloper | address | An address of key developer to assign. |
+| _keyDeveloper | address | An address of key developer to assign. address(0) is allowed to remove developer for contract type. |
 
 ### resetCooldown
 
@@ -687,6 +689,20 @@ Returns all alternative versions for given contract type.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | struct Types.VersionWithAlternative[] | Array containing all the alternative versions of given contract type. |
+
+### getRegisteredContractTypes
+
+```solidity
+function getRegisteredContractTypes() external view returns (bytes32[])
+```
+
+Returns all registered contract types.
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32[] | Bytes32 array containing all contract types. |
 
 ### _uploadBytecode
 
