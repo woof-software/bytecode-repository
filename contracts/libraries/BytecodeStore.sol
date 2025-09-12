@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
 import { SSTORE2 } from "solady/src/utils/SSTORE2.sol";
