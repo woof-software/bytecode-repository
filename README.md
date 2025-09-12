@@ -630,6 +630,38 @@ BytecodeRepository provides three flexible deployment options for developers.
 
 All options maintain cross-chain consistency, audit traceability, and deterministic addressing when properly configured.
 
+## Comparison of previous and current Comet deployment flows
+
+### Previous flow
+
+**Step 1**
+Developer deploys new Comet: Proxy, Implementation and CometExt. The implementation contains zero rates and caps to prevent any actions on it.
+![](images/prev_flow_1.png)
+
+**Step 2**
+Developer prepares and runs script of adding proposal to unfreeze Comet, set proper rates and caps.
+![](images/prev_flow_2.png)
+
+**Step 3**
+Auditors validate parameters and bytecode of deployed smart contracts.
+
+**Step 4**
+DAO executes proposal during which new implementation is deployed and set, Comet is set in Configurator.
+![](images/prev_flow_4.png)
+
+### New flow
+
+**Step 1**
+Developer prepares and runs script of adding proposal to deploy new Comet with proper parameters via MarketFactory.
+![](images/new_flow_1.png)
+
+**Step 2**
+Auditors validate parameters of new Comet market.
+
+**Step 3**
+DAO executes proposal during which Comet is deployed and set in Configurator.
+![](images/new_flow_3.png)
+
 ## Installation
 
 Prerequisites: install [Node.js](https://nodejs.org/en/download/package-manager) 22.10+ with `pnpm` and [Visual Studio Code](https://code.visualstudio.com/download).
