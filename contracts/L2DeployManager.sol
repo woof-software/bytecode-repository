@@ -29,7 +29,7 @@ import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
  *   2. Bytecode storage using SSTORE2 with automatic chunking for large contracts exceeding network gas limits or size constraints.
  *   3. Address computation using identical salt generation as L1DeployManager, guaranteeing cross-chain address consistency.
  *   4. Integration with factory contracts via BytecodeProvider interface for specialized deployment patterns and protocol-specific logic.
- * - Bytecode integrity is maintained through cryptographic hashing and validation, ensuring deployed contracts match exactly with L1-approved versions.
+ * - All bytecodes are sent through VersionController, ensuring deployed contracts match exactly with L1-approved versions.
  * - The contract serves as the canonical L2 endpoint for BytecodeRepository ecosystem, enabling trustless multi-chain deployment with audit verification.
  * - Factory contracts and custom deployment tools can retrieve bytecode through the IBytecodeProvider interface for specialized deployment patterns.
  * - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
@@ -56,7 +56,6 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         bytes calldata _constructorParams
     ) external returns (address) {
         bytes memory initCode = getVerifiedBytecode(_bytecodeVersion);
-        if (initCode.length == 0) revert BytecodeIsEmpty();
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
         bytes memory bytecodeWithParams = abi.encodePacked(initCode, _constructorParams);
         return Create2.deploy(0, uniqueSalt, bytecodeWithParams);
@@ -66,13 +65,15 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
 
     /// @notice Returns a bytecode of the specified version.
     /// @dev Can be used to validate if bytecode was sent to the current network.
+    /// @dev All bytecodes sent to L2 are already verified as only verified bytecodes can be sent.
     /// @param _version A version of bytecode for which to return bytecode.
     /// @return Bytecode of the specified contract type and its version.
     function getVerifiedBytecode(Types.BytecodeVersion calldata _version) public view returns (bytes memory) {
-        return
-            BytecodeStore._readInitCode(
-                storedBytecodePtrs[BytecodeStore._computeBytecodeHash(_version.contractType, _version.version)]
-            );
+        bytes memory initCode = BytecodeStore._readInitCode(
+            storedBytecodePtrs[BytecodeStore._computeBytecodeHash(_version.contractType, _version.version)]
+        );
+        if (initCode.length == 0) revert BytecodeIsEmpty();
+        return initCode;
     }
 
     function versionExists(Types.BytecodeVersion calldata _version) external view returns (bool) {

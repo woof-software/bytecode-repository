@@ -206,7 +206,7 @@ describe("CometFactoryV2", function () {
             governor.address
         );
         await l1DeployManager
-            .connect(governor)
+            .connect(WOOF.keyDeveloper)
             .deploy(
                 { contractType: WOOF.contractTypes[4], version: version_1_0_0 },
                 ethers.ZeroHash,
@@ -221,7 +221,7 @@ describe("CometFactoryV2", function () {
             governor.address
         );
         await l1DeployManager
-            .connect(governor)
+            .connect(WOOF.keyDeveloper)
             .deploy({ contractType: WOOF.contractTypes[5], version: version_1_0_0 }, ethers.ZeroHash, "0x");
 
         // Deploy CometFactoryV2 instances (both variants)
@@ -501,7 +501,7 @@ describe("CometFactoryV2", function () {
                 users[0].address
             );
 
-            await l1DeployManager.connect(users[0]).deploy(
+            await l1DeployManager.connect(WOOF.keyDeveloper).deploy(
                 { contractType: WOOF.contractTypes[3], version: version_1_0_0 }, // CometExtWithAssetList
                 ethers.ZeroHash,
                 abiCoder.encode(["tuple(bytes32,bytes32)", "address"], [extConfiguration, assetListFactoryAddr])

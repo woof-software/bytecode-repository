@@ -138,7 +138,7 @@ describe("L1/L2 DeployManager", function () {
         );
 
         await l1DeployManager
-            .connect(governor)
+            .connect(WOOF.keyDeveloper)
             .deploy(
                 { contractType: constantPriceFeedContractType, version: priceFeedVersion },
                 ethers.ZeroHash,
@@ -349,11 +349,11 @@ describe("L1/L2 DeployManager", function () {
             [cometConfiguration]
         );
 
-        const deployedAddress = await l2DeployManager
-            .connect(users[0])
-            .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
+        // const deployedAddress = await l2DeployManager
+        //     .connect(WOOF.keyDeveloper)
+        //     .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
 
-        await l2DeployManager.connect(users[0]).deploy(bytecodeVersion_1_0_0, salt, constructorParams);
+        await l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams);
 
         // Verify contract was deployed
         expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
@@ -490,7 +490,7 @@ describe("L1/L2 DeployManager", function () {
 
         // Deploy and get actual address
         const actualAddress = await l2DeployManager
-            .connect(users[0])
+            .connect(WOOF.keyDeveloper)
             .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
 
         // Addresses should match

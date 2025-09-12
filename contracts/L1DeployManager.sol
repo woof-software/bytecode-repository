@@ -132,7 +132,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         emit BytecodeSent(_chainId, _bytecodeVersion);
     }
 
-    /// @notice Allows anyone to deploy a certain version of bytecode on the Ethereum.
+    /// @notice Allows developers to deploy a certain version of bytecode on the Ethereum.
     /// @dev Bytecode must be uploaded and verified in the VersionController.
     /// @dev Bytecode is deployed via Create2.
     /// @param _bytecodeVersion A specific version of contract type to deploy.
@@ -142,7 +142,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
-    ) external returns (address) {
+    ) external onlyDeveloper returns (address) {
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
         bytes memory bytecodeWithParams = abi.encodePacked(
             versionController.getVerifiedBytecode(_bytecodeVersion),

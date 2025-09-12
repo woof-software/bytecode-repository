@@ -196,7 +196,7 @@ describe("MarketFactory", function () {
             users[0]
         );
         await l1DeployManager
-            .connect(users[0])
+            .connect(WOOF.keyDeveloper)
             .deploy({ contractType: ethers.encodeBytes32String("CometProxyAdmin"), version }, ethers.ZeroHash, "0x");
         const constantPriceFeedAddr = await l1DeployManager.computeAddress(
             { contractType: ethers.encodeBytes32String("ConstantPriceFeed"), version },
@@ -205,7 +205,7 @@ describe("MarketFactory", function () {
             users[0]
         );
         await l1DeployManager
-            .connect(users[0])
+            .connect(WOOF.keyDeveloper)
             .deploy(
                 { contractType: ethers.encodeBytes32String("ConstantPriceFeed"), version },
                 ethers.ZeroHash,
@@ -218,7 +218,7 @@ describe("MarketFactory", function () {
             users[0]
         );
         await l1DeployManager
-            .connect(users[0])
+            .connect(WOOF.keyDeveloper)
             .deploy({ contractType: ethers.encodeBytes32String("AssetListFactory"), version }, ethers.ZeroHash, "0x");
 
         // Deploy MarketFactory
