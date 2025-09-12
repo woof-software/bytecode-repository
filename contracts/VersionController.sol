@@ -167,8 +167,10 @@ contract VersionController is
         uint64 _major
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (_version == VersionType.Major) delete minMajorReleaseTimestamp[_contractType];
-        else if (_version == VersionType.Minor) delete minMinorReleaseTimestamp[_contractType][_major];
-        else delete minPatchReleaseTimestamp[_contractType];
+        else if (_version == VersionType.Minor) {
+            if (_major > latestVersions[_contractType].major) revert NonExistingMajorVersion(_contractType, _major);
+            delete minMinorReleaseTimestamp[_contractType][_major];
+        } else delete minPatchReleaseTimestamp[_contractType];
 
         emit CooldownReset(_contractType, _version, _major);
     }
@@ -340,6 +342,7 @@ contract VersionController is
         AuditStatus storage auditStatus = bytecodeAuditStatus[bytecodeHash];
         bytes32 reportHash = computeAuditReportHash(bytecodeHash, bytecodes[bytecodeHash].initCodeHash, _auditReport);
         address author = ECDSA.recover(_hashTypedDataV4(reportHash), _signature);
+
         _checkRole(AUDITOR_ROLE, author);
 
         if (bytes(auditStatus.auditReports[author]).length > 0)
