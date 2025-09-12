@@ -66,6 +66,7 @@ describe("L1/L2 DeployManager", function () {
             initCode: CometInitCode,
             sourceURL: URL
         });
+        await time.increase(time.duration.days(90));
         // Release new major version
         const NEW_URL = "https://github.com/compound-finance/comet/blob/main/contracts/CometExt.sol";
         await versionController.connect(WOOF.subDevelopers[1]).releaseMajorVersion({
