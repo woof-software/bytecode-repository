@@ -46,6 +46,7 @@ contract VersionController is
     EIP712Upgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using Strings for uint256;
 
     /// @notice Audit report typehash.
@@ -91,6 +92,8 @@ contract VersionController is
     mapping(bytes32 => mapping(uint256 => uint64)) public minMinorReleaseTimestamp;
     /// @notice Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
     mapping(bytes32 => bool) public isBytecodeUploaded;
+    /// @notice Stores all contract types ever added.
+    EnumerableSet.Bytes32Set private registeredContractTypes;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -153,6 +156,7 @@ contract VersionController is
         if (_keyDeveloper != address(0)) _grantRole(KEY_DEVELOPER_ROLE, _keyDeveloper);
         if (contractTypeKeyDeveloper[_contractType] == _keyDeveloper) revert SameKeyDeveloper(_keyDeveloper);
         contractTypeKeyDeveloper[_contractType] = _keyDeveloper;
+        registeredContractTypes.add(_contractType);
 
         emit KeyDeveloperAssigned(_contractType, _keyDeveloper);
     }
@@ -492,6 +496,12 @@ contract VersionController is
     /// @return Array containing all the alternative versions of given contract type.
     function getAllAlternativeVersions(bytes32 _contractType) external view returns (VersionWithAlternative[] memory) {
         return alternativeVersions[_contractType];
+    }
+
+    /// @notice Returns all registered contract types.
+    /// @return Bytes32 array containing all contract types.
+    function getRegisteredContractTypes() external view returns (bytes32[] memory) {
+        return registeredContractTypes.values();
     }
 
     /* Internal helpers */
