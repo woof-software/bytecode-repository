@@ -71,6 +71,7 @@
     "function getAuditorsForBytecodeVersion(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string))) view returns (address[])",
     "function getKeyDeveloper(address) view returns (address)",
     "function getLatestVersion(bytes32) view returns (string)",
+    "function getRegisteredContractTypes() view returns (bytes32[])",
     "function getRoleAdmin(bytes32) view returns (bytes32)",
     "function getRoleMember(bytes32,uint256) view returns (address)",
     "function getRoleMemberCount(bytes32) view returns (uint256)",
