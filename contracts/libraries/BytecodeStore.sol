@@ -35,6 +35,7 @@ library BytecodeStore {
     /// @notice Writes the bytecode in the storage.
     /// @dev Utilizes SSTORE2 for storing the bytecode.
     /// @dev Bytecode must not be empty.
+    /// @dev The size of chunk is set to 24500 to leave small buffer for SSTORE2 metadata.
     /// @param _initCode Bytecode to store.
     /// @return An array of pointer addresses at which parts of bytecode was stored.
     function _writeInitCode(bytes memory _initCode) internal returns (address[] memory) {

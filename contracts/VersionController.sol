@@ -12,7 +12,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { BytecodeStore } from "./libraries/BytecodeStore.sol";
 import { IVersionController, IAccessControl } from "./interfaces/IVersionController.sol";
 
-/**
+/**assignDeveloperForContractType
  * @title VersionController
  * @author WOOF! Software
  * @custom:security-contact dmitriy@woof.software
@@ -143,8 +143,9 @@ contract VersionController is
     /// @notice Assigns a new key developer for a certain contract type.
     /// @dev Governor can use this function to initializes contract type and forcibly assign new key developer.
     /// @dev Grants a key developer role to a given account.
+    /// @dev Correctness of  contract type should be checked by the Governance before calling this function.
     /// @param _contractType A type of contract to assign developer for.
-    /// @param _keyDeveloper An address of key developer to assign.
+    /// @param _keyDeveloper An address of key developer to assign. address(0) is allowed to remove developer for contract type.
     function assignDeveloperForContractType(
         bytes32 _contractType,
         address _keyDeveloper

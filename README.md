@@ -333,7 +333,7 @@ const signature = await auditor._signTypedData(domain, types, auditData);
 **Step 3: Audit Submission**
 
 ```solidity
-// Submit audit verification on-chain
+// Developers can submit audit verification provided by auditors on-chain
 versionController.verifyAudit(
     bytecodeHash,
     auditReportURL,
