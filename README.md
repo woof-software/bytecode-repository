@@ -42,12 +42,12 @@ A cross-chain smart contract bytecode repository system that enables secure, ver
 - Custom parameter encoding and validation for Comet protocol requirements
 - Seamless integration with Compound's governance and upgrade patterns
 
-**📈 MarketFactory** - Market contract deployment factory with custom initialization
+**📈 MarketFactory** - Market contract deployment factory with extended asset list support
 
-- Specialized deployment patterns for Compound Comet market contracts
+- Specialized deployment patterns for Compound Comet market contracts with enhanced asset management
 - Custom initialization logic for market-specific parameters and configurations
-- Supports deployment for both Comet and CometWithExtendedAssetList
-- Built-in validation for market deployment requirements
+- Exclusively deploys CometExtWithAssetList and CometWithAssetList for enhanced collateral capacity
+- Built-in validation for market deployment requirements and asset list factory integration
 
 **💾 BytecodeStore** - Gas-optimized storage library using SSTORE2 magic
 
@@ -497,48 +497,46 @@ VersionWithAlternative memory cometVersion = VersionWithAlternative({
 // Deployment salt
 bytes32 salt = keccak256("USDC-Market-v1");
 
-// Deploy complete Comet market (CometExt + Comet + Proxy)
+// Deploy complete Comet market with extended asset list (CometExtWithAssetList + CometWithAssetList + Proxy)
 (address cometExt, address comet, address cometProxy) = marketFactory.deployComet(
-    cometExtVersion,    // CometExt version
-    cometVersion,       // Comet version
-    extConfig,          // CometExt constructor params
-    cometConfig,        // Comet constructor params
-    salt,               // Deployment salt
-    false               // Use standard asset list (not extended)
+    cometExtVersion,    // CometExtWithAssetList version
+    cometVersion,       // CometWithAssetList version
+    extConfig,          // CometExtWithAssetList constructor params
+    cometConfig,        // CometWithAssetList constructor params
+    salt                // Deployment salt
 );
 
 // MarketFactory automatically:
-// 1. Retrieves CometExt bytecode from BytecodeProvider
-// 2. Deploys CometExt with extConfig parameters
+// 1. Retrieves CometExtWithAssetList bytecode from BytecodeProvider
+// 2. Deploys CometExtWithAssetList with extConfig and AssetListFactory parameters
 // 3. Sets cometConfig.extensionDelegate = cometExt address
-// 4. Retrieves Comet bytecode from BytecodeProvider
-// 5. Deploys Comet with updated cometConfig
+// 4. Retrieves CometWithAssetList bytecode from BytecodeProvider
+// 5. Deploys CometWithAssetList with updated cometConfig
 // 6. Deploys TransparentUpgradeableProxy pointing to Comet implementation
 // 7. Returns all three addresses
 ```
 
-**Step 4: Extended Asset List Support**
+**Step 4: Extended Asset List Support (Built-in)**
 
 ```solidity
-// For markets with many collateral assets, use extended variants
+// MarketFactory automatically uses extended asset list variants for all deployments
 Configuration memory complexConfig = cometConfig; // Copy base config
-// Add 15+ asset configurations...
+// Add 15+ asset configurations for enhanced collateral support...
 complexConfig.assetConfigs = largeAssetConfigArray;
 
-// Deploy with extended asset list support
+// Deploy Comet market with built-in extended asset list support
 (address extCometExt, address extComet, address extProxy) = marketFactory.deployComet(
     cometExtVersion,
     cometVersion,
     extConfig,
     complexConfig,
-    keccak256("USDC-Extended-Market"),
-    true  // withAssetList = true, uses extended variants
+    keccak256("USDC-Extended-Market")
 );
 
-// When withAssetList = true, MarketFactory uses:
-// - COMET_EXT_ASSET_LIST_CT instead of COMET_EXT_CT
-// - COMET_ASSET_LIST_CT instead of COMET_CT
-// - Passes assetListFactory to CometExt constructor
+// MarketFactory always uses:
+// - COMET_EXT_ASSET_LIST_CT (CometExtWithAssetList)
+// - COMET_ASSET_LIST_CT (CometWithAssetList)
+// - Automatically passes assetListFactory to CometExt constructor
 ```
 
 **Step 5: Address Pre-computation**
@@ -552,8 +550,7 @@ complexConfig.assetConfigs = largeAssetConfigArray;
         extConfig,
         cometConfig,
         salt,
-        msg.sender,     // deployer address
-        false           // withAssetList
+        msg.sender      // deployer address
     );
 
 // Addresses are deterministic and can be used for:
@@ -571,8 +568,7 @@ complexConfig.assetConfigs = largeAssetConfigArray;
     cometVersion,
     extConfig,          // Same configurations
     cometConfig,
-    salt,               // Same salt
-    false               // Same asset list flag
+    salt                // Same salt
 );
 
 // Verify address consistency across chains
