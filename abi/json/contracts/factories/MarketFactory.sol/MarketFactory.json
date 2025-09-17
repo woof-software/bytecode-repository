@@ -61,33 +61,7 @@
     },
     {
         "inputs": [],
-        "name": "COMET_CT",
-        "outputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
         "name": "COMET_EXT_ASSET_LIST_CT",
-        "outputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "COMET_EXT_CT",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -382,11 +356,6 @@
                 "internalType": "address",
                 "name": "_deployer",
                 "type": "address"
-            },
-            {
-                "internalType": "bool",
-                "name": "_withAssetList",
-                "type": "bool"
             }
         ],
         "name": "computeCometAddresses",
@@ -650,11 +619,6 @@
                 "internalType": "bytes32",
                 "name": "_salt",
                 "type": "bytes32"
-            },
-            {
-                "internalType": "bool",
-                "name": "_withAssetList",
-                "type": "bool"
             }
         ],
         "name": "deployComet",
