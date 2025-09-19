@@ -44,6 +44,15 @@ contract MarketFactory is BaseFactory {
     /// @notice Address of the AssetListFactory to use during deployment of CometWithExtendedAssetList.
     address public immutable assetListFactory;
 
+    event MarketDeployed(
+        Types.VersionWithAlternative _cometExtVersion,
+        Types.VersionWithAlternative _cometVersion,
+        address _comet,
+        address _cometExt,
+        address _cometProxy,
+        address _deployer
+    );
+
     constructor(
         IBytecodeProvider _bytecodeProvider,
         address _cometProxyAdmin,
@@ -89,6 +98,7 @@ contract MarketFactory is BaseFactory {
             addressToBytes32(comet)
         );
 
+        emit MarketDeployed(_cometExtVersion, _cometVersion, comet, cometExt, cometProxy, msg.sender);
         return (cometExt, comet, cometProxy);
     }
 

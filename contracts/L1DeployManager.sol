@@ -145,7 +145,10 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
             versionController.getVerifiedBytecode(_bytecodeVersion),
             _constructorParams
         );
-        return Create2.deploy(0, uniqueSalt, bytecodeWithParams);
+        address newContract = Create2.deploy(0, uniqueSalt, bytecodeWithParams);
+
+        emit ContractDeployed(_bytecodeVersion, _constructorParams, newContract, msg.sender);
+        return newContract;
     }
 
     /* View functions */

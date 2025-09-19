@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { IVersionController } from "./IVersionController.sol";
+import { Types } from "./Types.sol";
 
 interface IL1DeployManager {
     event ChainConfigSet(uint256 _chainId, ChainConfig _config);
     event FactorySet(bytes32 _contractType, address _factory);
-    event BytecodeSent(uint256 _chainId, IVersionController.BytecodeVersion _bytecodeVersion);
+    event BytecodeSent(uint256 _chainId, Types.BytecodeVersion _bytecodeVersion);
+    event ContractDeployed(
+        Types.BytecodeVersion _bytecodeVersion,
+        bytes _constructorParams,
+        address _newContract,
+        address _deployer
+    );
 
     error UnsupportedChain(uint256 _chainId);
     error OnlyGovernor();
