@@ -15,6 +15,11 @@
                 "internalType": "address",
                 "name": "_assetListFactory",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_localTimelock",
+                "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
@@ -45,6 +50,112 @@
         ],
         "name": "InsufficientBalance",
         "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "OnlyDeveloperOrGovernor",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct Types.VersionWithAlternative",
+                "name": "_cometExtVersion",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct Types.VersionWithAlternative",
+                "name": "_cometVersion",
+                "type": "tuple"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_comet",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_cometExt",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_cometProxy",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_deployer",
+                "type": "address"
+            }
+        ],
+        "name": "MarketDeployed",
+        "type": "event"
     },
     {
         "inputs": [],
@@ -640,6 +751,19 @@
             }
         ],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "localTimelock",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     }
 ]

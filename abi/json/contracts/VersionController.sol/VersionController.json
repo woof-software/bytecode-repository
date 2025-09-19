@@ -781,6 +781,19 @@
     },
     {
         "inputs": [],
+        "name": "GUARDIAN_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "KEY_DEVELOPER_ROLE",
         "outputs": [
             {
@@ -1511,6 +1524,11 @@
                 "internalType": "address",
                 "name": "_governor",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_guardian",
+                "type": "address"
             }
         ],
         "name": "initialize",
@@ -1587,6 +1605,25 @@
             }
         ],
         "name": "isBytecodeVerified",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "isDeveloper",
         "outputs": [
             {
                 "internalType": "bool",
