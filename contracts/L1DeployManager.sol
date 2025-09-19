@@ -209,9 +209,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     }
 
     function _isDeveloper(address _developer) private view returns (bool) {
-        return
-            versionController.hasRole(SUB_DEVELOPER_ROLE, _developer) ||
-            versionController.hasRole(KEY_DEVELOPER_ROLE, _developer);
+        return versionController.isDeveloper(_developer);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGovernor {}

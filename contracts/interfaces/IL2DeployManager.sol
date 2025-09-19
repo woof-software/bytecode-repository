@@ -16,6 +16,7 @@ interface IL2DeployManager {
     error InvalidSender();
     error OnlyTimelock();
     error BytecodeIsEmpty();
+    error OnlyDeveloperOrGovernor();
 
     /// @notice A type of message to receive from Ethereum.
     enum MessageType {

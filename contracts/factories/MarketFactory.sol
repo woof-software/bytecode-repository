@@ -43,6 +43,7 @@ contract MarketFactory is BaseFactory {
     address public immutable cometProxyAdmin;
     /// @notice Address of the AssetListFactory to use during deployment of CometWithExtendedAssetList.
     address public immutable assetListFactory;
+    address public immutable localTimelock;
 
     event MarketDeployed(
         Types.VersionWithAlternative _cometExtVersion,
@@ -53,13 +54,22 @@ contract MarketFactory is BaseFactory {
         address _deployer
     );
 
+    error OnlyDeveloperOrGovernor();
+
     constructor(
         IBytecodeProvider _bytecodeProvider,
         address _cometProxyAdmin,
-        address _assetListFactory
+        address _assetListFactory,
+        address _localTimelock
     ) BaseFactory(_bytecodeProvider) {
         cometProxyAdmin = _cometProxyAdmin;
         assetListFactory = _assetListFactory;
+        localTimelock = _localTimelock;
+    }
+
+    modifier onlyDeveloperOrGovernor() {
+        if (!bytecodeProvider.isDeveloper(msg.sender) && msg.sender != localTimelock) revert OnlyDeveloperOrGovernor();
+        _;
     }
 
     /* Deploy functions */
@@ -78,7 +88,7 @@ contract MarketFactory is BaseFactory {
         ExtConfiguration calldata _extParams,
         Configuration memory _params,
         bytes32 _salt
-    ) external returns (address, address, address) {
+    ) external onlyDeveloperOrGovernor returns (address, address, address) {
         // Deploy CometExtWithAssetList
         address cometExt = _deployContractType(
             Types.BytecodeVersion(COMET_EXT_ASSET_LIST_CT, _cometExtVersion),

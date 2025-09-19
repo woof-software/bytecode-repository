@@ -38,11 +38,18 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     uint64 public constant ETHEREUM_SELECTOR = 5009297550715157269;
     uint256 public constant DEVELOPER_ACCESS_DURATION = 90 days;
     address public immutable l1DeployManager;
+    address public immutable localTimelock;
     mapping(bytes32 => address[]) private storedBytecodePtrs;
     mapping(address => uint256) public developerUntil;
 
-    constructor(address _l1DeployManager, address _router) CCIPReceiver(_router) {
+    constructor(address _l1DeployManager, address _router, address _localTimelock) CCIPReceiver(_router) {
         l1DeployManager = _l1DeployManager;
+        localTimelock = _localTimelock;
+    }
+
+    modifier onlyDeveloperOrGovernor() {
+        if (!isDeveloper(msg.sender) && msg.sender != localTimelock) revert OnlyDeveloperOrGovernor();
+        _;
     }
 
     /* Developer functions */
@@ -57,7 +64,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
-    ) external payable returns (address) {
+    ) external payable onlyDeveloperOrGovernor returns (address) {
         bytes memory initCode = getVerifiedBytecode(_bytecodeVersion);
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
         bytes memory bytecodeWithParams = abi.encodePacked(initCode, _constructorParams);
@@ -101,6 +108,10 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, _deployer));
         bytes memory bytecodeWithParams = abi.encodePacked(getVerifiedBytecode(_bytecodeVersion), _constructorParams);
         return Create2.computeAddress(uniqueSalt, keccak256(bytecodeWithParams));
+    }
+
+    function isDeveloper(address _account) public view returns (bool) {
+        return developerUntil[_account] >= block.timestamp;
     }
 
     /* Internal helpers */

@@ -117,8 +117,7 @@ contract VersionController is
     /// @param _contractType A type of contract for which to validate developer.
     /// @param _developer An address of developer to validate.
     modifier checkDeveloper(bytes32 _contractType, address _developer) {
-        if (!hasRole(KEY_DEVELOPER_ROLE, _developer) && !hasRole(SUB_DEVELOPER_ROLE, _developer))
-            revert NotDeveloper(_developer);
+        if (!isDeveloper(_developer)) revert NotDeveloper(_developer);
 
         address contractTypeKeyDev = contractTypeKeyDeveloper[_contractType];
         if (contractTypeKeyDev != _developer && subToKeyDeveloper[_developer] != contractTypeKeyDev)
@@ -419,6 +418,13 @@ contract VersionController is
             keccak256(
                 abi.encode(AUDIT_REPORT_TYPEHASH, _bytecodeVersionHash, _bytecodeHash, keccak256(bytes(_auditReport)))
             );
+    }
+
+    /// @notice Validates if given account is developer.
+    /// @param _account Address to check.
+    /// @return true if account is developer, false otherwise.
+    function isDeveloper(address _account) public view returns (bool) {
+        return hasRole(KEY_DEVELOPER_ROLE, _account) || hasRole(SUB_DEVELOPER_ROLE, _account);
     }
 
     /// @notice Returns the key developer for given account.
