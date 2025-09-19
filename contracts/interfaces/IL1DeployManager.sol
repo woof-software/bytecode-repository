@@ -10,7 +10,7 @@ interface IL1DeployManager {
 
     error UnsupportedChain(uint256 _chainId);
     error OnlyGovernor();
-    error OnlyDeveloper();
+    error OnlyDeveloperOrGovernor();
     error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
 
     /**

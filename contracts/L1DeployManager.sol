@@ -72,17 +72,14 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Validates that the caller is the Governor.
     /// @dev The role is checked through the VersionController.
     modifier onlyGovernor() {
-        if (!versionController.hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert OnlyGovernor();
+        if (!_isGovernor(msg.sender)) revert OnlyGovernor();
         _;
     }
 
-    /// @notice Validates that the caller is developer.
+    /// @notice Validates that the caller is developer or governor.
     /// @dev The role is checked through the VersionController.
-    modifier onlyDeveloper() {
-        if (
-            !versionController.hasRole(SUB_DEVELOPER_ROLE, msg.sender) &&
-            !versionController.hasRole(KEY_DEVELOPER_ROLE, msg.sender)
-        ) revert OnlyDeveloper();
+    modifier onlyDeveloperOrGovernor() {
+        if (!_isDeveloper(msg.sender) && !_isGovernor(msg.sender)) revert OnlyDeveloperOrGovernor();
         _;
     }
 
@@ -120,7 +117,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     function sendBytecodeToOtherChain(
         Types.BytecodeVersion calldata _bytecodeVersion,
         uint256 _chainId
-    ) external payable onlyDeveloper supportedChain(_chainId) {
+    ) external payable onlyDeveloperOrGovernor supportedChain(_chainId) {
         bytes32 bytecodeHash = versionController.computeBytecodeHash(
             _bytecodeVersion.contractType,
             _bytecodeVersion.version
@@ -142,7 +139,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
-    ) external onlyDeveloper returns (address) {
+    ) external onlyDeveloperOrGovernor returns (address) {
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
         bytes memory bytecodeWithParams = abi.encodePacked(
             versionController.getVerifiedBytecode(_bytecodeVersion),
@@ -192,6 +189,16 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         uint256 feeValue = routerClient.getFee(config.destinationChainSelector, evm2AnyMessage);
         if (feeValue > address(this).balance) revert Errors.InsufficientBalance(address(this).balance, feeValue);
         routerClient.ccipSend{ value: feeValue }(config.destinationChainSelector, evm2AnyMessage);
+    }
+
+    function _isGovernor(address _governor) private view returns (bool) {
+        return versionController.hasRole(DEFAULT_ADMIN_ROLE, _governor);
+    }
+
+    function _isDeveloper(address _developer) private view returns (bool) {
+        return
+            versionController.hasRole(SUB_DEVELOPER_ROLE, _developer) ||
+            versionController.hasRole(KEY_DEVELOPER_ROLE, _developer);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGovernor {}
