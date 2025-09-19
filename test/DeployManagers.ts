@@ -138,12 +138,21 @@ describe("L1/L2 DeployManager", function () {
             WOOF.keyDeveloper.address
         );
 
-        await l1DeployManager
-            .connect(WOOF.keyDeveloper)
-            .deploy(
+        await expect(
+            l1DeployManager
+                .connect(WOOF.keyDeveloper)
+                .deploy(
+                    { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+                    ethers.ZeroHash,
+                    abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)])
+                )
+        )
+            .to.emit(l1DeployManager, "ContractDeployed")
+            .withArgs(
                 { contractType: constantPriceFeedContractType, version: priceFeedVersion },
-                ethers.ZeroHash,
-                abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)])
+                abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
+                constantPriceFeedAddr,
+                WOOF.keyDeveloper.address
             );
 
         return {
@@ -169,9 +178,16 @@ describe("L1/L2 DeployManager", function () {
     it("Should send bytecode to other chain", async () => {
         const { WOOF, l1DeployManager, l2DeployManager, versionController, bytecodeVersion_1_0_0, bytecodeHash_1_0_0 } =
             await restore();
-        await l1DeployManager
+
+        const tx = await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+
+        await expect(tx)
+            .to.emit(l1DeployManager, "BytecodeSent")
+            .withArgs(mockOtherChainId, bytecodeVersion_1_0_0)
+            .and.to.emit(l2DeployManager, "BytecodeReceived")
+            .withArgs(ethers.anyValue, bytecodeHash_1_0_0);
 
         const expectedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
         expect(await l2DeployManager.getVerifiedBytecode(bytecodeVersion_1_0_0)).to.equal(expectedBytecode);
@@ -222,7 +238,7 @@ describe("L1/L2 DeployManager", function () {
             l1DeployManager
                 .connect(users[1])
                 .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee })
-        ).revertedWithCustomError(l1DeployManager, "OnlyDeveloper");
+        ).revertedWithCustomError(l1DeployManager, "OnlyDeveloperOrGovernor");
     });
 
     it("Should not receive bytecode if sender is not L1DeployManager", async () => {
@@ -354,7 +370,9 @@ describe("L1/L2 DeployManager", function () {
             .connect(WOOF.keyDeveloper)
             .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
 
-        await l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams);
+        await expect(l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams))
+            .to.emit(l2DeployManager, "ContractDeployed")
+            .withArgs(bytecodeVersion_1_0_0, constructorParams, deployedAddress, WOOF.keyDeveloper.address);
 
         // Verify contract was deployed
         expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
@@ -496,6 +514,35 @@ describe("L1/L2 DeployManager", function () {
 
         // Addresses should match
         expect(computedAddress).to.equal(actualAddress);
+    });
+
+    it("Should allow timelock to deploy contracts", async () => {
+        const { governor, versionController, l1DeployManager, bytecodeVersion_1_0_0, localTimelockL2 } =
+            await restore();
+
+        // Grant timelock the governor role
+        const DEFAULT_ADMIN_ROLE = await versionController.DEFAULT_ADMIN_ROLE();
+        await versionController.connect(governor).grantRole(DEFAULT_ADMIN_ROLE, localTimelockL2.address);
+
+        // Prepare constructor parameters
+        const constructorParams = abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]);
+        const salt = ethers.solidityPackedKeccak256(["string"], ["timelock-test"]);
+
+        // Compute expected address
+        const expectedAddress = await l1DeployManager.computeAddress(
+            bytecodeVersion_1_0_0,
+            salt,
+            constructorParams,
+            localTimelockL2.address
+        );
+
+        // Deploy using timelock and verify event
+        await expect(l1DeployManager.connect(localTimelockL2).deploy(bytecodeVersion_1_0_0, salt, constructorParams))
+            .to.emit(l1DeployManager, "ContractDeployed")
+            .withArgs(bytecodeVersion_1_0_0, constructorParams, expectedAddress, localTimelockL2.address);
+
+        // Verify contract was deployed
+        expect(await ethers.provider.getCode(expectedAddress)).to.not.equal("0x");
     });
 
     it("Should compute different addresses for different deployers", async () => {

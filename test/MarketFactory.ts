@@ -290,9 +290,13 @@ describe("MarketFactory", function () {
             users[0]
         );
 
-        await marketFactory
-            .connect(users[0])
-            .deployComet(version, version, extConfiguration, configuration, ethers.ZeroHash);
+        await expect(
+            marketFactory
+                .connect(users[0])
+                .deployComet(version, version, extConfiguration, configuration, ethers.ZeroHash)
+        )
+            .to.emit(marketFactory, "MarketDeployed")
+            .withArgs(version, version, resultAddresses[1], resultAddresses[0], resultAddresses[2], users[0].address);
 
         // Check comet
         expect(await ethers.provider.getCode(resultAddresses[0])).to.not.equal("0x");
