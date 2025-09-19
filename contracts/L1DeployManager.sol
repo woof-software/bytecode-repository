@@ -139,7 +139,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
-    ) external onlyDeveloperOrGovernor returns (address) {
+    ) external payable onlyDeveloperOrGovernor returns (address) {
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
         bytes memory bytecodeWithParams = abi.encodePacked(
             versionController.getVerifiedBytecode(_bytecodeVersion),

@@ -54,7 +54,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         Types.BytecodeVersion calldata _bytecodeVersion,
         bytes32 _salt,
         bytes calldata _constructorParams
-    ) external returns (address) {
+    ) external payable returns (address) {
         bytes memory initCode = getVerifiedBytecode(_bytecodeVersion);
         bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
         bytes memory bytecodeWithParams = abi.encodePacked(initCode, _constructorParams);
