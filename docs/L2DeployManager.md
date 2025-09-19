@@ -23,22 +23,52 @@ This contract receives audited bytecode from L1 via Chainlink CCIP and enables s
 - Factory contracts and custom deployment tools can retrieve bytecode through the IBytecodeProvider interface for specialized deployment patterns.
 - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
 
+### ETHEREUM_SELECTOR
+
+```solidity
+uint64 ETHEREUM_SELECTOR
+```
+
+### DEVELOPER_ACCESS_DURATION
+
+```solidity
+uint256 DEVELOPER_ACCESS_DURATION
+```
+
 ### l1DeployManager
 
 ```solidity
 address l1DeployManager
 ```
 
+### localTimelock
+
+```solidity
+address localTimelock
+```
+
+### developerUntil
+
+```solidity
+mapping(address => uint256) developerUntil
+```
+
 ### constructor
 
 ```solidity
-constructor(address _l1DeployManager, address _router) public
+constructor(address _l1DeployManager, address _router, address _localTimelock) public
+```
+
+### onlyDeveloperOrGovernor
+
+```solidity
+modifier onlyDeveloperOrGovernor()
 ```
 
 ### deploy
 
 ```solidity
-function deploy(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams) external returns (address)
+function deploy(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams) external payable returns (address)
 ```
 
 Allows anyone to deploy a certain version of bytecode on the current network.
@@ -106,6 +136,12 @@ Computes a pre-deployed addresses of specified contract type and version.
 | ---- | ---- | ----------- |
 | [0] | address | Address of computed pre-deployed smart contract. |
 
+### isDeveloper
+
+```solidity
+function isDeveloper(address _account) public view returns (bool)
+```
+
 ### _ccipReceive
 
 ```solidity
@@ -120,5 +156,5 @@ _The sender of the message from Ethereum must be L1DeployManager._
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| any2EvmMessage | struct Client.Any2EVMMessage | params necessary for the cross-chain message. Data contains bytecode hash and its bytecode. |
+| any2EvmMessage | struct Client.Any2EVMMessage | params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE. and address of developer for BECOME_DEVELOPER. |
 

@@ -58,6 +58,14 @@ bytes32 AUDITOR_ROLE
 
 Auditor role for AccessControl.
 
+### GUARDIAN_ROLE
+
+```solidity
+bytes32 GUARDIAN_ROLE
+```
+
+Guardian role for AccessControl.
+
 ### SUB_DEVELOPERS_LIMIT
 
 ```solidity
@@ -179,7 +187,7 @@ constructor() public
 ### initialize
 
 ```solidity
-function initialize(address _governor) external
+function initialize(address _governor, address _guardian) external
 ```
 
 ### checkDeveloper
@@ -478,6 +486,26 @@ Computes an audit report hash.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bytes32 | Hash of specified audit report. |
+
+### isDeveloper
+
+```solidity
+function isDeveloper(address _account) public view returns (bool)
+```
+
+Validates if given account is developer.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _account | address | Address to check. |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | true if account is developer, false otherwise. |
 
 ### getKeyDeveloper
 

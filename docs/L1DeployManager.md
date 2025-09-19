@@ -118,13 +118,13 @@ Validates that the caller is the Governor.
 
 _The role is checked through the VersionController._
 
-### onlyDeveloper
+### onlyDeveloperOrGovernor
 
 ```solidity
-modifier onlyDeveloper()
+modifier onlyDeveloperOrGovernor()
 ```
 
-Validates that the caller is developer.
+Validates that the caller is developer or governor.
 
 _The role is checked through the VersionController._
 
@@ -179,10 +179,16 @@ unless the ETH is already donated through the receive() function._
 | _bytecodeVersion | struct Types.BytecodeVersion | A specific version of contract type. |
 | _chainId | uint256 | ID of the network to which to send bytecode. Chain ID must be registered by the Governor. |
 
+### becomeDeveloperOnOtherChain
+
+```solidity
+function becomeDeveloperOnOtherChain(uint256 _chainId) external payable
+```
+
 ### deploy
 
 ```solidity
-function deploy(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams) external returns (address)
+function deploy(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams) external payable returns (address)
 ```
 
 Allows developers to deploy a certain version of bytecode on the Ethereum.

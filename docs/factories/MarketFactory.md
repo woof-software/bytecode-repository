@@ -57,10 +57,34 @@ address assetListFactory
 
 Address of the AssetListFactory to use during deployment of CometWithExtendedAssetList.
 
+### localTimelock
+
+```solidity
+address localTimelock
+```
+
+### MarketDeployed
+
+```solidity
+event MarketDeployed(struct Types.VersionWithAlternative _cometExtVersion, struct Types.VersionWithAlternative _cometVersion, address _comet, address _cometExt, address _cometProxy, address _deployer)
+```
+
+### OnlyDeveloperOrGovernor
+
+```solidity
+error OnlyDeveloperOrGovernor()
+```
+
 ### constructor
 
 ```solidity
-constructor(contract IBytecodeProvider _bytecodeProvider, address _cometProxyAdmin, address _assetListFactory) public
+constructor(contract IBytecodeProvider _bytecodeProvider, address _cometProxyAdmin, address _assetListFactory, address _localTimelock) public
+```
+
+### onlyDeveloperOrGovernor
+
+```solidity
+modifier onlyDeveloperOrGovernor()
 ```
 
 ### deployComet

@@ -8,10 +8,16 @@
 event BytecodeReceived(bytes32 _messageId, bytes32 _bytecodeHash)
 ```
 
-### FactorySet
+### ContractDeployed
 
 ```solidity
-event FactorySet(bytes32 _contractType, address _factory)
+event ContractDeployed(struct Types.BytecodeVersion _bytecodeVersion, bytes _constructorParams, address _newContract, address _deployer)
+```
+
+### DeveloperAccessGranted
+
+```solidity
+event DeveloperAccessGranted(address _developer)
 ```
 
 ### InvalidSender
@@ -30,5 +36,22 @@ error OnlyTimelock()
 
 ```solidity
 error BytecodeIsEmpty()
+```
+
+### OnlyDeveloperOrGovernor
+
+```solidity
+error OnlyDeveloperOrGovernor()
+```
+
+### MessageType
+
+A type of message to receive from Ethereum.
+
+```solidity
+enum MessageType {
+  SEND_BYTECODE,
+  BECOME_DEVELOPER
+}
 ```
 

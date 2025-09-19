@@ -14,3 +14,9 @@ function getVerifiedBytecode(struct Types.BytecodeVersion _version) external vie
 function versionExists(struct Types.BytecodeVersion _version) external view returns (bool)
 ```
 
+### isDeveloper
+
+```solidity
+function isDeveloper(address _account) external view returns (bool)
+```
+

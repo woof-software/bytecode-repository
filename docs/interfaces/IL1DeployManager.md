@@ -8,16 +8,22 @@
 event ChainConfigSet(uint256 _chainId, struct IL1DeployManager.ChainConfig _config)
 ```
 
-### FactorySet
-
-```solidity
-event FactorySet(bytes32 _contractType, address _factory)
-```
-
 ### BytecodeSent
 
 ```solidity
 event BytecodeSent(uint256 _chainId, struct Types.BytecodeVersion _bytecodeVersion)
+```
+
+### DeveloperAccessRequested
+
+```solidity
+event DeveloperAccessRequested(uint256 _chainId, address _developer)
+```
+
+### ContractDeployed
+
+```solidity
+event ContractDeployed(struct Types.BytecodeVersion _bytecodeVersion, bytes _constructorParams, address _newContract, address _deployer)
 ```
 
 ### UnsupportedChain
@@ -32,16 +38,27 @@ error UnsupportedChain(uint256 _chainId)
 error OnlyGovernor()
 ```
 
-### OnlyDeveloper
+### OnlyDeveloperOrGovernor
 
 ```solidity
-error OnlyDeveloper()
+error OnlyDeveloperOrGovernor()
 ```
 
 ### BytecodeAlreadySent
 
 ```solidity
 error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash)
+```
+
+### MessageType
+
+A type of message to send to other chain.
+
+```solidity
+enum MessageType {
+  SEND_BYTECODE,
+  BECOME_DEVELOPER
+}
 ```
 
 ### ChainConfig
