@@ -20,10 +20,11 @@ describe("MarketFactory", function () {
     const fixture = async () => {
         const signers = await ethers.getSigners();
         const governor = signers[0];
-        const auditors = signers.slice(1, 4); // 3 Auditors
+        const guardian = signers[1];
+        const auditors = signers.slice(2, 5); // 3 Auditors
         const WOOF: Developers = {
-            keyDeveloper: signers[4],
-            subDevelopers: signers.slice(5, 8),
+            keyDeveloper: signers[5],
+            subDevelopers: signers.slice(6, 9),
             contractTypes: [
                 "Comet",
                 "CometExt",
@@ -34,11 +35,11 @@ describe("MarketFactory", function () {
                 "AssetListFactory"
             ].map((ct: string): string => ethers.encodeBytes32String(ct))
         };
-        const users = signers.slice(9);
+        const users = signers.slice(10);
 
         const versionController = await upgrades.deployProxy(
             await ethers.getContractFactory("VersionController"),
-            [await governor.getAddress()],
+            [await governor.getAddress(), await guardian.getAddress()],
             { kind: "uups" }
         );
         const AUDITOR_ROLE = await versionController.AUDITOR_ROLE();
@@ -202,16 +203,14 @@ describe("MarketFactory", function () {
         const constantPriceFeedAddr = await l1DeployManager.computeAddress(
             { contractType: ethers.encodeBytes32String("ConstantPriceFeed"), version },
             ethers.ZeroHash,
-            abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
+            abiCoder.encode(["uint8", "int256"], [8, "100000000"]), // 1 * 10^8
             WOOF.keyDeveloper.address
         );
-        await l1DeployManager
-            .connect(WOOF.keyDeveloper)
-            .deploy(
-                { contractType: ethers.encodeBytes32String("ConstantPriceFeed"), version },
-                ethers.ZeroHash,
-                abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)])
-            );
+        await l1DeployManager.connect(WOOF.keyDeveloper).deploy(
+            { contractType: ethers.encodeBytes32String("ConstantPriceFeed"), version },
+            ethers.ZeroHash,
+            abiCoder.encode(["uint8", "int256"], [8, "100000000"]) // 1 * 10^8
+        );
         const assetListFactoryAddr = await l1DeployManager.computeAddress(
             { contractType: ethers.encodeBytes32String("AssetListFactory"), version },
             ethers.ZeroHash,
@@ -229,6 +228,7 @@ describe("MarketFactory", function () {
         return {
             marketFactory,
             governor,
+            guardian,
             WOOF,
             users,
             mockBaseToken,
@@ -250,13 +250,13 @@ describe("MarketFactory", function () {
             baseTokenPriceFeed: constantPriceFeedAddr,
             extensionDelegate: ethers.ZeroAddress,
             supplyKink: "900000000000000000",
-            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
-            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeLow: "36000000000000000",
+            supplyPerYearInterestRateSlopeHigh: "3200000000000000000",
             supplyPerYearInterestRateBase: 0,
             borrowKink: "900000000000000000",
-            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
-            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
-            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeLow: "27800000000000000",
+            borrowPerYearInterestRateSlopeHigh: "3600000000000000000",
+            borrowPerYearInterestRateBase: "15000000000000000",
             storeFrontPriceFactor: "600000000000000000",
             trackingIndexScale: "1000000000000000",
             baseTrackingSupplySpeed: 810185185185,

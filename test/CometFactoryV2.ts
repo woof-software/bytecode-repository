@@ -39,7 +39,7 @@ describe("CometFactoryV2", function () {
 
         const versionController = await upgrades.deployProxy(
             await ethers.getContractFactory("VersionController"),
-            [await governor.getAddress()],
+            [await governor.getAddress(), await timelock.getAddress()],
             { kind: "uups" }
         );
 
@@ -203,16 +203,14 @@ describe("CometFactoryV2", function () {
         const constantPriceFeedAddr = await l1DeployManager.computeAddress(
             { contractType: WOOF.contractTypes[4], version: version_1_0_0 },
             ethers.ZeroHash,
-            abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
+            abiCoder.encode(["uint8", "int256"], [8, "100000000"]), // 1 * 10^8
             WOOF.keyDeveloper.address
         );
-        await l1DeployManager
-            .connect(WOOF.keyDeveloper)
-            .deploy(
-                { contractType: WOOF.contractTypes[4], version: version_1_0_0 },
-                ethers.ZeroHash,
-                abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)])
-            );
+        await l1DeployManager.connect(WOOF.keyDeveloper).deploy(
+            { contractType: WOOF.contractTypes[4], version: version_1_0_0 },
+            ethers.ZeroHash,
+            abiCoder.encode(["uint8", "int256"], [8, "100000000"]) // 1 * 10^8
+        );
 
         // Deploy AssetListFactory
         const assetListFactoryAddr = await l1DeployManager.computeAddress(
@@ -242,13 +240,13 @@ describe("CometFactoryV2", function () {
             baseTokenPriceFeed: constantPriceFeedAddr,
             extensionDelegate: ethers.ZeroAddress,
             supplyKink: "900000000000000000",
-            supplyPerYearInterestRateSlopeLow: BigInt(1141552511) * BigInt(time.duration.years(1)),
-            supplyPerYearInterestRateSlopeHigh: BigInt(101344495180) * BigInt(time.duration.years(1)),
+            supplyPerYearInterestRateSlopeLow: "36000000000000000",
+            supplyPerYearInterestRateSlopeHigh: "3200000000000000000",
             supplyPerYearInterestRateBase: 0,
             borrowKink: "900000000000000000",
-            borrowPerYearInterestRateSlopeLow: BigInt(880834601) * BigInt(time.duration.years(1)),
-            borrowPerYearInterestRateSlopeHigh: BigInt(114155251141) * BigInt(time.duration.years(1)),
-            borrowPerYearInterestRateBase: BigInt(475646879) * BigInt(time.duration.years(1)),
+            borrowPerYearInterestRateSlopeLow: "27800000000000000",
+            borrowPerYearInterestRateSlopeHigh: "3600000000000000000",
+            borrowPerYearInterestRateBase: "15000000000000000",
             storeFrontPriceFactor: "600000000000000000",
             trackingIndexScale: "1000000000000000",
             baseTrackingSupplySpeed: 810185185185,

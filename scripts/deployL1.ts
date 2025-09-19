@@ -13,11 +13,13 @@ import { DeploymentManager, waitForConfirmations, logDeploymentStep } from "./ut
  *
  * Configuration:
  * - Governor: 0x6d903f6003cca6255D85CcA4D3B5E5146dC33925
+ * - Guardian: 0x7d903f6003cca6255D85CcA4D3B5E5146dC33926
  * - CCIP Router: 0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D
  */
 
 // Configuration
 const GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925";
+const GUARDIAN_ADDRESS = "0x7d903f6003cca6255D85CcA4D3B5E5146dC33926"; // Guardian address for resetCooldown functionality
 const CCIP_ROUTER_ADDRESS = "0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D";
 
 const COMET_PROXY_ADMIN = "0x1EC63B5883C3481134FD50D5DAebc83Ecd2E8779";
@@ -47,6 +49,7 @@ async function main() {
     console.log("Network:", network.name, "| Chain ID:", network.chainId.toString());
     console.log("Configuration:");
     console.log("Governor:", GOVERNOR_ADDRESS);
+    console.log("Guardian:", GUARDIAN_ADDRESS);
     console.log("CCIP Router:", CCIP_ROUTER_ADDRESS);
     console.log("");
 
@@ -60,7 +63,7 @@ async function main() {
         console.log("Deploying proxy and implementation...");
         const versionController = await upgrades.deployProxy(
             VersionController,
-            [GOVERNOR_ADDRESS], // initializer arguments
+            [GOVERNOR_ADDRESS, GUARDIAN_ADDRESS], // initializer arguments
             {
                 initializer: "initialize",
                 kind: "uups"
@@ -82,7 +85,7 @@ async function main() {
             "VersionController",
             versionController,
             deploymentTx,
-            [GOVERNOR_ADDRESS],
+            [GOVERNOR_ADDRESS, GUARDIAN_ADDRESS],
             true // isUpgradeable
         );
 

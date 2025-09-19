@@ -59,6 +59,8 @@ contract VersionController is
     bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
     /// @notice Auditor role for AccessControl.
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
+    /// @notice Guardian role for AccessControl.
+    bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
     /// @notice A limit of sub developers per key developer.
     uint256 public constant SUB_DEVELOPERS_LIMIT = 3;
     /// @notice A period of time which should pass before releasing a new major version.
@@ -101,12 +103,13 @@ contract VersionController is
         _disableInitializers();
     }
 
-    function initialize(address _governor) external initializer {
+    function initialize(address _governor, address _guardian) external initializer {
         if (_governor == address(0)) revert ZeroAddress();
         __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
         __EIP712_init("VersionController", "1");
         _grantRole(DEFAULT_ADMIN_ROLE, _governor);
+        _grantRole(GUARDIAN_ROLE, _guardian);
     }
 
     /// @notice Validates if the function is called by key developer of corresponding sub developer.
@@ -170,7 +173,7 @@ contract VersionController is
         VersionType _version,
         bytes32 _contractType,
         uint64 _major
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(GUARDIAN_ROLE) {
         if (_version == VersionType.Major) delete minMajorReleaseTimestamp[_contractType];
         else if (_version == VersionType.Minor) {
             if (_major > latestVersions[_contractType].major) revert NonExistingMajorVersion(_contractType, _major);

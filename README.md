@@ -153,7 +153,6 @@ Understanding the complete journey of smart contract bytecode through the Byteco
 
 ```solidity
 // Governor grants key developer role and assigns key developers to specific contract types via proposal
-versionController.grantRole(KEY_DEVELOPER_ROLE, keyDeveloperAddress);
 bytes32 contractType = "Comet";
 versionController.assignDeveloperForContractType(contractType, keyDeveloperAddress);
 

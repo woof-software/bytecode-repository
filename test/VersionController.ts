@@ -17,29 +17,30 @@ describe("VersionController", function () {
     const fixture = async () => {
         const signers = await ethers.getSigners();
         const governor = signers[0];
-        const auditors = signers.slice(1, 4); // 3 Auditors
+        const guardian = signers[1];
+        const auditors = signers.slice(2, 5); // 3 Auditors
         const WOOF: Developers = {
-            keyDeveloper: signers[4],
-            subDevelopers: signers.slice(5, 8),
+            keyDeveloper: signers[5],
+            subDevelopers: signers.slice(6, 9),
             contractTypes: ["COMET", "VERSION_CONTROLLER"].map((ct: string): string => ethers.encodeBytes32String(ct))
         };
         const devTeam2: Developers = {
-            keyDeveloper: signers[8],
-            subDevelopers: signers.slice(9, 12),
+            keyDeveloper: signers[9],
+            subDevelopers: signers.slice(10, 13),
             contractTypes: ["STAKING", "VESTING"].map((ct: string): string => ethers.encodeBytes32String(ct))
         };
         const devTeam3: Developers = {
-            keyDeveloper: signers[12],
-            subDevelopers: signers.slice(13, 16),
+            keyDeveloper: signers[13],
+            subDevelopers: signers.slice(14, 17),
             contractTypes: ["BRIDGE", "BRAND_NEW_CONTRACT_TYPE"].map((ct: string): string =>
                 ethers.encodeBytes32String(ct)
             )
         };
-        const users = signers.slice(16);
+        const users = signers.slice(17);
 
         const versionController = await upgrades.deployProxy(
             await ethers.getContractFactory("VersionController"),
-            [await governor.getAddress()],
+            [await governor.getAddress(), await guardian.getAddress()],
             { kind: "uups" }
         );
 
@@ -69,7 +70,7 @@ describe("VersionController", function () {
         for (const subDev of devTeam3.subDevelopers)
             await versionController.connect(devTeam3.keyDeveloper).addSubDeveloper(subDev);
 
-        return { governor, auditors, WOOF, devTeam2, devTeam3, users, versionController };
+        return { governor, guardian, auditors, WOOF, devTeam2, devTeam3, users, versionController };
     };
 
     const restore = async () => await loadFixture(fixture);
@@ -123,12 +124,22 @@ describe("VersionController", function () {
             expect(await versionController.contractTypeKeyDeveloper(contractType)).to.equal(devTeam3.keyDeveloper);
     });
 
-    it("Should revert when initializing with zero address", async () => {
+    it("Should revert when initializing with zero governor address", async () => {
+        const signers = await ethers.getSigners();
         await expect(
-            upgrades.deployProxy(await ethers.getContractFactory("VersionController"), [ethers.ZeroAddress], {
-                kind: "uups"
-            })
+            upgrades.deployProxy(
+                await ethers.getContractFactory("VersionController"),
+                [ethers.ZeroAddress, signers[1].address],
+                {
+                    kind: "uups"
+                }
+            )
         ).to.be.revertedWithCustomError(await ethers.getContractFactory("VersionController"), "ZeroAddress");
+    });
+
+    it("Should initialize correctly with guardian", async () => {
+        const { versionController, guardian } = await restore();
+        expect(await versionController.hasRole(await versionController.GUARDIAN_ROLE(), guardian)).to.be.true;
     });
 
     it("Should release bytecode", async () => {
@@ -1575,7 +1586,7 @@ describe("VersionController", function () {
     /* Cooldown Reset Tests */
 
     it("Should allow admin to reset major cooldown and enable immediate major version release", async () => {
-        const { governor, WOOF, versionController } = await restore();
+        const { WOOF, versionController, guardian } = await restore();
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
 
         // Release initial bytecode
@@ -1595,7 +1606,7 @@ describe("VersionController", function () {
         ).revertedWithCustomError(versionController, "CantReleaseYet");
 
         // Admin resets major cooldown (VersionType.Major = 0)
-        await expect(versionController.connect(governor).resetCooldown(0, WOOF.contractTypes[0], 0))
+        await expect(versionController.connect(guardian).resetCooldown(0, WOOF.contractTypes[0], 0))
             .to.emit(versionController, "CooldownReset")
             .withArgs(WOOF.contractTypes[0], 0, 0);
 
@@ -1611,7 +1622,7 @@ describe("VersionController", function () {
     });
 
     it("Should allow admin to reset minor cooldown and enable immediate minor version release", async () => {
-        const { governor, WOOF, versionController } = await restore();
+        const { guardian, WOOF, versionController } = await restore();
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
 
         // Setup: Release initial bytecode and skip major cooldown
@@ -1645,7 +1656,7 @@ describe("VersionController", function () {
         ).revertedWithCustomError(versionController, "CantReleaseYet");
 
         // Admin resets minor cooldown for major version 1 (VersionType.Minor = 1)
-        await expect(versionController.connect(governor).resetCooldown(1, WOOF.contractTypes[0], 1))
+        await expect(versionController.connect(guardian).resetCooldown(1, WOOF.contractTypes[0], 1))
             .to.emit(versionController, "CooldownReset")
             .withArgs(WOOF.contractTypes[0], 1, 1);
 
@@ -1664,7 +1675,7 @@ describe("VersionController", function () {
     });
 
     it("Should allow admin to reset patch cooldown and enable immediate patch version release", async () => {
-        const { governor, WOOF, versionController } = await restore();
+        const { guardian, WOOF, versionController } = await restore();
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
 
         // Setup: Release initial bytecode and skip patch cooldown
@@ -1700,7 +1711,7 @@ describe("VersionController", function () {
         ).revertedWithCustomError(versionController, "CantReleaseYet");
 
         // Admin resets patch cooldown (VersionType.Patch = 2)
-        await expect(versionController.connect(governor).resetCooldown(2, WOOF.contractTypes[0], 0))
+        await expect(versionController.connect(guardian).resetCooldown(2, WOOF.contractTypes[0], 0))
             .to.emit(versionController, "CooldownReset")
             .withArgs(WOOF.contractTypes[0], 2, 0);
 
@@ -1720,14 +1731,14 @@ describe("VersionController", function () {
     });
 
     it("Should revert when admin tries to pass invalid enum value (3) for version type", async () => {
-        const { governor, WOOF, versionController } = await restore();
+        const { guardian, WOOF, versionController } = await restore();
 
         // Try to call resetCooldown with invalid enum value 3 (should revert)
-        await expect(versionController.connect(governor).resetCooldown(3, WOOF.contractTypes[0], 0)).to.be.reverted;
+        await expect(versionController.connect(guardian).resetCooldown(3, WOOF.contractTypes[0], 0)).to.be.reverted;
     });
 
-    it("Should allow admin to reset cooldown for specific major version without affecting others", async () => {
-        const { governor, WOOF, versionController } = await restore();
+    it("Should allow guarding to reset cooldown for specific major version without affecting others", async () => {
+        const { WOOF, versionController, guardian } = await restore();
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
 
         // Setup: Release initial bytecode, create major version 2, and release minor versions
@@ -1788,7 +1799,7 @@ describe("VersionController", function () {
         ).revertedWithCustomError(versionController, "CantReleaseYet");
 
         // Admin resets minor cooldown only for major version 1
-        await versionController.connect(governor).resetCooldown(1, WOOF.contractTypes[0], 1);
+        await versionController.connect(guardian).resetCooldown(1, WOOF.contractTypes[0], 1);
 
         // Now major version 1 should allow minor release, but major version 2 should still be blocked
         await versionController.connect(WOOF.keyDeveloper).releaseMinorVersion(

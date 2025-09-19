@@ -16,18 +16,19 @@ describe("L1/L2 DeployManager", function () {
     const fixture = async () => {
         const signers = await ethers.getSigners();
         const governor = signers[0];
-        const auditors = signers.slice(1, 4); // 3 Auditors
+        const guardian = signers[1];
+        const auditors = signers.slice(2, 5); // 3 Auditors
         const WOOF: Developers = {
-            keyDeveloper: signers[4],
-            subDevelopers: signers.slice(5, 8),
+            keyDeveloper: signers[5],
+            subDevelopers: signers.slice(6, 9),
             contractTypes: ["COMET", "VERSION_CONTROLLER"].map((ct: string): string => ethers.encodeBytes32String(ct))
         };
-        const localTimelockL2 = signers[8];
-        const users = signers.slice(9);
+        const localTimelockL2 = signers[9];
+        const users = signers.slice(10);
 
         const versionController = await upgrades.deployProxy(
             await ethers.getContractFactory("VersionController"),
-            [await governor.getAddress()],
+            [await governor.getAddress(), await guardian.getAddress()],
             { kind: "uups" }
         );
 
@@ -134,29 +135,28 @@ describe("L1/L2 DeployManager", function () {
         const constantPriceFeedAddr = await l1DeployManager.computeAddress(
             { contractType: constantPriceFeedContractType, version: priceFeedVersion },
             ethers.ZeroHash,
-            abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
+            abiCoder.encode(["uint8", "int256"], [8, "100000000"]), // 1 * 10^8
             WOOF.keyDeveloper.address
         );
 
         await expect(
-            l1DeployManager
-                .connect(WOOF.keyDeveloper)
-                .deploy(
-                    { contractType: constantPriceFeedContractType, version: priceFeedVersion },
-                    ethers.ZeroHash,
-                    abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)])
-                )
+            l1DeployManager.connect(WOOF.keyDeveloper).deploy(
+                { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+                ethers.ZeroHash,
+                abiCoder.encode(["uint8", "int256"], [8, "100000000"]) // 1 * 10^8
+            )
         )
             .to.emit(l1DeployManager, "ContractDeployed")
             .withArgs(
                 { contractType: constantPriceFeedContractType, version: priceFeedVersion },
-                abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]),
+                abiCoder.encode(["uint8", "int256"], [8, "100000000"]), // 1 * 10^8
                 constantPriceFeedAddr,
                 WOOF.keyDeveloper.address
             );
 
         return {
             governor,
+            guardian,
             auditors,
             WOOF,
             localTimelockL2,
@@ -212,13 +212,14 @@ describe("L1/L2 DeployManager", function () {
 
     it("Should not send same bytecode if not enough ETH funds sent", async () => {
         const { WOOF, l1DeployManager, bytecodeVersion_1_0_0 } = await restore();
+        const insufficientValue = ethers.parseEther("0.099");
         await expect(
             l1DeployManager
                 .connect(WOOF.subDevelopers[0])
-                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee - 1000n })
+                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: insufficientValue })
         )
             .revertedWithCustomError(l1DeployManager, "InsufficientBalance")
-            .withArgs(mockRouterFee - 1000n, mockRouterFee);
+            .withArgs(insufficientValue, mockRouterFee);
     });
 
     it("Should revert if setter called by non-governor address in L1DeployManager", async () => {
@@ -525,7 +526,7 @@ describe("L1/L2 DeployManager", function () {
         await versionController.connect(governor).grantRole(DEFAULT_ADMIN_ROLE, localTimelockL2.address);
 
         // Prepare constructor parameters
-        const constructorParams = abiCoder.encode(["uint8", "int256"], [8, ethers.parseUnits("1", 8)]);
+        const constructorParams = abiCoder.encode(["uint8", "int256"], [8, "100000000"]); // 1 * 10^8
         const salt = ethers.solidityPackedKeccak256(["string"], ["timelock-test"]);
 
         // Compute expected address
