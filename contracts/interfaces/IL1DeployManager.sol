@@ -5,8 +5,8 @@ import { Types } from "./Types.sol";
 
 interface IL1DeployManager {
     event ChainConfigSet(uint256 _chainId, ChainConfig _config);
-    event FactorySet(bytes32 _contractType, address _factory);
     event BytecodeSent(uint256 _chainId, Types.BytecodeVersion _bytecodeVersion);
+    event DeveloperAccessRequested(uint256 _chainId, address _developer);
     event ContractDeployed(
         Types.BytecodeVersion _bytecodeVersion,
         bytes _constructorParams,
@@ -18,6 +18,12 @@ interface IL1DeployManager {
     error OnlyGovernor();
     error OnlyDeveloperOrGovernor();
     error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
+
+    /// @notice A type of message to send to other chain.
+    enum MessageType {
+        SEND_BYTECODE,
+        BECOME_DEVELOPER
+    }
 
     /**
      * @notice Represents a chain config.

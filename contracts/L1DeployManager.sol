@@ -123,10 +123,21 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
             _bytecodeVersion.version
         );
         if (isVersionSentToChain[_chainId][bytecodeHash]) revert BytecodeAlreadySent(_chainId, bytecodeHash);
-        _ccipSend(_chainId, bytecodeHash, versionController.getVerifiedBytecode(_bytecodeVersion));
+        _ccipSend(
+            _chainId,
+            abi.encode(MessageType.SEND_BYTECODE, bytecodeHash, versionController.getVerifiedBytecode(_bytecodeVersion))
+        );
         isVersionSentToChain[_chainId][bytecodeHash] = true;
 
         emit BytecodeSent(_chainId, _bytecodeVersion);
+    }
+
+    function becomeDeveloperOnOtherChain(
+        uint256 _chainId
+    ) external payable onlyDeveloperOrGovernor supportedChain(_chainId) {
+        _ccipSend(_chainId, abi.encode(MessageType.SEND_BYTECODE, msg.sender));
+
+        emit DeveloperAccessRequested(_chainId, msg.sender);
     }
 
     /// @notice Allows developers to deploy a certain version of bytecode on the Ethereum.
@@ -176,13 +187,12 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
 
     /// @notice Initiates a cross-chain message through the Chainlink CCIP.
     /// @param _chainId ID of the supported network.
-    /// @param _bytecodeHash A hash of bytecode to send.
-    /// @param _initCode Bytecode to send.
-    function _ccipSend(uint256 _chainId, bytes32 _bytecodeHash, bytes memory _initCode) private {
+    /// @param _message Message to send to other chain.
+    function _ccipSend(uint256 _chainId, bytes memory _message) private {
         ChainConfig storage config = chainConfigs[_chainId];
         Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
             receiver: abi.encode(config.l2DeployManager),
-            data: abi.encode(_bytecodeHash, _initCode),
+            data: _message,
             tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: Client._argsToBytes(
                 Client.GenericExtraArgsV2({ gasLimit: config.gasLimit, allowOutOfOrderExecution: true })

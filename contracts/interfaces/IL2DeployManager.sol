@@ -11,8 +11,15 @@ interface IL2DeployManager {
         address _newContract,
         address _deployer
     );
+    event DeveloperAccessGranted(address _developer);
 
     error InvalidSender();
     error OnlyTimelock();
     error BytecodeIsEmpty();
+
+    /// @notice A type of message to receive from Ethereum.
+    enum MessageType {
+        SEND_BYTECODE,
+        BECOME_DEVELOPER
+    }
 }

@@ -35,8 +35,11 @@ import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
  * - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
  */
 contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
+    uint64 public constant ETHEREUM_SELECTOR = 5009297550715157269;
+    uint256 public constant DEVELOPER_ACCESS_DURATION = 90 days;
     address public immutable l1DeployManager;
     mapping(bytes32 => address[]) private storedBytecodePtrs;
+    mapping(address => uint256) public developerUntil;
 
     constructor(address _l1DeployManager, address _router) CCIPReceiver(_router) {
         l1DeployManager = _l1DeployManager;
@@ -104,12 +107,27 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
 
     /// @notice Helper function for receiving messages from L1DeployManager.
     /// @dev The sender of the message from Ethereum must be L1DeployManager.
-    /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its bytecode.
+    /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE.
+    /// and address of developer for BECOME_DEVELOPER.
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
-        if (abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager) revert InvalidSender();
-        (bytes32 bytecodeHash, bytes memory initCode) = abi.decode(any2EvmMessage.data, (bytes32, bytes));
-        storedBytecodePtrs[bytecodeHash] = BytecodeStore._writeInitCode(initCode);
+        if (
+            abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager &&
+            any2EvmMessage.sourceChainSelector != ETHEREUM_SELECTOR
+        ) revert InvalidSender();
+        MessageType mt = abi.decode(any2EvmMessage.data, (MessageType));
+        if (mt == MessageType.SEND_BYTECODE) {
+            (, bytes32 bytecodeHash, bytes memory initCode) = abi.decode(
+                any2EvmMessage.data,
+                (MessageType, bytes32, bytes)
+            );
+            storedBytecodePtrs[bytecodeHash] = BytecodeStore._writeInitCode(initCode);
 
-        emit BytecodeReceived(any2EvmMessage.messageId, bytecodeHash);
+            emit BytecodeReceived(any2EvmMessage.messageId, bytecodeHash);
+        } else {
+            (, address developer) = abi.decode(any2EvmMessage.data, (MessageType, address));
+            developerUntil[developer] = block.timestamp + DEVELOPER_ACCESS_DURATION;
+
+            emit DeveloperAccessGranted(developer);
+        }
     }
 }
