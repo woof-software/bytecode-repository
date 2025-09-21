@@ -35,6 +35,7 @@ describe("MarketFactory", function () {
                 "AssetListFactory"
             ].map((ct: string): string => ethers.encodeBytes32String(ct))
         };
+        const timelock = signers[9];
         const users = signers.slice(10);
 
         const versionController = await upgrades.deployProxy(
@@ -224,7 +225,7 @@ describe("MarketFactory", function () {
         // Deploy MarketFactory
         const marketFactory = await (
             await ethers.getContractFactory("MarketFactory")
-        ).deploy(versionController, cometProxyAdminAddr, assetListFactoryAddr);
+        ).deploy(versionController, cometProxyAdminAddr, assetListFactoryAddr, timelock);
         return {
             marketFactory,
             governor,
@@ -241,7 +242,7 @@ describe("MarketFactory", function () {
     const restore = async () => await loadFixture(fixture);
 
     it("Should deploy Comet market with extended asset list", async () => {
-        const { marketFactory, governor, mockBaseToken, mockCollateralToken, constantPriceFeedAddr, version, users } =
+        const { marketFactory, governor, mockBaseToken, mockCollateralToken, constantPriceFeedAddr, version, WOOF } =
             await restore();
         const configuration = {
             governor: governor,
@@ -287,16 +288,23 @@ describe("MarketFactory", function () {
             extConfiguration,
             configuration,
             ethers.ZeroHash,
-            users[0]
+            WOOF.keyDeveloper
         );
 
         await expect(
             marketFactory
-                .connect(users[0])
+                .connect(WOOF.keyDeveloper)
                 .deployComet(version, version, extConfiguration, configuration, ethers.ZeroHash)
         )
             .to.emit(marketFactory, "MarketDeployed")
-            .withArgs(version, version, resultAddresses[1], resultAddresses[0], resultAddresses[2], users[0].address);
+            .withArgs(
+                [[version.version.major, version.version.minor, version.version.patch], version.alternative],
+                [[version.version.major, version.version.minor, version.version.patch], version.alternative],
+                resultAddresses[1],
+                resultAddresses[0],
+                resultAddresses[2],
+                WOOF.keyDeveloper.address
+            );
 
         // Check comet
         expect(await ethers.provider.getCode(resultAddresses[0])).to.not.equal("0x");

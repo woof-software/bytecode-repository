@@ -132,10 +132,9 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         emit BytecodeSent(_chainId, _bytecodeVersion);
     }
 
-    function becomeDeveloperOnOtherChain(
-        uint256 _chainId
-    ) external payable onlyDeveloperOrGovernor supportedChain(_chainId) {
-        _ccipSend(_chainId, abi.encode(MessageType.SEND_BYTECODE, msg.sender));
+    function becomeDeveloperOnOtherChain(uint256 _chainId) external payable supportedChain(_chainId) {
+        if (!_isDeveloper(msg.sender)) revert OnlyDeveloper();
+        _ccipSend(_chainId, abi.encode(MessageType.BECOME_DEVELOPER, msg.sender));
 
         emit DeveloperAccessRequested(_chainId, msg.sender);
     }

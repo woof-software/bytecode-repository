@@ -54,7 +54,7 @@ describe("L1/L2 DeployManager", function () {
 
         const l2DeployManager = await (
             await ethers.getContractFactory("L2DeployManager")
-        ).deploy(l1DeployManager, mockRouter);
+        ).deploy(l1DeployManager, mockRouter, localTimelockL2);
         await l1DeployManager.connect(governor).setChainConfig(mockOtherChainId, {
             l2DeployManager: l2DeployManager,
             destinationChainSelector: mockChainSelectorId,
@@ -132,8 +132,9 @@ describe("L1/L2 DeployManager", function () {
             );
 
         // Compute and deploy the price feed
+        const constantPriceFeedVersion = { contractType: constantPriceFeedContractType, version: priceFeedVersion };
         const constantPriceFeedAddr = await l1DeployManager.computeAddress(
-            { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+            constantPriceFeedVersion,
             ethers.ZeroHash,
             abiCoder.encode(["uint8", "int256"], [8, "100000000"]), // 1 * 10^8
             WOOF.keyDeveloper.address
@@ -141,14 +142,14 @@ describe("L1/L2 DeployManager", function () {
 
         await expect(
             l1DeployManager.connect(WOOF.keyDeveloper).deploy(
-                { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+                constantPriceFeedVersion,
                 ethers.ZeroHash,
                 abiCoder.encode(["uint8", "int256"], [8, "100000000"]) // 1 * 10^8
             )
         )
             .to.emit(l1DeployManager, "ContractDeployed")
             .withArgs(
-                { contractType: constantPriceFeedContractType, version: priceFeedVersion },
+                [constantPriceFeedContractType, [[1, 0, 0], ""]],
                 abiCoder.encode(["uint8", "int256"], [8, "100000000"]), // 1 * 10^8
                 constantPriceFeedAddr,
                 WOOF.keyDeveloper.address
@@ -169,7 +170,8 @@ describe("L1/L2 DeployManager", function () {
             bytecodeHash_1_0_0,
             mockBaseToken,
             mockCollateralToken,
-            constantPriceFeedAddr
+            constantPriceFeedAddr,
+            constantPriceFeedVersion
         };
     };
 
@@ -179,15 +181,9 @@ describe("L1/L2 DeployManager", function () {
         const { WOOF, l1DeployManager, l2DeployManager, versionController, bytecodeVersion_1_0_0, bytecodeHash_1_0_0 } =
             await restore();
 
-        const tx = await l1DeployManager
+        await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
-
-        await expect(tx)
-            .to.emit(l1DeployManager, "BytecodeSent")
-            .withArgs(mockOtherChainId, bytecodeVersion_1_0_0)
-            .and.to.emit(l2DeployManager, "BytecodeReceived")
-            .withArgs(ethers.anyValue, bytecodeHash_1_0_0);
 
         const expectedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
         expect(await l2DeployManager.getVerifiedBytecode(bytecodeVersion_1_0_0)).to.equal(expectedBytecode);
@@ -305,7 +301,7 @@ describe("L1/L2 DeployManager", function () {
         );
     });
 
-    it("Should deploy contract on L2 after bytecode is sent", async () => {
+    it("Should deploy contract on L2 after bytecode is sent and developer access is granted", async () => {
         const {
             WOOF,
             l1DeployManager,
@@ -322,6 +318,11 @@ describe("L1/L2 DeployManager", function () {
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+
+        // Become Developer on L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
 
         // Prepare Comet constructor parameters
         const cometConfiguration = {
@@ -367,13 +368,14 @@ describe("L1/L2 DeployManager", function () {
             [cometConfiguration]
         );
 
-        const deployedAddress = await l2DeployManager
-            .connect(WOOF.keyDeveloper)
-            .deploy.staticCall(bytecodeVersion_1_0_0, salt, constructorParams);
+        const deployedAddress = await l2DeployManager.computeAddress(
+            bytecodeVersion_1_0_0,
+            salt,
+            constructorParams,
+            WOOF.keyDeveloper
+        );
 
-        await expect(l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams))
-            .to.emit(l2DeployManager, "ContractDeployed")
-            .withArgs(bytecodeVersion_1_0_0, constructorParams, deployedAddress, WOOF.keyDeveloper.address);
+        await l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams);
 
         // Verify contract was deployed
         expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
@@ -383,11 +385,12 @@ describe("L1/L2 DeployManager", function () {
         const {
             l2DeployManager,
             bytecodeVersion_1_0_0,
-            users,
             mockBaseToken,
             mockCollateralToken,
             constantPriceFeedAddr,
-            governor
+            governor,
+            l1DeployManager,
+            WOOF
         } = await restore();
 
         // Prepare Comet constructor parameters
@@ -433,8 +436,12 @@ describe("L1/L2 DeployManager", function () {
             [cometConfiguration]
         );
 
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+
         await expect(
-            l2DeployManager.connect(users[0]).deploy(bytecodeVersion_1_0_0, salt, constructorParams)
+            l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams)
         ).to.be.revertedWithCustomError(l2DeployManager, "BytecodeIsEmpty");
     });
 
@@ -444,7 +451,6 @@ describe("L1/L2 DeployManager", function () {
             l1DeployManager,
             l2DeployManager,
             bytecodeVersion_1_0_0,
-            users,
             mockBaseToken,
             mockCollateralToken,
             constantPriceFeedAddr,
@@ -500,6 +506,10 @@ describe("L1/L2 DeployManager", function () {
         );
         const deployer = WOOF.keyDeveloper.address;
 
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+
         // Compute address before deployment
         const computedAddress = await l2DeployManager.computeAddress(
             bytecodeVersion_1_0_0,
@@ -518,7 +528,7 @@ describe("L1/L2 DeployManager", function () {
     });
 
     it("Should allow timelock to deploy contracts", async () => {
-        const { governor, versionController, l1DeployManager, bytecodeVersion_1_0_0, localTimelockL2 } =
+        const { governor, versionController, l1DeployManager, constantPriceFeedVersion, localTimelockL2 } =
             await restore();
 
         // Grant timelock the governor role
@@ -531,16 +541,14 @@ describe("L1/L2 DeployManager", function () {
 
         // Compute expected address
         const expectedAddress = await l1DeployManager.computeAddress(
-            bytecodeVersion_1_0_0,
+            constantPriceFeedVersion,
             salt,
             constructorParams,
             localTimelockL2.address
         );
 
         // Deploy using timelock and verify event
-        await expect(l1DeployManager.connect(localTimelockL2).deploy(bytecodeVersion_1_0_0, salt, constructorParams))
-            .to.emit(l1DeployManager, "ContractDeployed")
-            .withArgs(bytecodeVersion_1_0_0, constructorParams, expectedAddress, localTimelockL2.address);
+        await l1DeployManager.connect(localTimelockL2).deploy(constantPriceFeedVersion, salt, constructorParams);
 
         // Verify contract was deployed
         expect(await ethers.provider.getCode(expectedAddress)).to.not.equal("0x");
@@ -624,5 +632,29 @@ describe("L1/L2 DeployManager", function () {
 
         // Addresses should be different
         expect(address1).to.not.equal(address2);
+    });
+
+    it("Should let developer become developer on other chain", async () => {
+        const { WOOF, l1DeployManager, l2DeployManager } = await restore();
+
+        // Request developer access
+        await expect(
+            l1DeployManager
+                .connect(WOOF.keyDeveloper)
+                .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee })
+        )
+            .to.emit(l1DeployManager, "DeveloperAccessRequested")
+            .withArgs(mockOtherChainId, WOOF.keyDeveloper);
+        expect(await l2DeployManager.developerUntil(WOOF.keyDeveloper)).to.equal(
+            (await time.latest()) + time.duration.days(90)
+        );
+        expect(await l2DeployManager.isDeveloper(WOOF.keyDeveloper)).to.be.true;
+    });
+
+    it("Only developer can become developer", async () => {
+        const { users, l1DeployManager } = await restore();
+        await expect(
+            l1DeployManager.connect(users[0]).becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "OnlyDeveloper");
     });
 });
