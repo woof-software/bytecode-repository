@@ -165,7 +165,7 @@ async function deployL2DeployManager(
     const L2DeployManager = await ethers.getContractFactory("L2DeployManager");
 
     // Deploy contract (non-upgradeable)
-    const l2DeployManager = await L2DeployManager.deploy(config.l1DeployManager, config.ccipRouter);
+    const l2DeployManager = await L2DeployManager.deploy(config.l1DeployManager, config.ccipRouter, config.timelock);
 
     // Wait for deployment
     await l2DeployManager.waitForDeployment();
@@ -224,7 +224,7 @@ async function deployMarketFactory(
             "MarketFactory",
             marketFactory,
             deploymentTx,
-            [l2DeployManagerAddress, config.cometProxyAdmin, config.assetListFactory],
+            [l2DeployManagerAddress, config.cometProxyAdmin, config.assetListFactory, config.timelock],
             false // Non-upgradeable
         );
     }

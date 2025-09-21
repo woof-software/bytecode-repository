@@ -24,6 +24,7 @@ const CCIP_ROUTER_ADDRESS = "0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D";
 
 const COMET_PROXY_ADMIN = "0x1EC63B5883C3481134FD50D5DAebc83Ecd2E8779";
 const ASSET_LIST_FACTORY = "0x1234567890123456789012345678901234567891"; // TODO: change to actual address
+const TIMELOCK = "0x1234567890123456789012345678901234567891"; // TODO: change to actual address
 
 // Initial version for CometFactoryV2
 const INITIAL_VERSION = {
@@ -140,7 +141,8 @@ async function main() {
         const marketFactoryArgs = [
             l1DeployManagerAddress, // bytecodeProvider
             COMET_PROXY_ADMIN, // cometProxyAdmin
-            ASSET_LIST_FACTORY // assetListFactory
+            ASSET_LIST_FACTORY, // assetListFactory
+            TIMELOCK // Timelock
         ];
 
         console.log("Deploying contract...");
