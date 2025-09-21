@@ -35,11 +35,17 @@ import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
  * - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
  */
 contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
+    /// @notice Ethereum selector for Chainlink CCIP.
     uint64 public constant ETHEREUM_SELECTOR = 5009297550715157269;
+    /// @notice a period of time for which developer role is granted on current chain.
     uint256 public constant DEVELOPER_ACCESS_DURATION = 90 days;
+    /// @notice The address of L1DeployManager in Ethereum.
     address public immutable l1DeployManager;
+    /// @notice The address of local timelock.
     address public immutable localTimelock;
+    /// @notice Address pointers at which parts of bytecode are stored. Contract types => pointers.
     mapping(bytes32 => address[]) private storedBytecodePtrs;
+    /// @notice A timestamp until which the account has a developer role on current chain.
     mapping(address => uint256) public developerUntil;
 
     constructor(address _l1DeployManager, address _router, address _localTimelock) CCIPReceiver(_router) {
@@ -47,6 +53,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         localTimelock = _localTimelock;
     }
 
+    /// @notice Validates that the caller is developer or governor.
     modifier onlyDeveloperOrGovernor() {
         if (!isDeveloper(msg.sender) && msg.sender != localTimelock) revert OnlyDeveloperOrGovernor();
         _;
@@ -110,6 +117,9 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         return Create2.computeAddress(uniqueSalt, keccak256(bytecodeWithParams));
     }
 
+    /// @notice Validates if given account is developer.
+    /// @param _account Address to check.
+    /// @return true if account is developer, false otherwise.
     function isDeveloper(address _account) public view returns (bool) {
         return developerUntil[_account] >= block.timestamp;
     }

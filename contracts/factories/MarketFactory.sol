@@ -43,6 +43,7 @@ contract MarketFactory is BaseFactory {
     address public immutable cometProxyAdmin;
     /// @notice Address of the AssetListFactory to use during deployment of CometWithExtendedAssetList.
     address public immutable assetListFactory;
+    /// @notice The address of local timelock.
     address public immutable localTimelock;
 
     event MarketDeployed(
@@ -67,6 +68,8 @@ contract MarketFactory is BaseFactory {
         localTimelock = _localTimelock;
     }
 
+    /// @notice Validates that the caller is developer or governor.
+    /// @dev The role is checked through the VersionController.
     modifier onlyDeveloperOrGovernor() {
         if (!bytecodeProvider.isDeveloper(msg.sender) && msg.sender != localTimelock) revert OnlyDeveloperOrGovernor();
         _;

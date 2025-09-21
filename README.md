@@ -21,6 +21,7 @@ A cross-chain smart contract bytecode repository system that enables secure, ver
 - Direct CREATE2 deployment on Ethereum mainnet with deterministic addresses
 - Chainlink CCIP integration for trustless cross-chain bytecode distribution
 - Address pre-computation before deployment for predictable multi-chain addresses
+- Only developers of ecosystem can deploy smart contracts via L1DeployManager
 
 **📡 L2DeployManager** - L2 deployment receiver that ensures bytecode integrity
 
@@ -29,6 +30,7 @@ A cross-chain smart contract bytecode repository system that enables secure, ver
 - CREATE2 deployment matching L1 addresses for consistent multi-chain presence
 - Factory integration for specialized contract types deployment (Comet, Market, etc.)
 - Automatic bytecode validation and verification before storage
+- Developers can request deployment access through L1DeployManager
 
 **🏭 BaseFactory** - Abstract deployment factory with standardized patterns
 
@@ -402,6 +404,11 @@ assert(predictedAddress == deployedAddress); // Always true with CREATE2
 **L2 Deployment (Consistent Address)**
 
 ```solidity
+// Become developer on L2
+l1DeployManager.becomeDeveloperOnOtherChain(otherChainId);
+```
+
+```solidity
 // Same salt and params = same address across all chains
 address l2Address = l2DeployManager.deploy(
     bytecodeVersion,
@@ -479,7 +486,7 @@ Configuration memory cometConfig = Configuration({
 });
 ```
 
-**Step 2: Multi-Contract Comet Deployment**
+**Step 2: Multi-Contract Comet With Extended Asset List Deployment**
 
 ```solidity
 // Define bytecode versions for Comet components
@@ -515,30 +522,7 @@ bytes32 salt = keccak256("USDC-Market-v1");
 // 7. Returns all three addresses
 ```
 
-**Step 4: Extended Asset List Support (Built-in)**
-
-```solidity
-// MarketFactory automatically uses extended asset list variants for all deployments
-Configuration memory complexConfig = cometConfig; // Copy base config
-// Add 15+ asset configurations for enhanced collateral support...
-complexConfig.assetConfigs = largeAssetConfigArray;
-
-// Deploy Comet market with built-in extended asset list support
-(address extCometExt, address extComet, address extProxy) = marketFactory.deployComet(
-    cometExtVersion,
-    cometVersion,
-    extConfig,
-    complexConfig,
-    keccak256("USDC-Extended-Market")
-);
-
-// MarketFactory always uses:
-// - COMET_EXT_ASSET_LIST_CT (CometExtWithAssetList)
-// - COMET_ASSET_LIST_CT (CometWithAssetList)
-// - Automatically passes assetListFactory to CometExt constructor
-```
-
-**Step 5: Address Pre-computation**
+**Step 4: Address Pre-computation**
 
 ```solidity
 // Compute addresses before deployment for planning
@@ -597,6 +581,8 @@ BytecodeRepository provides three flexible deployment options for developers.
 **Method**: Call `deploy()` function on L1DeployManager or L2DeployManager
 **Benefits**: Built-in audit verification, deterministic CREATE2 addresses, gas-optimized retrieval
 **Best For**: Standalone contracts, simple deployment scenarios, maximum integration with repository features
+
+Note! Only accounts with Developer role can deploy via DeployManagers.
 
 ### Option 2: Factory-Based Deployment
 

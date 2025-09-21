@@ -132,6 +132,9 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         emit BytecodeSent(_chainId, _bytecodeVersion);
     }
 
+    /// @notice Allows developer to obtain Developer role on other chain for a 3-month period.
+    /// @dev Caller must be a developer in VersionController.
+    /// @param _chainId ID of other chain.
     function becomeDeveloperOnOtherChain(uint256 _chainId) external payable supportedChain(_chainId) {
         if (!_isDeveloper(msg.sender)) revert OnlyDeveloper();
         _ccipSend(_chainId, abi.encode(MessageType.BECOME_DEVELOPER, msg.sender));
