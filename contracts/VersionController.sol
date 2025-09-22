@@ -190,8 +190,8 @@ contract VersionController is
     function transferContractTypeOwnership(bytes32 _contractType, address _newKeyDeveloper) external {
         if (!hasRole(KEY_DEVELOPER_ROLE, msg.sender) || contractTypeKeyDeveloper[_contractType] != msg.sender)
             revert NotAuthorizedForContractType(_contractType, msg.sender);
-        if (contractTypeKeyDeveloper[_contractType] == _newKeyDeveloper) revert SameKeyDeveloper(_newKeyDeveloper);
         _checkRole(KEY_DEVELOPER_ROLE, _newKeyDeveloper);
+        if (contractTypeKeyDeveloper[_contractType] == _newKeyDeveloper) revert SameKeyDeveloper(_newKeyDeveloper);
         contractTypeKeyDeveloper[_contractType] = _newKeyDeveloper;
 
         emit KeyDeveloperAssigned(_contractType, _newKeyDeveloper);
