@@ -104,7 +104,7 @@ contract VersionController is
     }
 
     function initialize(address _governor, address _guardian) external initializer {
-        if (_governor == address(0)) revert ZeroAddress();
+        if (_governor == address(0) || _guardian == address(0)) revert ZeroAddress();
         __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
         __EIP712_init("VersionController", "1");

@@ -57,6 +57,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(IVersionController _versionController, IRouterClient _routerClient) {
+        if (address(_versionController) == address(0) || address(_routerClient) == address(0)) revert ZeroAddress();
         versionController = _versionController;
         routerClient = _routerClient;
         _disableInitializers();

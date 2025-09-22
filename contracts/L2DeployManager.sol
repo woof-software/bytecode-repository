@@ -49,6 +49,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     mapping(address => uint256) public developerUntil;
 
     constructor(address _l1DeployManager, address _router, address _localTimelock) CCIPReceiver(_router) {
+        if (_l1DeployManager == address(0) || _localTimelock == address(0)) revert ZeroAddress();
         l1DeployManager = _l1DeployManager;
         localTimelock = _localTimelock;
     }

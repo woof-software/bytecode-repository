@@ -19,6 +19,7 @@ interface IL1DeployManager {
     error OnlyDeveloper();
     error OnlyDeveloperOrGovernor();
     error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
+    error ZeroAddress();
 
     /// @notice A type of message to send to other chain.
     enum MessageType {
