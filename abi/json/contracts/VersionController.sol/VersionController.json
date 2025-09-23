@@ -1,0 +1,2282 @@
+[
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "AccessControlBadConfirmation",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "neededRole",
+                "type": "bytes32"
+            }
+        ],
+        "name": "AccessControlUnauthorizedAccount",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "target",
+                "type": "address"
+            }
+        ],
+        "name": "AddressEmptyCode",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "AdminCantAddSubDevs",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "AlreadySubDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_auditor",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "_auditReport",
+                "type": "string"
+            }
+        ],
+        "name": "AuditReportAlreadySubmitted",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeAlreadyReleased",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeAlreadyUploaded",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeNotReleased",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "BytecodeNotVerified",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "CantReleaseYet",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ECDSAInvalidSignature",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "length",
+                "type": "uint256"
+            }
+        ],
+        "name": "ECDSAInvalidSignatureLength",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "ECDSAInvalidSignatureS",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "implementation",
+                "type": "address"
+            }
+        ],
+        "name": "ERC1967InvalidImplementation",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ERC1967NonPayable",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EmptyURL",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "FailedCall",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InitCodeIsEmpty",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_author",
+                "type": "address"
+            }
+        ],
+        "name": "InvalidAuditor",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidInitialization",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            }
+        ],
+        "name": "NonExistingMajorVersion",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_minor",
+                "type": "uint64"
+            }
+        ],
+        "name": "NonExistingMinorVersion",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.VersionWithAlternative",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "NonExistingVersion",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_caller",
+                "type": "address"
+            }
+        ],
+        "name": "NotAuthorizedForContractType",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "NotDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NotInitializing",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "NotSubDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "SameKeyDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "SubDeveloperAlreadyInSet",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "SubDeveloperNotInSet",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "TooManySubDevelopers",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "UUPSUnauthorizedCallContext",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "slot",
+                "type": "bytes32"
+            }
+        ],
+        "name": "UUPSUnsupportedProxiableUUID",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.VersionWithAlternative",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "VersionAlreadyExists",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_developer",
+                "type": "address"
+            }
+        ],
+        "name": "WrongDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "WrongKeyDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ZeroAddress",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_author",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "_auditReport",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "_signature",
+                "type": "bytes"
+            }
+        ],
+        "name": "AuditReportSubmitted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint64",
+                        "name": "major",
+                        "type": "uint64"
+                    },
+                    {
+                        "internalType": "uint64",
+                        "name": "minor",
+                        "type": "uint64"
+                    },
+                    {
+                        "internalType": "uint64",
+                        "name": "patch",
+                        "type": "uint64"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct Types.Version",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "BytecodeUploaded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "enum Types.VersionType",
+                "name": "_version",
+                "type": "uint8"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            }
+        ],
+        "name": "CooldownReset",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [],
+        "name": "EIP712DomainChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint64",
+                "name": "version",
+                "type": "uint64"
+            }
+        ],
+        "name": "Initialized",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "KeyDeveloperAssigned",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_primaryAuditor",
+                "type": "address"
+            }
+        ],
+        "name": "PrimaryAuditorSet",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "previousAdminRole",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "newAdminRole",
+                "type": "bytes32"
+            }
+        ],
+        "name": "RoleAdminChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            }
+        ],
+        "name": "RoleGranted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            }
+        ],
+        "name": "RoleRevoked",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "implementation",
+                "type": "address"
+            }
+        ],
+        "name": "Upgraded",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "AUDITOR_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AUDIT_REPORT_TYPEHASH",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "DEFAULT_ADMIN_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "GUARDIAN_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "KEY_DEVELOPER_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "MAJOR_RELEASE_COOLDOWN",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "MINOR_RELEASE_COOLDOWN",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "PATCH_RELEASE_COOLDOWN",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "SUB_DEVELOPERS_LIMIT",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "SUB_DEVELOPER_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "UPGRADE_INTERFACE_VERSION",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "addSubDeveloper",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "assignDeveloperForContractType",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "bytecodes",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "initCodeHash",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "string",
+                "name": "sourceURL",
+                "type": "string"
+            },
+            {
+                "internalType": "address",
+                "name": "author",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeVersionHash",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "string",
+                "name": "_auditReport",
+                "type": "string"
+            }
+        ],
+        "name": "computeAuditReportHash",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.VersionWithAlternative",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "computeBytecodeHash",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "contractTypeKeyDeveloper",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "eip712Domain",
+        "outputs": [
+            {
+                "internalType": "bytes1",
+                "name": "fields",
+                "type": "bytes1"
+            },
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "version",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "chainId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "verifyingContract",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "salt",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "extensions",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getAllAlternativeVersions",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.VersionWithAlternative[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            },
+            {
+                "internalType": "address",
+                "name": "_auditor",
+                "type": "address"
+            }
+        ],
+        "name": "getAuditReport",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "getAuditorsForBytecodeVersion",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "getKeyDeveloper",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getLatestVersion",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getRegisteredContractTypes",
+        "outputs": [
+            {
+                "internalType": "bytes32[]",
+                "name": "",
+                "type": "bytes32[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getRoleAdmin",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "index",
+                "type": "uint256"
+            }
+        ],
+        "name": "getRoleMember",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getRoleMemberCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getRoleMembers",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_keyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "getSubDevsForKeyDeveloper",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "getVerifiedBytecode",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "grantRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "hasRole",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_governor",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_guardian",
+                "type": "address"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "isBytecodeUploaded",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "isBytecodeVerified",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "isDeveloper",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "latestMinor",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            },
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "latestPatch",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "latestVersions",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "major",
+                "type": "uint64"
+            },
+            {
+                "internalType": "uint64",
+                "name": "minor",
+                "type": "uint64"
+            },
+            {
+                "internalType": "uint64",
+                "name": "patch",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "minMajorReleaseTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "minMinorReleaseTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "minPatchReleaseTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "proxiableUUID",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "initCode",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sourceURL",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeInput",
+                "name": "_bytecodeInput",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint64",
+                                "name": "major",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "minor",
+                                "type": "uint64"
+                            },
+                            {
+                                "internalType": "uint64",
+                                "name": "patch",
+                                "type": "uint64"
+                            }
+                        ],
+                        "internalType": "struct Types.Version",
+                        "name": "version",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "alternative",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.VersionWithAlternative",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "releaseAlternativeVersion",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "initCode",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sourceURL",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeInput",
+                "name": "_bytecodeInput",
+                "type": "tuple"
+            }
+        ],
+        "name": "releaseBytecode",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "initCode",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sourceURL",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeInput",
+                "name": "_bytecodeInput",
+                "type": "tuple"
+            }
+        ],
+        "name": "releaseMajorVersion",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "initCode",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sourceURL",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeInput",
+                "name": "_bytecodeInput",
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            }
+        ],
+        "name": "releaseMinorVersion",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "initCode",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sourceURL",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeInput",
+                "name": "_bytecodeInput",
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_minor",
+                "type": "uint64"
+            }
+        ],
+        "name": "releasePatchVersion",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_subDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "removeSubDeveloper",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "callerConfirmation",
+                "type": "address"
+            }
+        ],
+        "name": "renounceRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum Types.VersionType",
+                "name": "_version",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint64",
+                "name": "_major",
+                "type": "uint64"
+            }
+        ],
+        "name": "resetCooldown",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "revokeRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "subToKeyDeveloper",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes4",
+                "name": "interfaceId",
+                "type": "bytes4"
+            }
+        ],
+        "name": "supportsInterface",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_contractType",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_newKeyDeveloper",
+                "type": "address"
+            }
+        ],
+        "name": "transferContractTypeOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newImplementation",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
+        "name": "upgradeToAndCall",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_bytecodeVersion",
+                "type": "tuple"
+            },
+            {
+                "internalType": "string",
+                "name": "_auditReport",
+                "type": "string"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_signature",
+                "type": "bytes"
+            }
+        ],
+        "name": "verifyBytecode",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "versionExists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "versionExists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]
