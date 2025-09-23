@@ -584,6 +584,15 @@ BytecodeRepository provides three flexible deployment options for developers.
 
 Note! Only accounts with Developer role can deploy via DeployManagers.
 
+## Example flow on how to deploy smart contract on other chain
+
+**Step 1.**
+![](images/deploy_other_chain_1.png)
+**Step 2.**
+![](images/deploy_other_chain_2.png)
+**Step 3.**
+![](images/deploy_other_chain_3.png)
+
 ### Option 2: Factory-Based Deployment
 
 **Use Case**: Multi-contract systems requiring orchestrated deployment
