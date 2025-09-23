@@ -101,6 +101,11 @@
     },
     {
         "inputs": [],
+        "name": "OnlyDeveloper",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "OnlyDeveloperOrGovernor",
         "type": "error"
     },
@@ -134,6 +139,11 @@
             }
         ],
         "name": "UnsupportedChain",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ZeroAddress",
         "type": "error"
     },
     {

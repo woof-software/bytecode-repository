@@ -38,6 +38,12 @@ error UnsupportedChain(uint256 _chainId)
 error OnlyGovernor()
 ```
 
+### OnlyDeveloper
+
+```solidity
+error OnlyDeveloper()
+```
+
 ### OnlyDeveloperOrGovernor
 
 ```solidity
@@ -48,6 +54,12 @@ error OnlyDeveloperOrGovernor()
 
 ```solidity
 error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash)
+```
+
+### ZeroAddress
+
+```solidity
+error ZeroAddress()
 ```
 
 ### MessageType

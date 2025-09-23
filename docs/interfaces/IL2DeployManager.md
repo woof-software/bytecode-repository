@@ -44,6 +44,12 @@ error BytecodeIsEmpty()
 error OnlyDeveloperOrGovernor()
 ```
 
+### ZeroAddress
+
+```solidity
+error ZeroAddress()
+```
+
 ### MessageType
 
 A type of message to receive from Ethereum.

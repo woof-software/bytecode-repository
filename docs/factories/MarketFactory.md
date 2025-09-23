@@ -63,6 +63,8 @@ Address of the AssetListFactory to use during deployment of CometWithExtendedAss
 address localTimelock
 ```
 
+The address of local timelock.
+
 ### MarketDeployed
 
 ```solidity
@@ -86,6 +88,10 @@ constructor(contract IBytecodeProvider _bytecodeProvider, address _cometProxyAdm
 ```solidity
 modifier onlyDeveloperOrGovernor()
 ```
+
+Validates that the caller is developer or governor.
+
+_The role is checked through the VersionController._
 
 ### deployComet
 

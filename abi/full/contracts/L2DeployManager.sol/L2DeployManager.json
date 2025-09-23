@@ -9,6 +9,7 @@
     "error InvalidSender()",
     "error OnlyDeveloperOrGovernor()",
     "error OnlyTimelock()",
+    "error ZeroAddress()",
     "event BytecodeReceived(bytes32 _messageId, bytes32 _bytecodeHash)",
     "event ContractDeployed(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _bytecodeVersion, bytes _constructorParams, address _newContract, address _deployer)",
     "event DeveloperAccessGranted(address _developer)",

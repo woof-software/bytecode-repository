@@ -29,11 +29,15 @@ This contract receives audited bytecode from L1 via Chainlink CCIP and enables s
 uint64 ETHEREUM_SELECTOR
 ```
 
+Ethereum selector for Chainlink CCIP.
+
 ### DEVELOPER_ACCESS_DURATION
 
 ```solidity
 uint256 DEVELOPER_ACCESS_DURATION
 ```
+
+a period of time for which developer role is granted on current chain.
 
 ### l1DeployManager
 
@@ -41,17 +45,23 @@ uint256 DEVELOPER_ACCESS_DURATION
 address l1DeployManager
 ```
 
+The address of L1DeployManager in Ethereum.
+
 ### localTimelock
 
 ```solidity
 address localTimelock
 ```
 
+The address of local timelock.
+
 ### developerUntil
 
 ```solidity
 mapping(address => uint256) developerUntil
 ```
+
+A timestamp until which the account has a developer role on current chain.
 
 ### constructor
 
@@ -64,6 +74,8 @@ constructor(address _l1DeployManager, address _router, address _localTimelock) p
 ```solidity
 modifier onlyDeveloperOrGovernor()
 ```
+
+Validates that the caller is developer or governor.
 
 ### deploy
 
@@ -141,6 +153,20 @@ Computes a pre-deployed addresses of specified contract type and version.
 ```solidity
 function isDeveloper(address _account) public view returns (bool)
 ```
+
+Validates if given account is developer.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _account | address | Address to check. |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | true if account is developer, false otherwise. |
 
 ### _ccipReceive
 

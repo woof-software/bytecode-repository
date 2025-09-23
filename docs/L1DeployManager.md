@@ -185,6 +185,16 @@ unless the ETH is already donated through the receive() function._
 function becomeDeveloperOnOtherChain(uint256 _chainId) external payable
 ```
 
+Allows developer to obtain Developer role on other chain for a 3-month period.
+
+_Caller must be a developer in VersionController._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _chainId | uint256 | ID of other chain. |
+
 ### deploy
 
 ```solidity
