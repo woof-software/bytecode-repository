@@ -133,7 +133,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     /// and address of developer for BECOME_DEVELOPER.
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         if (
-            abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager &&
+            abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager ||
             any2EvmMessage.sourceChainSelector != ETHEREUM_SELECTOR
         ) revert InvalidSender();
         MessageType mt = abi.decode(any2EvmMessage.data, (MessageType));
