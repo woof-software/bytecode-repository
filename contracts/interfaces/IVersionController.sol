@@ -7,7 +7,7 @@ import { IBytecodeProvider } from "./IBytecodeProvider.sol";
 
 interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     event PrimaryAuditorSet(address _primaryAuditor);
-    event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper);
+    event KeyDeveloperAssigned(bytes32[] _contractType, address _keyDeveloper);
     event BytecodeUploaded(bytes32 _contractType, Version _version);
     event AuditReportSubmitted(address _author, string _auditReport, bytes32 _bytecodeHash, bytes _signature);
     event CooldownReset(bytes32 _contractType, VersionType _version, uint64 _major);
@@ -35,10 +35,14 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     error EmptyURL();
     error CantReleaseYet();
     error ZeroAddress();
+    error ZeroLength();
     error AdminCantAddSubDevs();
 
     // Governor
-    function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external;
+    function assignDeveloperForContractTypes(bytes32[] calldata _contractTypes, address _keyDeveloper) external;
+
+    // Developer
+    function transferContractTypesOwnership(bytes32[] calldata _contractTypes, address _newKeyDeveloper) external;
 
     // Bytecode Upload
     function releaseBytecode(BytecodeInput calldata _bytecodeInput) external;
