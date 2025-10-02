@@ -9,7 +9,8 @@ import type { EIP712Domain, Developers } from "./helpers";
 const abiCoder = new ethers.AbiCoder();
 
 const mockRouterFee = ethers.parseEther("0.1");
-const mockChainSelectorId = "16015286601757825753";
+const sepoliaSelector = "16015286601757825753";
+const mockChainSelectorId = "1234567890";
 const mockOtherChainId = 123456;
 
 describe("L1/L2 DeployManager", function () {
@@ -55,7 +56,7 @@ describe("L1/L2 DeployManager", function () {
 
         const l2DeployManager = await (
             await ethers.getContractFactory("L2DeployManager")
-        ).deploy(l1DeployManager, mockRouter, localTimelockL2);
+        ).deploy(sepoliaSelector, l1DeployManager, mockRouter, localTimelockL2);
         await l1DeployManager.connect(governor).setChainConfig(mockOtherChainId, {
             l2DeployManager: l2DeployManager,
             destinationChainSelector: mockChainSelectorId,
