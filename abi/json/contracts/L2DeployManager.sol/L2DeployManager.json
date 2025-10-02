@@ -2,6 +2,11 @@
     {
         "inputs": [
             {
+                "internalType": "uint64",
+                "name": "_sourceChainSelector",
+                "type": "uint64"
+            },
+            {
                 "internalType": "address",
                 "name": "_l1DeployManager",
                 "type": "address"
@@ -199,19 +204,6 @@
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "ETHEREUM_SELECTOR",
-        "outputs": [
-            {
-                "internalType": "uint64",
-                "name": "",
-                "type": "uint64"
             }
         ],
         "stateMutability": "view",
@@ -546,6 +538,19 @@
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "sourceChainSelector",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
             }
         ],
         "stateMutability": "view",

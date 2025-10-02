@@ -510,6 +510,11 @@
         "type": "error"
     },
     {
+        "inputs": [],
+        "name": "ZeroLength",
+        "type": "error"
+    },
+    {
         "anonymous": false,
         "inputs": [
             {
@@ -625,9 +630,9 @@
         "inputs": [
             {
                 "indexed": false,
-                "internalType": "bytes32",
+                "internalType": "bytes32[]",
                 "name": "_contractType",
-                "type": "bytes32"
+                "type": "bytes32[]"
             },
             {
                 "indexed": false,
@@ -899,9 +904,9 @@
     {
         "inputs": [
             {
-                "internalType": "bytes32",
-                "name": "_contractType",
-                "type": "bytes32"
+                "internalType": "bytes32[]",
+                "name": "_contractTypes",
+                "type": "bytes32[]"
             },
             {
                 "internalType": "address",
@@ -909,7 +914,7 @@
                 "type": "address"
             }
         ],
-        "name": "assignDeveloperForContractType",
+        "name": "assignDeveloperForContractTypes",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -2103,9 +2108,9 @@
     {
         "inputs": [
             {
-                "internalType": "bytes32",
-                "name": "_contractType",
-                "type": "bytes32"
+                "internalType": "bytes32[]",
+                "name": "_contractTypes",
+                "type": "bytes32[]"
             },
             {
                 "internalType": "address",
@@ -2113,7 +2118,7 @@
                 "type": "address"
             }
         ],
-        "name": "transferContractTypeOwnership",
+        "name": "transferContractTypesOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

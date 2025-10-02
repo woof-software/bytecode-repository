@@ -1,5 +1,5 @@
 [
-    "constructor(address,address,address)",
+    "constructor(uint64,address,address,address)",
     "error BytecodeIsEmpty()",
     "error Create2EmptyBytecode()",
     "error FailedDeployment()",
@@ -14,7 +14,6 @@
     "event ContractDeployed(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes,address,address)",
     "event DeveloperAccessGranted(address)",
     "function DEVELOPER_ACCESS_DURATION() view returns (uint256)",
-    "function ETHEREUM_SELECTOR() view returns (uint64)",
     "function ccipReceive(tuple(bytes32,uint64,bytes,bytes,tuple(address,uint256)[]))",
     "function computeAddress(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes32,bytes,address) view returns (address)",
     "function deploy(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes32,bytes) payable returns (address)",
@@ -24,6 +23,7 @@
     "function isDeveloper(address) view returns (bool)",
     "function l1DeployManager() view returns (address)",
     "function localTimelock() view returns (address)",
+    "function sourceChainSelector() view returns (uint64)",
     "function supportsInterface(bytes4) view returns (bool)",
     "function versionExists(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string))) view returns (bool)"
 ]
