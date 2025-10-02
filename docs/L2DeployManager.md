@@ -23,14 +23,6 @@ This contract receives audited bytecode from L1 via Chainlink CCIP and enables s
 - Factory contracts and custom deployment tools can retrieve bytecode through the IBytecodeProvider interface for specialized deployment patterns.
 - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
 
-### ETHEREUM_SELECTOR
-
-```solidity
-uint64 ETHEREUM_SELECTOR
-```
-
-Ethereum selector for Chainlink CCIP.
-
 ### DEVELOPER_ACCESS_DURATION
 
 ```solidity
@@ -38,6 +30,14 @@ uint256 DEVELOPER_ACCESS_DURATION
 ```
 
 a period of time for which developer role is granted on current chain.
+
+### sourceChainSelector
+
+```solidity
+uint64 sourceChainSelector
+```
+
+Source chain selector for Chainlink CCIP.
 
 ### l1DeployManager
 
@@ -66,7 +66,7 @@ A timestamp until which the account has a developer role on current chain.
 ### constructor
 
 ```solidity
-constructor(address _l1DeployManager, address _router, address _localTimelock) public
+constructor(uint64 _sourceChainSelector, address _l1DeployManager, address _router, address _localTimelock) public
 ```
 
 ### onlyDeveloperOrGovernor
