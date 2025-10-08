@@ -28,7 +28,7 @@ library BytecodeStore {
                     _version.version.major,
                     _version.version.minor,
                     _version.version.patch,
-                    _version.alternative
+                    keccak256(bytes(_version.alternative))
                 )
             );
     }
