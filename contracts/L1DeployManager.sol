@@ -38,12 +38,6 @@ import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Admin role for AccessControl.
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
-    /// @notice Key Developer role for AccessControl.
-    bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
-    /// @notice Sub Developer role for AccessControl.
-    bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
-    /// @notice Auditor role for AccessControl.
-    bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
     /// @notice Address of the VersionControlles SC.
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IVersionController public immutable versionController;

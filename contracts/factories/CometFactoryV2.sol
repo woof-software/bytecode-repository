@@ -4,7 +4,7 @@ pragma solidity 0.8.30;
 import { IVersionController, Types } from "../interfaces/IVersionController.sol";
 import { IBytecodeProvider } from "../interfaces/IBytecodeProvider.sol";
 import { ICometFactoryV2 } from "../interfaces/ICometFactoryV2.sol";
-import { Configuration, ExtConfiguration } from "../integration/CometConfiguration.sol";
+import { Configuration } from "../integration/CometConfiguration.sol";
 import { BaseFactory } from "./BaseFactory.sol";
 
 /**
