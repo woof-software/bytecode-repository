@@ -168,7 +168,7 @@ contract VersionController is
         emit KeyDeveloperAssigned(_contractTypes, _keyDeveloper);
     }
 
-    /// @notice Allows the Governance to reset cooldown for publishing new version.
+    /// @notice Allows the Guardian to reset cooldown for publishing new version.
     /// @param _version A type of version to reset cooldown for: major, minor or patch.
     /// @param _contractType A type of contract for which to reset cooldown.
     /// @param _major An optional parameter required for restoring determine for which major version to reset the minor. Thus, only used with Minor version.
