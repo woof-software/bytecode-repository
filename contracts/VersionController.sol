@@ -579,6 +579,18 @@ contract VersionController is
         super.grantRole(role, account);
     }
 
+    function _grantRole(bytes32 role, address account) internal override returns (bool) {
+        // Ensure mutual exclusivity between SUB_DEVELOPER_ROLE and KEY_DEVELOPER_ROLE
+        if (
+            (role == SUB_DEVELOPER_ROLE && hasRole(KEY_DEVELOPER_ROLE, account)) ||
+            (role == KEY_DEVELOPER_ROLE && hasRole(SUB_DEVELOPER_ROLE, account))
+        ) {
+            revert ConflictingRoles(account);
+        }
+
+        return super._grantRole(role, account);
+    }
+
     function _revokeRole(bytes32 role, address account) internal override returns (bool) {
         if (role == SUB_DEVELOPER_ROLE) {
             address keyDeveloper = subToKeyDeveloper[account];
