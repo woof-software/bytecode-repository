@@ -11,6 +11,7 @@
     "error BytecodeNotReleased(bytes32)",
     "error BytecodeNotVerified(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)))",
     "error CantReleaseYet()",
+    "error ConflictingRoles(address)",
     "error ECDSAInvalidSignature()",
     "error ECDSAInvalidSignatureLength(uint256)",
     "error ECDSAInvalidSignatureS(bytes32)",

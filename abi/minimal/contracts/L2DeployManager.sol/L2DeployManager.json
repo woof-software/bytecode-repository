@@ -13,6 +13,7 @@
     "event BytecodeReceived(bytes32,bytes32)",
     "event ContractDeployed(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes,address,address)",
     "event DeveloperAccessGranted(address)",
+    "event DeveloperRevoked(address)",
     "function DEVELOPER_ACCESS_DURATION() view returns (uint256)",
     "function ccipReceive(tuple(bytes32,uint64,bytes,bytes,tuple(address,uint256)[]))",
     "function computeAddress(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes32,bytes,address) view returns (address)",

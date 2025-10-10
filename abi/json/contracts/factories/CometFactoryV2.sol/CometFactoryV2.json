@@ -82,6 +82,11 @@
     },
     {
         "inputs": [],
+        "name": "InvalidMinorVersion",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "NonExistingVersion",
         "type": "error"
     },
@@ -93,6 +98,11 @@
     {
         "inputs": [],
         "name": "OnlyTimelock",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "SameVersion",
         "type": "error"
     },
     {
