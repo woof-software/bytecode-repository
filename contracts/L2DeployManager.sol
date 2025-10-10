@@ -35,10 +35,10 @@ import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
  * - The system maintains a complete audit trail of received bytecode with CCIP message IDs for transparency and debugging purposes.
  */
 contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
-    /// @notice Ethereum selector for Chainlink CCIP.
-    uint64 public constant ETHEREUM_SELECTOR = 5009297550715157269;
     /// @notice a period of time for which developer role is granted on current chain.
     uint256 public constant DEVELOPER_ACCESS_DURATION = 90 days;
+    /// @notice Source chain selector for Chainlink CCIP.
+    uint64 public immutable sourceChainSelector;
     /// @notice The address of L1DeployManager in Ethereum.
     address public immutable l1DeployManager;
     /// @notice The address of local timelock.
@@ -48,8 +48,14 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     /// @notice A timestamp until which the account has a developer role on current chain.
     mapping(address => uint256) public developerUntil;
 
-    constructor(address _l1DeployManager, address _router, address _localTimelock) CCIPReceiver(_router) {
+    constructor(
+        uint64 _sourceChainSelector,
+        address _l1DeployManager,
+        address _router,
+        address _localTimelock
+    ) CCIPReceiver(_router) {
         if (_l1DeployManager == address(0) || _localTimelock == address(0)) revert ZeroAddress();
+        sourceChainSelector = _sourceChainSelector;
         l1DeployManager = _l1DeployManager;
         localTimelock = _localTimelock;
     }
@@ -134,7 +140,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         if (
             abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager ||
-            any2EvmMessage.sourceChainSelector != ETHEREUM_SELECTOR
+            any2EvmMessage.sourceChainSelector != sourceChainSelector
         ) revert InvalidSender();
         MessageType mt = abi.decode(any2EvmMessage.data, (MessageType));
         if (mt == MessageType.SEND_BYTECODE) {

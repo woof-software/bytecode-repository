@@ -49,8 +49,9 @@ describe("MarketFactory", function () {
         const KEY_DEVELOPER_ROLE = await versionController.KEY_DEVELOPER_ROLE();
         await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, WOOF.keyDeveloper);
 
-        for (const contractType of WOOF.contractTypes)
-            await versionController.connect(governor).assignDeveloperForContractType(contractType, WOOF.keyDeveloper);
+        await versionController
+            .connect(governor)
+            .assignDeveloperForContractTypes(WOOF.contractTypes, WOOF.keyDeveloper);
 
         for (const subDev of WOOF.subDevelopers)
             await versionController.connect(WOOF.keyDeveloper).addSubDeveloper(subDev);

@@ -241,10 +241,10 @@ Validates if provided release timestamp is reached and a new version can be rele
 modifier checkURL(string _url)
 ```
 
-### assignDeveloperForContractType
+### assignDeveloperForContractTypes
 
 ```solidity
-function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external
+function assignDeveloperForContractTypes(bytes32[] _contractTypes, address _keyDeveloper) external
 ```
 
 Assigns a new key developer for a certain contract type.
@@ -257,7 +257,7 @@ Correctness of  contract type should be checked by the Governance before calling
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _contractType | bytes32 | A type of contract to assign developer for. |
+| _contractTypes | bytes32[] | An array containing types of contracts to assign developer for. |
 | _keyDeveloper | address | An address of key developer to assign. address(0) is allowed to remove developer for contract type. |
 
 ### resetCooldown
@@ -276,10 +276,10 @@ Allows the Governance to reset cooldown for publishing new version.
 | _contractType | bytes32 | A type of contract for which to reset cooldown. |
 | _major | uint64 | An optional parameter required for restoring determine for which major version to reset the minor. Thus, only used with Minor version. |
 
-### transferContractTypeOwnership
+### transferContractTypesOwnership
 
 ```solidity
-function transferContractTypeOwnership(bytes32 _contractType, address _newKeyDeveloper) external
+function transferContractTypesOwnership(bytes32[] _contractTypes, address _newKeyDeveloper) external
 ```
 
 Transfers ownership over contract type to a new key developer.
@@ -291,7 +291,7 @@ New key developer must already have a KEY_DEVELOPER_ROLE._
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _contractType | bytes32 | A type of contract to assign developer for. |
+| _contractTypes | bytes32[] | An array containing types of contract to assign developer for. |
 | _newKeyDeveloper | address | An address of key developer to assign. |
 
 ### releaseBytecode

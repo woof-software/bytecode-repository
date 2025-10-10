@@ -1,5 +1,5 @@
 [
-    "constructor(address _l1DeployManager, address _router, address _localTimelock)",
+    "constructor(uint64 _sourceChainSelector, address _l1DeployManager, address _router, address _localTimelock)",
     "error BytecodeIsEmpty()",
     "error Create2EmptyBytecode()",
     "error FailedDeployment()",
@@ -14,7 +14,6 @@
     "event ContractDeployed(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _bytecodeVersion, bytes _constructorParams, address _newContract, address _deployer)",
     "event DeveloperAccessGranted(address _developer)",
     "function DEVELOPER_ACCESS_DURATION() view returns (uint256)",
-    "function ETHEREUM_SELECTOR() view returns (uint64)",
     "function ccipReceive(tuple(bytes32 messageId, uint64 sourceChainSelector, bytes sender, bytes data, tuple(address token, uint256 amount)[] destTokenAmounts) message)",
     "function computeAddress(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _bytecodeVersion, bytes32 _salt, bytes _constructorParams, address _deployer) view returns (address)",
     "function deploy(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _bytecodeVersion, bytes32 _salt, bytes _constructorParams) payable returns (address)",
@@ -24,6 +23,7 @@
     "function isDeveloper(address _account) view returns (bool)",
     "function l1DeployManager() view returns (address)",
     "function localTimelock() view returns (address)",
+    "function sourceChainSelector() view returns (uint64)",
     "function supportsInterface(bytes4 interfaceId) view returns (bool)",
     "function versionExists(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _version) view returns (bool)"
 ]

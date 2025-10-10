@@ -11,7 +11,7 @@ event PrimaryAuditorSet(address _primaryAuditor)
 ### KeyDeveloperAssigned
 
 ```solidity
-event KeyDeveloperAssigned(bytes32 _contractType, address _keyDeveloper)
+event KeyDeveloperAssigned(bytes32[] _contractType, address _keyDeveloper)
 ```
 
 ### BytecodeUploaded
@@ -170,16 +170,28 @@ error CantReleaseYet()
 error ZeroAddress()
 ```
 
+### ZeroLength
+
+```solidity
+error ZeroLength()
+```
+
 ### AdminCantAddSubDevs
 
 ```solidity
 error AdminCantAddSubDevs()
 ```
 
-### assignDeveloperForContractType
+### assignDeveloperForContractTypes
 
 ```solidity
-function assignDeveloperForContractType(bytes32 _contractType, address _keyDeveloper) external
+function assignDeveloperForContractTypes(bytes32[] _contractTypes, address _keyDeveloper) external
+```
+
+### transferContractTypesOwnership
+
+```solidity
+function transferContractTypesOwnership(bytes32[] _contractTypes, address _newKeyDeveloper) external
 ```
 
 ### releaseBytecode
