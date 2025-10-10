@@ -20,6 +20,12 @@ event BytecodeSent(uint256 _chainId, struct Types.BytecodeVersion _bytecodeVersi
 event DeveloperAccessRequested(uint256 _chainId, address _developer)
 ```
 
+### DeveloperRevocationRequested
+
+```solidity
+event DeveloperRevocationRequested(uint256 _chainId, address _account)
+```
+
 ### ContractDeployed
 
 ```solidity
@@ -36,6 +42,12 @@ error UnsupportedChain(uint256 _chainId)
 
 ```solidity
 error OnlyGovernor()
+```
+
+### OnlyGuardian
+
+```solidity
+error OnlyGuardian()
 ```
 
 ### OnlyDeveloper
@@ -62,6 +74,12 @@ error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash)
 error ZeroAddress()
 ```
 
+### CantRevokeDeveloper
+
+```solidity
+error CantRevokeDeveloper(address _account)
+```
+
 ### MessageType
 
 A type of message to send to other chain.
@@ -69,7 +87,8 @@ A type of message to send to other chain.
 ```solidity
 enum MessageType {
   SEND_BYTECODE,
-  BECOME_DEVELOPER
+  BECOME_DEVELOPER,
+  REVOKE_DEVELOPER
 }
 ```
 
@@ -86,7 +105,6 @@ _Fields:
 struct ChainConfig {
   address l2DeployManager;
   uint64 destinationChainSelector;
-  uint256 gasLimit;
 }
 ```
 

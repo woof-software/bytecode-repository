@@ -266,7 +266,7 @@ Correctness of  contract type should be checked by the Governance before calling
 function resetCooldown(enum Types.VersionType _version, bytes32 _contractType, uint64 _major) external
 ```
 
-Allows the Governance to reset cooldown for publishing new version.
+Allows the Guardian to reset cooldown for publishing new version.
 
 #### Parameters
 
@@ -775,6 +775,14 @@ Returns given version in human-readable format. E.g. "4.3.0".
 ```solidity
 function grantRole(bytes32 role, address account) public
 ```
+
+### _grantRole
+
+```solidity
+function _grantRole(bytes32 role, address account) internal returns (bool)
+```
+
+_Overload {AccessControl-_grantRole} to track enumerable memberships_
 
 ### _revokeRole
 

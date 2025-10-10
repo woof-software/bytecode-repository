@@ -182,5 +182,5 @@ _The sender of the message from Ethereum must be L1DeployManager._
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| any2EvmMessage | struct Client.Any2EVMMessage | params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE. and address of developer for BECOME_DEVELOPER. |
+| any2EvmMessage | struct Client.Any2EVMMessage | params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE. and address of developer for BECOME_DEVELOPER or REVOKE_DEVELOPER. |
 
