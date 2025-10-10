@@ -659,4 +659,73 @@ describe("L1/L2 DeployManager", function () {
             l1DeployManager.connect(users[0]).becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee })
         ).revertedWithCustomError(l1DeployManager, "OnlyDeveloper");
     });
+
+    it("Should revoke developer on other chain", async () => {
+        const { WOOF, versionController, l1DeployManager, l2DeployManager, guardian, governor } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+        // Revoke on Version Controller
+        await versionController
+            .connect(governor)
+            .revokeRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper);
+        // Request revocation on other chain
+        await l1DeployManager
+            .connect(guardian)
+            .revokeDeveloperOnOtherChain(mockOtherChainId, WOOF.keyDeveloper, { value: mockRouterFee });
+        // Check role on other chain
+        expect(await l2DeployManager.isDeveloper(WOOF.keyDeveloper)).to.be.false;
+    });
+
+    it("Only guardian can revoke", async () => {
+        const { WOOF, versionController, l1DeployManager, governor, users } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+        // Revoke on Version Controller
+        await versionController
+            .connect(governor)
+            .revokeRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper);
+        // Try to revoke from non-guardian address
+        await expect(
+            l1DeployManager
+                .connect(governor)
+                .revokeDeveloperOnOtherChain(mockOtherChainId, WOOF.keyDeveloper, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "OnlyGuardian");
+        await expect(
+            l1DeployManager
+                .connect(users[0])
+                .revokeDeveloperOnOtherChain(mockOtherChainId, WOOF.keyDeveloper, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "OnlyGuardian");
+    });
+
+    it("Can't revoke developer if zero address is passed", async () => {
+        const { WOOF, l1DeployManager, guardian } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+        // Try to revoke zero address
+        await expect(
+            l1DeployManager
+                .connect(guardian)
+                .revokeDeveloperOnOtherChain(mockOtherChainId, ethers.ZeroAddress, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "ZeroAddress");
+    });
+
+    it("Can't revoke developer if he still has developer role on VersionController", async () => {
+        const { WOOF, l1DeployManager, guardian } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+        // Try to revoke
+        await expect(
+            l1DeployManager
+                .connect(guardian)
+                .revokeDeveloperOnOtherChain(mockOtherChainId, WOOF.keyDeveloper, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "CantRevokeDeveloper");
+    });
 });
