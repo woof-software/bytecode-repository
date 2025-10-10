@@ -32,29 +32,13 @@ bytes32 DEFAULT_ADMIN_ROLE
 
 Admin role for AccessControl.
 
-### KEY_DEVELOPER_ROLE
+### GUARDIAN_ROLE
 
 ```solidity
-bytes32 KEY_DEVELOPER_ROLE
+bytes32 GUARDIAN_ROLE
 ```
 
-Key Developer role for AccessControl.
-
-### SUB_DEVELOPER_ROLE
-
-```solidity
-bytes32 SUB_DEVELOPER_ROLE
-```
-
-Sub Developer role for AccessControl.
-
-### AUDITOR_ROLE
-
-```solidity
-bytes32 AUDITOR_ROLE
-```
-
-Auditor role for AccessControl.
+Guardian role for AccessControl.
 
 ### versionController
 
@@ -118,6 +102,16 @@ Validates that the caller is the Governor.
 
 _The role is checked through the VersionController._
 
+### onlyGuardian
+
+```solidity
+modifier onlyGuardian()
+```
+
+Validates that the caller is the Guardian.
+
+_The role is checked through the VersionController._
+
 ### onlyDeveloperOrGovernor
 
 ```solidity
@@ -159,10 +153,29 @@ function withdrawETH() external
 
 Allows the Governor to withdraw all the ETH stored on the smart contract's balance.
 
+### revokeDeveloperOnOtherChain
+
+```solidity
+function revokeDeveloperOnOtherChain(uint256 _chainId, uint256 _gasLimit, address _account) external payable
+```
+
+Revokes developer role on other chain.
+
+_Can only be called by Guardian.
+Account to revoke must first be revoked on VersionController._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _chainId | uint256 | ID of the network on which to revoke developer. |
+| _gasLimit | uint256 | Gas limit for call on other chain. |
+| _account | address | Address of developer to revoke on other chain. |
+
 ### sendBytecodeToOtherChain
 
 ```solidity
-function sendBytecodeToOtherChain(struct Types.BytecodeVersion _bytecodeVersion, uint256 _chainId) external payable
+function sendBytecodeToOtherChain(struct Types.BytecodeVersion _bytecodeVersion, uint256 _chainId, uint256 _gasLimit) external payable
 ```
 
 Allows any developer to initiate sending of specific bytecode version to another network.
@@ -178,11 +191,12 @@ unless the ETH is already donated through the receive() function._
 | ---- | ---- | ----------- |
 | _bytecodeVersion | struct Types.BytecodeVersion | A specific version of contract type. |
 | _chainId | uint256 | ID of the network to which to send bytecode. Chain ID must be registered by the Governor. |
+| _gasLimit | uint256 | Gas limit for call on other chain. |
 
 ### becomeDeveloperOnOtherChain
 
 ```solidity
-function becomeDeveloperOnOtherChain(uint256 _chainId) external payable
+function becomeDeveloperOnOtherChain(uint256 _chainId, uint256 _gasLimit) external payable
 ```
 
 Allows developer to obtain Developer role on other chain for a 3-month period.
@@ -194,6 +208,7 @@ _Caller must be a developer in VersionController._
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _chainId | uint256 | ID of other chain. |
+| _gasLimit | uint256 | Gas limit for call on other chain. |
 
 ### deploy
 

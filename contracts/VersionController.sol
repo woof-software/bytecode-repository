@@ -168,7 +168,7 @@ contract VersionController is
         emit KeyDeveloperAssigned(_contractTypes, _keyDeveloper);
     }
 
-    /// @notice Allows the Governance to reset cooldown for publishing new version.
+    /// @notice Allows the Guardian to reset cooldown for publishing new version.
     /// @param _version A type of version to reset cooldown for: major, minor or patch.
     /// @param _contractType A type of contract for which to reset cooldown.
     /// @param _major An optional parameter required for restoring determine for which major version to reset the minor. Thus, only used with Minor version.
@@ -577,6 +577,18 @@ contract VersionController is
     function grantRole(bytes32 role, address account) public override(IAccessControl, AccessControlUpgradeable) {
         if (role == SUB_DEVELOPER_ROLE) revert AdminCantAddSubDevs();
         super.grantRole(role, account);
+    }
+
+    function _grantRole(bytes32 role, address account) internal override returns (bool) {
+        // Ensure mutual exclusivity between SUB_DEVELOPER_ROLE and KEY_DEVELOPER_ROLE
+        if (
+            (role == SUB_DEVELOPER_ROLE && hasRole(KEY_DEVELOPER_ROLE, account)) ||
+            (role == KEY_DEVELOPER_ROLE && hasRole(SUB_DEVELOPER_ROLE, account))
+        ) {
+            revert ConflictingRoles(account);
+        }
+
+        return super._grantRole(role, account);
     }
 
     function _revokeRole(bytes32 role, address account) internal override returns (bool) {

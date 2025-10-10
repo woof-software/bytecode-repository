@@ -37,6 +37,7 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     error ZeroAddress();
     error ZeroLength();
     error AdminCantAddSubDevs();
+    error ConflictingRoles(address _account);
 
     // Governor
     function assignDeveloperForContractTypes(bytes32[] calldata _contractTypes, address _keyDeveloper) external;

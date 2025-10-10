@@ -11,6 +11,7 @@
     "error BytecodeNotReleased(bytes32 _contractType)",
     "error BytecodeNotVerified(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _version)",
     "error CantReleaseYet()",
+    "error ConflictingRoles(address _account)",
     "error ECDSAInvalidSignature()",
     "error ECDSAInvalidSignatureLength(uint256 length)",
     "error ECDSAInvalidSignatureS(bytes32 s)",

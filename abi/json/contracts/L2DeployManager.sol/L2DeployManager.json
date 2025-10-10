@@ -197,6 +197,19 @@
         "type": "event"
     },
     {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "DeveloperRevoked",
+        "type": "event"
+    },
+    {
         "inputs": [],
         "name": "DEVELOPER_ACCESS_DURATION",
         "outputs": [

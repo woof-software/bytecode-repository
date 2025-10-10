@@ -182,6 +182,12 @@ error ZeroLength()
 error AdminCantAddSubDevs()
 ```
 
+### ConflictingRoles
+
+```solidity
+error ConflictingRoles(address _account)
+```
+
 ### assignDeveloperForContractTypes
 
 ```solidity

@@ -26,3 +26,15 @@ error OnlyIterativeUpdate()
 error NonExistingVersion()
 ```
 
+### SameVersion
+
+```solidity
+error SameVersion()
+```
+
+### InvalidMinorVersion
+
+```solidity
+error InvalidMinorVersion()
+```
+

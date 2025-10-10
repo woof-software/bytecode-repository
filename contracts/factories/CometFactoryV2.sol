@@ -4,7 +4,7 @@ pragma solidity 0.8.30;
 import { IVersionController, Types } from "../interfaces/IVersionController.sol";
 import { IBytecodeProvider } from "../interfaces/IBytecodeProvider.sol";
 import { ICometFactoryV2 } from "../interfaces/ICometFactoryV2.sol";
-import { Configuration, ExtConfiguration } from "../integration/CometConfiguration.sol";
+import { Configuration } from "../integration/CometConfiguration.sol";
 import { BaseFactory } from "./BaseFactory.sol";
 
 /**
@@ -64,9 +64,33 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
     function setVersion(Types.VersionWithAlternative memory _newVersion) external {
         if (msg.sender != timelock) revert OnlyTimelock();
         if (!bytecodeProvider.versionExists(Types.BytecodeVersion(COMET_CT, _newVersion))) revert NonExistingVersion();
-        if (version.version.major + 1 != _newVersion.version.major) revert OnlyIterativeUpdate();
-        version = _newVersion;
 
+        Types.Version memory currVersion = version.version;
+        Types.Version memory newVersion = _newVersion.version;
+
+        // Cannot set the same version
+        if (
+            currVersion.major == newVersion.major &&
+            currVersion.minor == newVersion.minor &&
+            currVersion.patch == newVersion.patch
+        ) {
+            revert SameVersion();
+        }
+
+        if (newVersion.major == currVersion.major) {
+            // Same major: minor cannot decrease (patch can be any)
+            if (newVersion.minor < currVersion.minor) {
+                revert InvalidMinorVersion();
+            }
+            // If minor stays the same, patch can be any value (allows rollback)
+        } else {
+            // Different major: must be incremental (+1), minor and patch can be any
+            if (newVersion.major != currVersion.major + 1) {
+                revert OnlyIterativeUpdate();
+            }
+        }
+
+        version = _newVersion;
         emit VersionSet(_newVersion);
     }
 

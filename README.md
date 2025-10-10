@@ -2,6 +2,42 @@
 
 A cross-chain smart contract bytecode repository system that enables secure, versioned, and audited contract deployment across multiple networks using Chainlink CCIP.
 
+## Table of Contents
+
+- [TL;DR](#tldr)
+  - [Smart Contracts at a Glance](#smart-contracts-at-a-glance)
+- [Overview](#overview)
+  - [The Problem Space](#the-problem-space)
+  - [Core Functionality & Architecture](#core-functionality--architecture)
+  - [Distinguishing Technical Features](#distinguishing-technical-features)
+  - [Unique Value Proposition](#unique-value-proposition)
+- [Bytecode Lifecycle](#bytecode-lifecycle)
+  - [Phase 1: Governance Setup 🏛️](#phase-1-governance-setup-️)
+  - [Phase 2: Development & Upload 💻](#phase-2-development--upload-)
+  - [Phase 3: Audit & Verification 🔍](#phase-3-audit--verification-)
+  - [Phase 4: Cross-chain Distribution 🌐](#phase-4-cross-chain-distribution-)
+  - [Phase 5: Deployment Scenarios 🚀](#phase-5-deployment-scenarios-)
+- [Role Hierarchy & Access Control](#role-hierarchy--access-control)
+  - [Role Hierarchy Tree](#role-hierarchy-tree)
+  - [Role Capabilities & Permissions](#role-capabilities--permissions)
+  - [Role Granting Mechanisms](#role-granting-mechanisms)
+  - [Role Revocation & Cascading Effects](#role-revocation--cascading-effects)
+  - [Role Mutual Exclusivity](#role-mutual-exclusivity)
+- [Deployment Options](#deployment-options)
+  - [Option 1: Direct Deployment via DeployManagers](#option-1-direct-deployment-via-deploymanagers)
+  - [Option 2: Factory-Based Deployment](#option-2-factory-based-deployment)
+  - [Option 3: Traditional Framework Integration](#option-3-traditional-framework-integration)
+  - [Selection Criteria](#selection-criteria)
+- [Comparison of previous and current Comet deployment flows](#comparison-of-previous-and-current-comet-deployment-flows)
+  - [Previous flow](#previous-flow)
+  - [New flow](#new-flow)
+- [Installation](#installation)
+- [Some unsorted notes](#some-unsorted-notes)
+  - [Commands](#commands)
+  - [Environment variables](#environment-variables)
+  - [VS Code](#vs-code)
+- [Troubleshooting](#troubleshooting)
+
 ## TL;DR
 
 ### Smart Contracts at a Glance
@@ -570,6 +606,96 @@ assert(l2Proxy == cometProxy);
 **📝 Immutable Audit Trail**: EIP-712 signatures used for audit records
 
 This lifecycle ensures that every deployed contract is **audited**, **versioned**, **consistent**, and **traceable** across the entire multi-chain ecosystem.
+
+## Role Hierarchy & Access Control
+
+BytecodeRepository implements a sophisticated role-based access control system with hierarchical permissions designed to ensure secure governance, development workflows, and audit verification processes.
+
+### Role Hierarchy Tree
+
+```
+DEFAULT_ADMIN (Governor)
+├── KEY_DEVELOPER_ROLE
+│   ├── Contract Type Assignment (multiple contract types per key dev)
+│   ├── SUB_DEVELOPER_ROLE (max 3 per key developer)
+│   │   ├── Sub Developer 1
+│   │   ├── Sub Developer 2
+│   │   └── Sub Developer 3
+│   └── Bytecode Release Permissions (for assigned contract types)
+├── AUDITOR_ROLE (independent verification)
+│   └── EIP-712 Audit Signatures
+└── GUARDIAN_ROLE (emergency functions)
+    └── Cooldown Reset Powers
+```
+
+### Role Capabilities & Permissions
+
+#### **Governor (DEFAULT_ADMIN_ROLE)**
+
+- **Primary Authority**: Ultimate system control and governance
+- **Can Grant**: Key Developer role, Auditor role, Guardian role
+- **Can Assign**: Key Developers to specific contract types via `assignDeveloperForContractTypes()`
+- **Can Upgrade**: Contract implementations via UUPS proxy pattern
+- **Can NOT**: Directly grant Sub Developer roles (only Key Developers can do this)
+
+#### **Guardian (GUARDIAN_ROLE)**
+
+- **Emergency Powers**: Reset version release cooldowns via `resetCooldown()`, revoked developers on other chains
+- **Independent Role**: Operates outside the main developer hierarchy
+- **Use Cases**: Emergency situations requiring immediate version releases
+
+#### **Key Developer (KEY_DEVELOPER_ROLE)**
+
+- **Contract Ownership**: Assigned to specific contract types (identified by `bytes32` hash)
+- **Bytecode Management**: Can release all version types (initial, major, minor, patch, alternative)
+- **Team Management**: Can add/remove up to 3 Sub Developers via `addSubDeveloper()` / `removeSubDeveloper()`
+- **Ownership Transfer**: Can transfer contract type ownership to other Key Developers via `transferContractTypesOwnership()`
+- **Audit Submission**: Can submit EIP-712 audit verifications for their contract types
+
+#### **Sub Developer (SUB_DEVELOPER_ROLE)**
+
+- **Inherited Permissions**: Can release bytecode versions for their Key Developer's assigned contract types
+- **Limited Scope**: Cannot manage other Sub Developers or transfer ownership
+- **Team Member Status**: Maximum 3 Sub Developers per Key Developer (enforced by `SUB_DEVELOPERS_LIMIT`)
+
+#### **Auditor (AUDITOR_ROLE)**
+
+- **Independent Verification**: Can submit EIP-712 signed audit reports via `verifyBytecode()`
+- **Cryptographic Signatures**: Must provide valid EIP-712 signatures for audit verification
+- **Multi-Auditor Support**: Multiple auditors can verify the same bytecode version
+
+### Role Granting Mechanisms
+
+| Role              | Granted By    | Method                              | Limitations                                                         |
+| ----------------- | ------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| **Key Developer** | Governor      | `assignDeveloperForContractTypes()` | Must assign to specific contract types                              |
+| **Sub Developer** | Key Developer | `addSubDeveloper()`                 | Max 3 per Key Developer, mutual exclusivity with Key Developer role |
+| **Auditor**       | Governor      | `grantRole(AUDITOR_ROLE, account)`  | Independent of developer hierarchy                                  |
+| **Guardian**      | Governor      | `grantRole(GUARDIAN_ROLE, account)` | Emergency functions only                                            |
+
+### Role Revocation & Cascading Effects
+
+#### **Automatic Cascading Revocation**
+
+When a **Key Developer** role is revoked, the system automatically:
+
+1. **Revokes all Sub Developer roles** for that Key Developer's team (up to 3 accounts)
+2. **Clears the sub-developer mappings** (`subToKeyDeveloper` and `subDevelopers`)
+3. **Governor does NOT need to manually revoke Sub Developers** - this is handled automatically by `_revokeRole()` override
+
+#### **Manual Revocation Scenarios**
+
+- **Sub Developer Removal**: Key Developer can remove individual Sub Developers via `removeSubDeveloper()`
+- **Auditor Revocation**: Governor must manually revoke Auditor roles when needed
+- **Guardian Revocation**: Governor must manually revoke Guardian roles when needed
+
+### Role Mutual Exclusivity
+
+The system enforces **mutual exclusivity** between Key Developer and Sub Developer roles:
+
+- An account **cannot simultaneously** hold both `KEY_DEVELOPER_ROLE` and `SUB_DEVELOPER_ROLE`
+- Attempting to grant conflicting roles triggers `ConflictingRoles(account)` error
+- This ensures clear hierarchical boundaries and prevents permission confusion
 
 ## Deployment Options
 

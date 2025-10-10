@@ -47,11 +47,6 @@ describe("VersionController", function () {
         const AUDITOR_ROLE = await versionController.AUDITOR_ROLE();
         for (const auditor of auditors) await versionController.connect(governor).grantRole(AUDITOR_ROLE, auditor);
 
-        // const KEY_DEVELOPER_ROLE = await versionController.KEY_DEVELOPER_ROLE();
-        // await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, WOOF.keyDeveloper);
-        // await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, devTeam2.keyDeveloper);
-        // await versionController.connect(governor).grantRole(KEY_DEVELOPER_ROLE, devTeam3.keyDeveloper);
-
         await versionController
             .connect(governor)
             .assignDeveloperForContractTypes(WOOF.contractTypes, WOOF.keyDeveloper);
@@ -2062,6 +2057,64 @@ describe("VersionController", function () {
         expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.keyDeveloper)).to
             .be.true;
         expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam3.keyDeveloper)).to
+            .be.true;
+    });
+
+    it("Should not let grant KEY_DEVELOPER_ROLE if account is already a sub developer", async () => {
+        const { governor, WOOF, devTeam2, versionController } = await restore();
+        await expect(
+            versionController
+                .connect(governor)
+                .grantRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.subDevelopers[0])
+        )
+            .revertedWithCustomError(versionController, "ConflictingRoles")
+            .withArgs(devTeam2.subDevelopers[0]);
+
+        await expect(
+            versionController
+                .connect(governor)
+                .assignDeveloperForContractTypes(WOOF.contractTypes, devTeam2.subDevelopers[1])
+        )
+            .revertedWithCustomError(versionController, "ConflictingRoles")
+            .withArgs(devTeam2.subDevelopers[1]);
+    });
+
+    it("Should let grant KEY_DEVELOPER_ROLE to ex-sub developer", async () => {
+        const { governor, devTeam2, versionController } = await restore();
+        await versionController.connect(devTeam2.keyDeveloper).removeSubDeveloper(devTeam2.subDevelopers[0]);
+        await versionController
+            .connect(governor)
+            .grantRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.subDevelopers[0]);
+
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.subDevelopers[0]))
+            .to.be.true;
+        expect(await versionController.hasRole(await versionController.SUB_DEVELOPER_ROLE(), devTeam2.subDevelopers[0]))
+            .to.be.false;
+    });
+
+    it("Should not let grant SUB_DEVELOPER_ROLE if account is already a key developer", async () => {
+        const { users, devTeam2, versionController } = await restore();
+        // Add New Key dev
+        const newKeyDev = users[0];
+        await versionController.grantRole(await versionController.KEY_DEVELOPER_ROLE(), newKeyDev);
+        // Check
+        await expect(versionController.connect(newKeyDev).addSubDeveloper(devTeam2.keyDeveloper))
+            .revertedWithCustomError(versionController, "ConflictingRoles")
+            .withArgs(devTeam2.keyDeveloper);
+    });
+
+    it("Should let grant SUB_DEVELOPER_ROLE to ex-key developer", async () => {
+        const { users, devTeam2, versionController } = await restore();
+        // Add New Key dev
+        const newKeyDev = users[0];
+        await versionController.grantRole(await versionController.KEY_DEVELOPER_ROLE(), newKeyDev);
+        await versionController.revokeRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.keyDeveloper);
+        // Check
+        await versionController.connect(newKeyDev).addSubDeveloper(devTeam2.keyDeveloper);
+
+        expect(await versionController.hasRole(await versionController.KEY_DEVELOPER_ROLE(), devTeam2.keyDeveloper)).to
+            .be.false;
+        expect(await versionController.hasRole(await versionController.SUB_DEVELOPER_ROLE(), devTeam2.keyDeveloper)).to
             .be.true;
     });
 });

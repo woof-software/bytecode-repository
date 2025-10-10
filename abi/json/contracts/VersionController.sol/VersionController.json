@@ -159,6 +159,17 @@
         "type": "error"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "ConflictingRoles",
+        "type": "error"
+    },
+    {
         "inputs": [],
         "name": "ECDSAInvalidSignature",
         "type": "error"

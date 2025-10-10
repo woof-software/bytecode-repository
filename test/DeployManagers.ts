@@ -12,6 +12,7 @@ const mockRouterFee = ethers.parseEther("0.1");
 const sepoliaSelector = "16015286601757825753";
 const mockChainSelectorId = "1234567890";
 const mockOtherChainId = 123456;
+const gasLimit = 5_000_000;
 
 describe("L1/L2 DeployManager", function () {
     const fixture = async () => {
@@ -59,8 +60,7 @@ describe("L1/L2 DeployManager", function () {
         ).deploy(sepoliaSelector, l1DeployManager, mockRouter, localTimelockL2);
         await l1DeployManager.connect(governor).setChainConfig(mockOtherChainId, {
             l2DeployManager: l2DeployManager,
-            destinationChainSelector: mockChainSelectorId,
-            gasLimit: 5_000_000
+            destinationChainSelector: mockChainSelectorId
         });
 
         // Release bytecode
@@ -185,7 +185,7 @@ describe("L1/L2 DeployManager", function () {
 
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         const expectedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
         expect(await l2DeployManager.getVerifiedBytecode(bytecodeVersion_1_0_0)).to.equal(expectedBytecode);
@@ -197,12 +197,12 @@ describe("L1/L2 DeployManager", function () {
         const { WOOF, l1DeployManager, bytecodeVersion_1_0_0, bytecodeHash_1_0_0 } = await restore();
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
         // Try to send one more time
         await expect(
             l1DeployManager
                 .connect(WOOF.subDevelopers[0])
-                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee })
+                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee })
         )
             .revertedWithCustomError(l1DeployManager, "BytecodeAlreadySent")
             .withArgs(mockOtherChainId, bytecodeHash_1_0_0);
@@ -214,7 +214,9 @@ describe("L1/L2 DeployManager", function () {
         await expect(
             l1DeployManager
                 .connect(WOOF.subDevelopers[0])
-                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: insufficientValue })
+                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, {
+                    value: insufficientValue
+                })
         )
             .revertedWithCustomError(l1DeployManager, "InsufficientBalance")
             .withArgs(insufficientValue, mockRouterFee);
@@ -236,7 +238,7 @@ describe("L1/L2 DeployManager", function () {
         await expect(
             l1DeployManager
                 .connect(users[1])
-                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee })
+                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee })
         ).revertedWithCustomError(l1DeployManager, "OnlyDeveloperOrGovernor");
     });
 
@@ -269,7 +271,7 @@ describe("L1/L2 DeployManager", function () {
         await expect(
             l1DeployManager
                 .connect(WOOF.keyDeveloper)
-                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, unsupportedChainId)
+                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, unsupportedChainId, gasLimit)
         )
             .revertedWithCustomError(l1DeployManager, "UnsupportedChain")
             .withArgs(unsupportedChainId);
@@ -280,7 +282,7 @@ describe("L1/L2 DeployManager", function () {
         await users[0].sendTransaction({ to: l1DeployManager, value: ethers.parseEther("1") });
         const tx = await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId);
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit);
         expect(await l1DeployManager.isVersionSentToChain(mockOtherChainId, bytecodeHash_1_0_0)).to.be.true;
         await expect(tx).changeEtherBalance(l1DeployManager, -mockRouterFee);
     });
@@ -309,7 +311,6 @@ describe("L1/L2 DeployManager", function () {
             l1DeployManager,
             l2DeployManager,
             bytecodeVersion_1_0_0,
-            users,
             mockBaseToken,
             mockCollateralToken,
             constantPriceFeedAddr,
@@ -319,12 +320,12 @@ describe("L1/L2 DeployManager", function () {
         // First send bytecode to L2
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         // Become Developer on L2
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         // Prepare Comet constructor parameters
         const cometConfiguration = {
@@ -440,7 +441,7 @@ describe("L1/L2 DeployManager", function () {
 
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         await expect(
             l2DeployManager.connect(WOOF.keyDeveloper).deploy(bytecodeVersion_1_0_0, salt, constructorParams)
@@ -462,7 +463,7 @@ describe("L1/L2 DeployManager", function () {
         // First send bytecode to L2
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         // Prepare Comet constructor parameters
         const cometConfiguration = {
@@ -510,7 +511,7 @@ describe("L1/L2 DeployManager", function () {
 
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee });
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         // Compute address before deployment
         const computedAddress = await l2DeployManager.computeAddress(
@@ -572,7 +573,7 @@ describe("L1/L2 DeployManager", function () {
         // First send bytecode to L2
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, { value: mockRouterFee });
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         // Prepare Comet constructor parameters
         const cometConfiguration = {
@@ -643,7 +644,7 @@ describe("L1/L2 DeployManager", function () {
         await expect(
             l1DeployManager
                 .connect(WOOF.keyDeveloper)
-                .becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee })
+                .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee })
         )
             .to.emit(l1DeployManager, "DeveloperAccessRequested")
             .withArgs(mockOtherChainId, WOOF.keyDeveloper);
@@ -656,7 +657,78 @@ describe("L1/L2 DeployManager", function () {
     it("Only developer can become developer", async () => {
         const { users, l1DeployManager } = await restore();
         await expect(
-            l1DeployManager.connect(users[0]).becomeDeveloperOnOtherChain(mockOtherChainId, { value: mockRouterFee })
+            l1DeployManager
+                .connect(users[0])
+                .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee })
         ).revertedWithCustomError(l1DeployManager, "OnlyDeveloper");
+    });
+
+    it("Should revoke developer on other chain", async () => {
+        const { WOOF, versionController, l1DeployManager, l2DeployManager, guardian, governor } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
+        // Revoke on Version Controller
+        await versionController
+            .connect(governor)
+            .revokeRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper);
+        // Request revocation on other chain
+        await l1DeployManager
+            .connect(guardian)
+            .revokeDeveloperOnOtherChain(mockOtherChainId, gasLimit, WOOF.keyDeveloper, { value: mockRouterFee });
+        // Check role on other chain
+        expect(await l2DeployManager.isDeveloper(WOOF.keyDeveloper)).to.be.false;
+    });
+
+    it("Only guardian can revoke", async () => {
+        const { WOOF, versionController, l1DeployManager, governor, users } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
+        // Revoke on Version Controller
+        await versionController
+            .connect(governor)
+            .revokeRole(await versionController.KEY_DEVELOPER_ROLE(), WOOF.keyDeveloper);
+        // Try to revoke from non-guardian address
+        await expect(
+            l1DeployManager
+                .connect(governor)
+                .revokeDeveloperOnOtherChain(mockOtherChainId, gasLimit, WOOF.keyDeveloper, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "OnlyGuardian");
+        await expect(
+            l1DeployManager
+                .connect(users[0])
+                .revokeDeveloperOnOtherChain(mockOtherChainId, gasLimit, WOOF.keyDeveloper, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "OnlyGuardian");
+    });
+
+    it("Can't revoke developer if zero address is passed", async () => {
+        const { WOOF, l1DeployManager, guardian } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
+        // Try to revoke zero address
+        await expect(
+            l1DeployManager
+                .connect(guardian)
+                .revokeDeveloperOnOtherChain(mockOtherChainId, gasLimit, ethers.ZeroAddress, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "ZeroAddress");
+    });
+
+    it("Can't revoke developer if he still has developer role on VersionController", async () => {
+        const { WOOF, l1DeployManager, guardian } = await restore();
+        // Request access first
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .becomeDeveloperOnOtherChain(mockOtherChainId, gasLimit, { value: mockRouterFee });
+        // Try to revoke
+        await expect(
+            l1DeployManager
+                .connect(guardian)
+                .revokeDeveloperOnOtherChain(mockOtherChainId, gasLimit, WOOF.keyDeveloper, { value: mockRouterFee })
+        ).revertedWithCustomError(l1DeployManager, "CantRevokeDeveloper");
     });
 });

@@ -136,7 +136,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     /// @notice Helper function for receiving messages from L1DeployManager.
     /// @dev The sender of the message from Ethereum must be L1DeployManager.
     /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE.
-    /// and address of developer for BECOME_DEVELOPER.
+    /// and address of developer for BECOME_DEVELOPER or REVOKE_DEVELOPER.
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         if (
             abi.decode(any2EvmMessage.sender, (address)) != l1DeployManager ||
@@ -151,11 +151,16 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
             storedBytecodePtrs[bytecodeHash] = BytecodeStore._writeInitCode(initCode);
 
             emit BytecodeReceived(any2EvmMessage.messageId, bytecodeHash);
-        } else {
+        } else if (mt == MessageType.BECOME_DEVELOPER) {
             (, address developer) = abi.decode(any2EvmMessage.data, (MessageType, address));
             developerUntil[developer] = block.timestamp + DEVELOPER_ACCESS_DURATION;
 
             emit DeveloperAccessGranted(developer);
+        } else {
+            (, address account) = abi.decode(any2EvmMessage.data, (MessageType, address));
+            delete developerUntil[account];
+
+            emit DeveloperRevoked(account);
         }
     }
 }

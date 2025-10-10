@@ -20,6 +20,12 @@ event ContractDeployed(struct Types.BytecodeVersion _bytecodeVersion, bytes _con
 event DeveloperAccessGranted(address _developer)
 ```
 
+### DeveloperRevoked
+
+```solidity
+event DeveloperRevoked(address _account)
+```
+
 ### InvalidSender
 
 ```solidity
@@ -57,7 +63,8 @@ A type of message to receive from Ethereum.
 ```solidity
 enum MessageType {
   SEND_BYTECODE,
-  BECOME_DEVELOPER
+  BECOME_DEVELOPER,
+  REVOKE_DEVELOPER
 }
 ```
 

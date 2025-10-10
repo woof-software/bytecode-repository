@@ -38,12 +38,8 @@ import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Admin role for AccessControl.
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
-    /// @notice Key Developer role for AccessControl.
-    bytes32 public constant KEY_DEVELOPER_ROLE = keccak256("KEY_DEVELOPER_ROLE");
-    /// @notice Sub Developer role for AccessControl.
-    bytes32 public constant SUB_DEVELOPER_ROLE = keccak256("SUB_DEVELOPER_ROLE");
-    /// @notice Auditor role for AccessControl.
-    bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
+    /// @notice Guardian role for AccessControl.
+    bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
     /// @notice Address of the VersionControlles SC.
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IVersionController public immutable versionController;
@@ -77,6 +73,13 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         _;
     }
 
+    /// @notice Validates that the caller is the Guardian.
+    /// @dev The role is checked through the VersionController.
+    modifier onlyGuardian() {
+        if (!_isGuardian(msg.sender)) revert OnlyGuardian();
+        _;
+    }
+
     /// @notice Validates that the caller is developer or governor.
     /// @dev The role is checked through the VersionController.
     modifier onlyDeveloperOrGovernor() {
@@ -106,6 +109,24 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         Address.sendValue(payable(msg.sender), address(this).balance);
     }
 
+    /// @notice Revokes developer role on other chain.
+    /// @dev Can only be called by Guardian.
+    /// @dev Account to revoke must first be revoked on VersionController.
+    /// @param _chainId ID of the network on which to revoke developer.
+    /// @param _gasLimit Gas limit for call on other chain.
+    /// @param _account Address of developer to revoke on other chain.
+    function revokeDeveloperOnOtherChain(
+        uint256 _chainId,
+        uint256 _gasLimit,
+        address _account
+    ) external payable onlyGuardian supportedChain(_chainId) {
+        if (_account == address(0)) revert ZeroAddress();
+        if (_isDeveloper(_account)) revert CantRevokeDeveloper(_account);
+        _ccipSend(_chainId, _gasLimit, abi.encode(MessageType.REVOKE_DEVELOPER, _account));
+
+        emit DeveloperRevocationRequested(_chainId, msg.sender);
+    }
+
     /* Developer functions */
 
     /// @notice Allows any developer to initiate sending of specific bytecode version to another network.
@@ -115,9 +136,11 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// unless the ETH is already donated through the receive() function.
     /// @param _bytecodeVersion A specific version of contract type.
     /// @param _chainId ID of the network to which to send bytecode. Chain ID must be registered by the Governor.
+    /// @param _gasLimit Gas limit for call on other chain.
     function sendBytecodeToOtherChain(
         Types.BytecodeVersion calldata _bytecodeVersion,
-        uint256 _chainId
+        uint256 _chainId,
+        uint256 _gasLimit
     ) external payable onlyDeveloperOrGovernor supportedChain(_chainId) {
         bytes32 bytecodeHash = versionController.computeBytecodeHash(
             _bytecodeVersion.contractType,
@@ -126,6 +149,7 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         if (isVersionSentToChain[_chainId][bytecodeHash]) revert BytecodeAlreadySent(_chainId, bytecodeHash);
         _ccipSend(
             _chainId,
+            _gasLimit,
             abi.encode(MessageType.SEND_BYTECODE, bytecodeHash, versionController.getVerifiedBytecode(_bytecodeVersion))
         );
         isVersionSentToChain[_chainId][bytecodeHash] = true;
@@ -136,9 +160,13 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Allows developer to obtain Developer role on other chain for a 3-month period.
     /// @dev Caller must be a developer in VersionController.
     /// @param _chainId ID of other chain.
-    function becomeDeveloperOnOtherChain(uint256 _chainId) external payable supportedChain(_chainId) {
+    /// @param _gasLimit Gas limit for call on other chain.
+    function becomeDeveloperOnOtherChain(
+        uint256 _chainId,
+        uint256 _gasLimit
+    ) external payable supportedChain(_chainId) {
         if (!_isDeveloper(msg.sender)) revert OnlyDeveloper();
-        _ccipSend(_chainId, abi.encode(MessageType.BECOME_DEVELOPER, msg.sender));
+        _ccipSend(_chainId, _gasLimit, abi.encode(MessageType.BECOME_DEVELOPER, msg.sender));
 
         emit DeveloperAccessRequested(_chainId, msg.sender);
     }
@@ -190,15 +218,16 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
 
     /// @notice Initiates a cross-chain message through the Chainlink CCIP.
     /// @param _chainId ID of the supported network.
+    /// @param _gasLimit Gas limit for call on other chain.
     /// @param _message Message to send to other chain.
-    function _ccipSend(uint256 _chainId, bytes memory _message) private {
+    function _ccipSend(uint256 _chainId, uint256 _gasLimit, bytes memory _message) private {
         ChainConfig storage config = chainConfigs[_chainId];
         Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
             receiver: abi.encode(config.l2DeployManager),
             data: _message,
             tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: Client._argsToBytes(
-                Client.GenericExtraArgsV2({ gasLimit: config.gasLimit, allowOutOfOrderExecution: true })
+                Client.GenericExtraArgsV2({ gasLimit: _gasLimit, allowOutOfOrderExecution: true })
             ),
             feeToken: address(0)
         });
@@ -209,6 +238,10 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
 
     function _isGovernor(address _governor) private view returns (bool) {
         return versionController.hasRole(DEFAULT_ADMIN_ROLE, _governor);
+    }
+
+    function _isGuardian(address _guardian) private view returns (bool) {
+        return versionController.hasRole(GUARDIAN_ROLE, _guardian);
     }
 
     function _isDeveloper(address _developer) private view returns (bool) {

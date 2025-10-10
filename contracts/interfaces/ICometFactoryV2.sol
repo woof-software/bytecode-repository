@@ -9,4 +9,6 @@ interface ICometFactoryV2 {
     error OnlyTimelock();
     error OnlyIterativeUpdate();
     error NonExistingVersion();
+    error SameVersion();
+    error InvalidMinorVersion();
 }
