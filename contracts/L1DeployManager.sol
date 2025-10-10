@@ -38,6 +38,8 @@ import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
 contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Admin role for AccessControl.
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
+    /// @notice Guardian role for AccessControl.
+    bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
     /// @notice Address of the VersionControlles SC.
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IVersionController public immutable versionController;
@@ -71,6 +73,13 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         _;
     }
 
+    /// @notice Validates that the caller is the Guardian.
+    /// @dev The role is checked through the VersionController.
+    modifier onlyGuardian() {
+        if (!_isGuardian(msg.sender)) revert OnlyGuardian();
+        _;
+    }
+
     /// @notice Validates that the caller is developer or governor.
     /// @dev The role is checked through the VersionController.
     modifier onlyDeveloperOrGovernor() {
@@ -98,6 +107,22 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
     /// @notice Allows the Governor to withdraw all the ETH stored on the smart contract's balance.
     function withdrawETH() external onlyGovernor {
         Address.sendValue(payable(msg.sender), address(this).balance);
+    }
+
+    /// @notice Revokes developer role on other chain.
+    /// @dev Can only be called by Guardian.
+    /// @dev Account to revoke must first be revoked on VersionController.
+    /// @param _chainId ID of the network on which to revoke developer.
+    /// @param _account Address of developer to revoke on other chain.
+    function revokeDeveloperOnOtherChain(
+        uint256 _chainId,
+        address _account
+    ) external payable onlyGuardian supportedChain(_chainId) {
+        if (_account == address(0)) revert ZeroAddress();
+        if (_isDeveloper(_account)) revert CantRevokeDeveloper(_account);
+        _ccipSend(_chainId, abi.encode(MessageType.REVOKE_DEVELOPER, _account));
+
+        emit DeveloperRevocationRequested(_chainId, msg.sender);
     }
 
     /* Developer functions */
@@ -203,6 +228,10 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
 
     function _isGovernor(address _governor) private view returns (bool) {
         return versionController.hasRole(DEFAULT_ADMIN_ROLE, _governor);
+    }
+
+    function _isGuardian(address _guardian) private view returns (bool) {
+        return versionController.hasRole(GUARDIAN_ROLE, _guardian);
     }
 
     function _isDeveloper(address _developer) private view returns (bool) {

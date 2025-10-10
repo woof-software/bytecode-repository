@@ -12,6 +12,7 @@ interface IL2DeployManager {
         address _deployer
     );
     event DeveloperAccessGranted(address _developer);
+    event DeveloperRevoked(address _account);
 
     error InvalidSender();
     error OnlyTimelock();
@@ -22,6 +23,7 @@ interface IL2DeployManager {
     /// @notice A type of message to receive from Ethereum.
     enum MessageType {
         SEND_BYTECODE,
-        BECOME_DEVELOPER
+        BECOME_DEVELOPER,
+        REVOKE_DEVELOPER
     }
 }

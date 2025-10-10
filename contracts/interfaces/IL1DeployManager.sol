@@ -7,6 +7,7 @@ interface IL1DeployManager {
     event ChainConfigSet(uint256 _chainId, ChainConfig _config);
     event BytecodeSent(uint256 _chainId, Types.BytecodeVersion _bytecodeVersion);
     event DeveloperAccessRequested(uint256 _chainId, address _developer);
+    event DeveloperRevocationRequested(uint256 _chainId, address _account);
     event ContractDeployed(
         Types.BytecodeVersion _bytecodeVersion,
         bytes _constructorParams,
@@ -16,15 +17,18 @@ interface IL1DeployManager {
 
     error UnsupportedChain(uint256 _chainId);
     error OnlyGovernor();
+    error OnlyGuardian();
     error OnlyDeveloper();
     error OnlyDeveloperOrGovernor();
     error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
     error ZeroAddress();
+    error CantRevokeDeveloper(address _account);
 
     /// @notice A type of message to send to other chain.
     enum MessageType {
         SEND_BYTECODE,
-        BECOME_DEVELOPER
+        BECOME_DEVELOPER,
+        REVOKE_DEVELOPER
     }
 
     /**
