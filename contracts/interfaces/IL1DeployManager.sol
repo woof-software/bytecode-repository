@@ -41,6 +41,5 @@ interface IL1DeployManager {
     struct ChainConfig {
         address l2DeployManager;
         uint64 destinationChainSelector;
-        uint256 gasLimit;
     }
 }
