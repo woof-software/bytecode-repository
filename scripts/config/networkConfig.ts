@@ -34,7 +34,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         destinationChainSelector: "4949039107694359620", // Arbitrum One CCIP selector
         timelock: "0x3fB4d38ea7EC20D91917c09591490Eeda38Cf88A", // Arbitrum Timelock
         cometProxyAdmin: "0xD10b40fF1D92e2267D099Da3509253D9Da4D715e",
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        assetListFactory: "0x17867848406f185CEc6ba91142b15086F7399D85",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -46,7 +46,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         destinationChainSelector: "3734403246176062136", // OP Mainnet CCIP selector
         timelock: "0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07", // Optimism Timelock
         cometProxyAdmin: "0x24D86Da09C4Dd64e50dB7501b0f695d030f397aF",
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        assetListFactory: "0x2f7439252Da796Ab9A93f7E478E70DED43Db5B89",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -70,7 +70,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         destinationChainSelector: "15971525489660198786", // Base CCIP selector
         timelock: "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02", // Base Timelock
         cometProxyAdmin: "0xbdE8F31D2DdDA895264e27DD990faB3DC87b372d",
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        assetListFactory: "0x995E394b8B2437aC8Ce61Ee0bC610D617962B214",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -80,9 +80,9 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         ccipRouter: "0x549FEB73F2348F6cD99b9fc8c69252034897f06C",
         sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
         destinationChainSelector: "4627098889531055414", // Linea CCIP selector
-        timelock: "0x1234567890123456789012345678901234567890", // Placeholder Linea Timelock
-        cometProxyAdmin: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        timelock: "0x4A900f81dEdA753bbBab12453b3775D5f26df6F3",
+        cometProxyAdmin: "0x4b5DeE60531a72C1264319Ec6A22678a4D0C8118",
+        assetListFactory: "0x2F4eAF29dfeeF4654bD091F7112926E108eF4Ed0",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -92,9 +92,9 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         ccipRouter: "0x46527571D5D1B68eE7Eb60B18A32e6C60DcEAf99",
         sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
         destinationChainSelector: "6916147374840168594", // Ronin CCIP selector
-        timelock: "0x1234567890123456789012345678901234567890", // Placeholder Ronin Timelock
-        cometProxyAdmin: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        timelock: "0xBbb0Ebd903fafbb8fFF58B922fD0CD85E251ac2c",
+        cometProxyAdmin: "0xfa64A82a3d13D4c05d5133E53b2EbB8A0FA9c3F6",
+        assetListFactory: "0x84fc63de5d127e9c074c1da6591ee8fa70a60de1",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -104,9 +104,9 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         ccipRouter: "0x68891f5F96695ECd7dEdBE2289D1b73426ae7864",
         sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
         destinationChainSelector: "1923510103922296319", // TUnichain CCIP selector
-        timelock: "0x1234567890123456789012345678901234567890", // Placeholder Unichain Timelock
-        cometProxyAdmin: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        timelock: "0x2F4eAF29dfeeF4654bD091F7112926E108eF4Ed0",
+        cometProxyAdmin: "0xaeB318360f27748Acb200CE616E389A6C9409a07",
+        assetListFactory: "0x4cfCE7795bF75dC3795369A953d9A9b8C2679AE4",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -130,7 +130,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         destinationChainSelector: "13204309965629103672", // Scroll CCIP selector
         timelock: "0xF6013e80E9e6AC211Cc031ad1CE98B3Aa20b73E4",
         cometProxyAdmin: "0x87A27b91f4130a25E9634d23A5B8E05e342bac50",
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        assetListFactory: "0x5404872d8f2e24b230EC9B9eC64E3855F637FB93",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     }
 };
