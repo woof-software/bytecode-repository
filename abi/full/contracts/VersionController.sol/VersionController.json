@@ -83,7 +83,7 @@
     "function getVerifiedBytecode(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _version) view returns (bytes)",
     "function grantRole(bytes32 role, address account)",
     "function hasRole(bytes32 role, address account) view returns (bool)",
-    "function initialize(address _governor, address _guardian)",
+    "function initialize(address _initialAdmin, address _guardian)",
     "function isBytecodeUploaded(bytes32) view returns (bool)",
     "function isBytecodeVerified(tuple(bytes32 contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) version) _version) view returns (bool)",
     "function isDeveloper(address _account) view returns (bool)",
