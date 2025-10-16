@@ -4,6 +4,8 @@
  * This file contains all network-specific addresses needed for L2 contract deployments.
  * Each network configuration includes:
  * - CCIP Router address for cross-chain messaging
+ * - Source Chain Selector: Ethereum Mainnet CCIP selector (5009297550715157269) - used in L2DeployManager
+ * - Destination Chain Selector: This L2's CCIP selector - used in L1DeployManager setChainConfig
  * - Timelock address for governance (CometFactoryV2)
  * - CometProxyAdmin address for proxy management (MarketFactory)
  * - AssetListFactory address for asset list functionality (MarketFactory)
@@ -14,7 +16,8 @@ export interface NetworkConfig {
     name: string;
     chainId: number;
     ccipRouter: string;
-    sourceChainSelector: string; // CCIP chain selector for this L2 chain
+    sourceChainSelector: string; // Ethereum Mainnet CCIP selector (5009297550715157269) - used in L2DeployManager
+    destinationChainSelector: string; // This L2's CCIP selector - used in L1DeployManager setChainConfig
     timelock: string;
     cometProxyAdmin: string;
     assetListFactory: string;
@@ -22,50 +25,51 @@ export interface NetworkConfig {
 }
 
 export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
-    // Ethereum L2s - Mainnet
+    // Ethereum L2s - Production Mainnet
     arbitrum: {
         name: "arbitrum",
         chainId: 42161,
-        ccipRouter: "0x141fa059441e0ca23ce184b6a78ba4b7c0a30fb0",
-        sourceChainSelector: "4949039107694359620", // Arbitrum One CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Arbitrum Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x141fa059441E0ca23ce184B6A78bafD2A517DdE8",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "4949039107694359620", // Arbitrum One CCIP selector
+        timelock: "0x3fB4d38ea7EC20D91917c09591490Eeda38Cf88A", // Arbitrum Timelock
+        cometProxyAdmin: "0xD10b40fF1D92e2267D099Da3509253D9Da4D715e",
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: false
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
     optimism: {
         name: "optimism",
         chainId: 10,
-        ccipRouter: "0x3c3d92629a02a8d95d5cb9650fe49c3544f69b43",
-        sourceChainSelector: "3734403246176062136", // OP Mainnet CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Optimism Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x3206695CaE29952f4b0c22a169725a865bc8Ce0f",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "3734403246176062136", // OP Mainnet CCIP selector
+        timelock: "0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07", // Optimism Timelock
+        cometProxyAdmin: "0x24D86Da09C4Dd64e50dB7501b0f695d030f397aF",
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: false
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
     polygon: {
         name: "polygon",
         chainId: 137,
-        ccipRouter: "0x849c5ed5a80f5b408dd4caa5fe8c2b852aff67a9",
-        sourceChainSelector: "4051577828743386545", // Polygon CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Polygon Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x849c5ED5a80F5B408Dd4969b78c2C8fdf0565Bfe",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "4051577828743386545", // Polygon CCIP selector
+        timelock: "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02", // Polygon Timelock
+        cometProxyAdmin: "0xd712ACe4ca490D4F3E92992Ecf3DE12251b975F9",
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: false
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
     base: {
         name: "base",
         chainId: 8453,
-        ccipRouter: "0x881e3a65b4d4a04dd529061dd0071cf975f58bcd",
-        sourceChainSelector: "15971525489660198786", // Base CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Base Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x881e3A65B4d4a04dD529061dd0071cf975F58bCD",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "15971525489660198786", // Base CCIP selector
+        timelock: "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02", // Base Timelock
+        cometProxyAdmin: "0xbdE8F31D2DdDA895264e27DD990faB3DC87b372d",
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
@@ -73,10 +77,11 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
     linea: {
         name: "linea",
         chainId: 59144,
-        ccipRouter: "0x549F800f7C8a012C5501C011a85d20baBC51d845", // TODO: Verify actual router address
-        sourceChainSelector: "4627098889531055414", // Linea CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Linea Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x549FEB73F2348F6cD99b9fc8c69252034897f06C",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "4627098889531055414", // Linea CCIP selector
+        timelock: "0x1234567890123456789012345678901234567890", // Placeholder Linea Timelock
+        cometProxyAdmin: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
@@ -84,10 +89,11 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
     ronin: {
         name: "ronin",
         chainId: 2020,
-        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Add actual router address
-        sourceChainSelector: "6916147374840168594", // Ronin CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Ronin Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x46527571D5D1B68eE7Eb60B18A32e6C60DcEAf99",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "6916147374840168594", // Ronin CCIP selector
+        timelock: "0x1234567890123456789012345678901234567890", // Placeholder Ronin Timelock
+        cometProxyAdmin: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
@@ -95,10 +101,11 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
     unichain: {
         name: "unichain",
         chainId: 130,
-        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Add actual router address when available
-        sourceChainSelector: "0", // TODO: Add actual CCIP chain selector when available
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Unichain Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x68891f5F96695ECd7dEdBE2289D1b73426ae7864",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "1923510103922296319", // TUnichain CCIP selector
+        timelock: "0x1234567890123456789012345678901234567890", // Placeholder Unichain Timelock
+        cometProxyAdmin: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
@@ -106,10 +113,11 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
     mantle: {
         name: "mantle",
         chainId: 5000,
-        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Verify actual router address
-        sourceChainSelector: "1556008542357238666", // Mantle CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Mantle Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x670052635a9850bb45882Cb2eCcF66bCff0F41B7",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "1556008542357238666", // Mantle CCIP selector
+        timelock: "0x16C7B5C1b10489F4B111af11de2Bd607c9728107", // Mantle Timelock
+        cometProxyAdmin: "0xe268B436E75648aa0639e2088fa803feA517a0c7",
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
@@ -117,10 +125,11 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
     scroll: {
         name: "scroll",
         chainId: 534352,
-        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Verify actual router address
-        sourceChainSelector: "13204309965629103672", // Scroll CCIP chain selector
-        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Scroll Timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        ccipRouter: "0x9a55E8Cab6564eb7bbd7124238932963B8Af71DC",
+        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
+        destinationChainSelector: "13204309965629103672", // Scroll CCIP selector
+        timelock: "0xF6013e80E9e6AC211Cc031ad1CE98B3Aa20b73E4",
+        cometProxyAdmin: "0x87A27b91f4130a25E9634d23A5B8E05e342bac50",
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     }

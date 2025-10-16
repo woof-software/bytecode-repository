@@ -26,7 +26,7 @@ import { DeploymentManager, waitForConfirmations, logDeploymentStep } from "./ut
 
 // Configuration
 const GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Address of timelock on Ethereum
-const GUARDIAN_ADDRESS = "0x7d903f6003cca6255D85CcA4D3B5E5146dC33926"; // Guardian address for resetCooldown functionality
+const GUARDIAN_ADDRESS = "0xbbf3f1421D886E9b2c5D716B5192aC998af2012c"; // Guardian address for resetCooldown functionality
 const CCIP_ROUTER_ADDRESS = "0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D";
 
 const COMET_PROXY_ADMIN = "0x1EC63B5883C3481134FD50D5DAebc83Ecd2E8779";

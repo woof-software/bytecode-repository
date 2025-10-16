@@ -133,7 +133,7 @@ function getL2DeploymentInfo(networkName: string): L2DeploymentInfo | null {
             chainId: networkConfig.chainId,
             networkName: networkConfig.name,
             l2DeployManagerAddress: deployment.address,
-            destinationChainSelector: networkConfig.sourceChainSelector // CCIP selector for L2 chain
+            destinationChainSelector: networkConfig.destinationChainSelector // CCIP selector for L2 chain
         };
     } catch (error) {
         console.error(`Error reading deployment for ${networkName}:`, error);
