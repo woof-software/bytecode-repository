@@ -95,7 +95,14 @@ const CONTRACT_TYPES = [
 
     // Utilities
     "CometMultiplier",
-    "CometCollateralSwap"
+    "CometCollateralSwap",
+
+    // CAPO
+    "ChainlinkCorrelatedAssetsPriceOracle",
+    "ERC4626CorrelatedAssetsPriceOracle",
+    "RateBasedCorrelatedAssetsPriceOracle",
+    "RsETHCorrelatedAssetsPriceOracle",
+    "WstETHCorrelatedAssetsPriceOracle"
 ];
 
 // Auditors to grant roles
