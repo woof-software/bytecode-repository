@@ -14,19 +14,20 @@ export interface NetworkConfig {
     name: string;
     chainId: number;
     ccipRouter: string;
+    sourceChainSelector: string; // CCIP chain selector for this L2 chain
     timelock: string;
     cometProxyAdmin: string;
     assetListFactory: string;
     l1DeployManager: string;
-    isTestnet?: boolean;
 }
 
 export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
-    // Ethereum L2s
+    // Ethereum L2s - Mainnet
     arbitrum: {
         name: "arbitrum",
         chainId: 42161,
         ccipRouter: "0x141fa059441e0ca23ce184b6a78ba4b7c0a30fb0",
+        sourceChainSelector: "4949039107694359620", // Arbitrum One CCIP chain selector
         timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Arbitrum Timelock
         cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
@@ -38,6 +39,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         name: "optimism",
         chainId: 10,
         ccipRouter: "0x3c3d92629a02a8d95d5cb9650fe49c3544f69b43",
+        sourceChainSelector: "3734403246176062136", // OP Mainnet CCIP chain selector
         timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Optimism Timelock
         cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
@@ -49,6 +51,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         name: "polygon",
         chainId: 137,
         ccipRouter: "0x849c5ed5a80f5b408dd4caa5fe8c2b852aff67a9",
+        sourceChainSelector: "4051577828743386545", // Polygon CCIP chain selector
         timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Polygon Timelock
         cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
@@ -60,67 +63,66 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         name: "base",
         chainId: 8453,
         ccipRouter: "0x881e3a65b4d4a04dd529061dd0071cf975f58bcd",
+        sourceChainSelector: "15971525489660198786", // Base CCIP chain selector
         timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Base Timelock
         cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
         assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: false
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    // Testnets
-    arbitrumSepolia: {
-        name: "arbitrumSepolia",
-        chainId: 421614,
-        ccipRouter: "0x2a9c5aff799e3ae15fa8306a4c14c0fe4a67ed99",
-        timelock: "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925", // Test timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Test proxy admin
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Test asset list factory
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: true
+    linea: {
+        name: "linea",
+        chainId: 59144,
+        ccipRouter: "0x549F800f7C8a012C5501C011a85d20baBC51d845", // TODO: Verify actual router address
+        sourceChainSelector: "4627098889531055414", // Linea CCIP chain selector
+        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Linea Timelock
+        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    optimismSepolia: {
-        name: "optimismSepolia",
-        chainId: 11155420,
-        ccipRouter: "0x114a20a10b43d4115e5aeef7345a1a71d2a60c57",
-        timelock: "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925", // Test timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Test proxy admin
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Test asset list factory
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: true
+    ronin: {
+        name: "ronin",
+        chainId: 2020,
+        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Add actual router address
+        sourceChainSelector: "6916147374840168594", // Ronin CCIP chain selector
+        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Ronin Timelock
+        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    polygonAmoy: {
-        name: "polygonAmoy",
-        chainId: 80002,
-        ccipRouter: "0x9c32fcc5de2ce8d30ac582f89b5bd35e8a4b4bc5",
-        timelock: "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925", // Test timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Test proxy admin
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Test asset list factory
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: true
+    unichain: {
+        name: "unichain",
+        chainId: 130,
+        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Add actual router address when available
+        sourceChainSelector: "0", // TODO: Add actual CCIP chain selector when available
+        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Unichain Timelock
+        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    baseSepolia: {
-        name: "baseSepolia",
-        chainId: 84532,
-        ccipRouter: "0xd0daae2231e9cb96b94c8512223533293c3693bf",
-        timelock: "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925", // Test timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Test proxy admin
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Test asset list factory
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: true
+    mantle: {
+        name: "mantle",
+        chainId: 5000,
+        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Verify actual router address
+        sourceChainSelector: "1556008542357238666", // Mantle CCIP chain selector
+        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Mantle Timelock
+        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    avalancheFuji: {
-        name: "avalancheFuji",
-        chainId: 43113,
-        ccipRouter: "0xf694e193200268f9a4868e4aa017a0118c9a8177",
-        timelock: "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925", // Test timelock
-        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Test proxy admin
-        assetListFactory: "0x1234567890123456789012345678901234567890", // Test asset list factory
-        l1DeployManager: "0x1234567890123456789012345678901234567890", // Will be set from L1 deployment
-        isTestnet: true
+    scroll: {
+        name: "scroll",
+        chainId: 534352,
+        ccipRouter: "0x0000000000000000000000000000000000000000", // TODO: Verify actual router address
+        sourceChainSelector: "13204309965629103672", // Scroll CCIP chain selector
+        timelock: "0x4Abae72C27A82C1462fa58Ab9c34fe690e10fe72", // Scroll Timelock
+        cometProxyAdmin: "0x8c41E9f05b8BBcC844cF5E79c8B4A02e73c3D9C7", // Placeholder - replace with actual
+        assetListFactory: "0x1234567890123456789012345678901234567890", // Placeholder - replace with actual
+        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     }
 };
 
@@ -170,22 +172,8 @@ export function setL1DeployManagerAddress(networkName: string, l1DeployManagerAd
 }
 
 /**
- * Get all available networks
+ * Get all available production networks
  */
 export function getAvailableNetworks(): string[] {
     return Object.keys(NETWORK_CONFIGS);
-}
-
-/**
- * Get testnet networks only
- */
-export function getTestnetNetworks(): string[] {
-    return Object.keys(NETWORK_CONFIGS).filter((name) => NETWORK_CONFIGS[name].isTestnet);
-}
-
-/**
- * Get mainnet networks only
- */
-export function getMainnetNetworks(): string[] {
-    return Object.keys(NETWORK_CONFIGS).filter((name) => !NETWORK_CONFIGS[name].isTestnet);
 }

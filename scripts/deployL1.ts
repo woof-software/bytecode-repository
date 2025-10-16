@@ -3,28 +3,34 @@ import { ethers, upgrades } from "hardhat";
 import { DeploymentManager, waitForConfirmations, logDeploymentStep } from "./utils/deployment";
 
 /**
- * L1 Deployment Script for BytecodeRepository System
+ * L1 Deployment Script for BytecodeRepository System (PRODUCTION ONLY)
  *
- * This script deploys the core L1 smart contracts:
+ * This script deploys the core L1 smart contracts on Ethereum Mainnet:
  * - VersionController (upgradeable UUPS proxy)
  * - L1DeployManager (upgradeable UUPS proxy)
  * - MarketFactory (non-upgradeable)
  * - CometFactoryV2 (non-upgradeable)
  *
- * Configuration:
- * - Governor: 0x6d903f6003cca6255D85CcA4D3B5E5146dC33925
- * - Guardian: 0x7d903f6003cca6255D85CcA4D3B5E5146dC33926
- * - CCIP Router: 0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D
+ * Production Configuration:
+ * - Governor: 0x6d903f6003cca6255D85CcA4D3B5E5146dC33925 (Ethereum Mainnet Timelock)
+ * - Guardian: 0x7d903f6003cca6255D85CcA4D3B5E5146dC33926 (Guardian for cooldown resets)
+ * - CCIP Router: 0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D (Ethereum Mainnet CCIP Router)
+ *
+ * Usage:
+ * ```bash
+ * npx hardhat run scripts/deployL1.ts --network mainnet
+ * ```
+ *
+ * NOTE: This script is designed for PRODUCTION deployment on Ethereum Mainnet only.
  */
 
 // Configuration
-const GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925";
+const GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Address of timelock on Ethereum
 const GUARDIAN_ADDRESS = "0x7d903f6003cca6255D85CcA4D3B5E5146dC33926"; // Guardian address for resetCooldown functionality
 const CCIP_ROUTER_ADDRESS = "0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D";
 
 const COMET_PROXY_ADMIN = "0x1EC63B5883C3481134FD50D5DAebc83Ecd2E8779";
 const ASSET_LIST_FACTORY = "0x1234567890123456789012345678901234567891"; // TODO: change to actual address
-const TIMELOCK = "0x1234567890123456789012345678901234567891"; // TODO: change to actual address
 
 // Initial version for CometFactoryV2
 const INITIAL_VERSION = {
@@ -43,12 +49,14 @@ async function main() {
     const deploymentManager = await DeploymentManager.create();
 
     const [deployer] = await ethers.getSigners();
+    const initialAdmin = deployer.address;
     const network = await ethers.provider.getNetwork();
 
     console.log("Deploying with account:", deployer.address);
     console.log("Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH");
     console.log("Network:", network.name, "| Chain ID:", network.chainId.toString());
     console.log("Configuration:");
+    console.log("Initial Admin: ", initialAdmin);
     console.log("Governor:", GOVERNOR_ADDRESS);
     console.log("Guardian:", GUARDIAN_ADDRESS);
     console.log("CCIP Router:", CCIP_ROUTER_ADDRESS);
@@ -64,7 +72,7 @@ async function main() {
         console.log("Deploying proxy and implementation...");
         const versionController = await upgrades.deployProxy(
             VersionController,
-            [GOVERNOR_ADDRESS, GUARDIAN_ADDRESS], // initializer arguments
+            [initialAdmin, GUARDIAN_ADDRESS], // initializer arguments
             {
                 initializer: "initialize",
                 kind: "uups"
@@ -86,14 +94,13 @@ async function main() {
             "VersionController",
             versionController,
             deploymentTx,
-            [GOVERNOR_ADDRESS, GUARDIAN_ADDRESS],
+            [initialAdmin, GUARDIAN_ADDRESS],
             true // isUpgradeable
         );
 
         const versionControllerImplAddress = await upgrades.erc1967.getImplementationAddress(versionControllerAddress);
         console.log("VersionController Proxy:", versionControllerAddress);
         console.log("VersionController Implementation:", versionControllerImplAddress);
-        console.log("");
 
         // 2. Deploy L1DeployManager (upgradeable)
         logDeploymentStep(2, 4, "Deploying L1DeployManager (upgradeable)...");
@@ -142,7 +149,7 @@ async function main() {
             l1DeployManagerAddress, // bytecodeProvider
             COMET_PROXY_ADMIN, // cometProxyAdmin
             ASSET_LIST_FACTORY, // assetListFactory
-            TIMELOCK // Timelock
+            GOVERNOR_ADDRESS // timelock (using governor as timelock)
         ];
 
         console.log("Deploying contract...");

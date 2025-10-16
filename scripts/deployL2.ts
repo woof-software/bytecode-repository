@@ -1,7 +1,8 @@
 /**
- * BytecodeRepository L2 Deployment Script
+ * BytecodeRepository L2 Deployment Script (PRODUCTION ONLY)
  *
- * Deploys the complete L2 BytecodeRepository system with network-specific configurations.
+ * Deploys the complete L2 BytecodeRepository system with network-specific configurations
+ * on production L2 networks.
  *
  * Architecture:
  * 1. L2DeployManager - CCIP receiver and bytecode storage on L2
@@ -13,17 +14,22 @@
  * - Supports custom address override via CLI arguments
  * - Validates all required addresses before deployment
  *
+ * Supported Production Networks:
+ * - Arbitrum One, Optimism, Polygon, Base
+ * - Linea, Ronin, Unichain, Mantle, Scroll
+ *
  * Usage:
  * ```bash
  * # Deploy with network-specific config
  * npx hardhat run scripts/deployL2.ts --network arbitrum
+ * npx hardhat run scripts/deployL2.ts --network optimism
+ * npx hardhat run scripts/deployL2.ts --network polygon
  *
  * # Deploy with custom addresses
  * npx hardhat run scripts/deployL2.ts --network arbitrum -- --timelock 0x123... --ccip-router 0x456...
- *
- * # Deploy to testnet
- * npx hardhat run scripts/deployL2.ts --network arbitrumSepolia
  * ```
+ *
+ * NOTE: This script is designed for PRODUCTION deployment on L2 mainnets only.
  */
 
 import hre from "hardhat";
@@ -35,6 +41,7 @@ import { getNetworkConfig, validateNetworkConfig, NetworkConfig } from "./config
 interface L2DeploymentConfig {
     // Network-specific addresses (from networkConfig.ts)
     ccipRouter: string;
+    sourceChainSelector: string; // CCIP chain selector for L1 source chain
     timelock: string;
     cometProxyAdmin: string;
     assetListFactory: string;
@@ -123,6 +130,7 @@ async function loadDeploymentConfig(): Promise<L2DeploymentConfig> {
     // Create deployment config
     const config: L2DeploymentConfig = {
         ccipRouter: networkConfig.ccipRouter,
+        sourceChainSelector: networkConfig.sourceChainSelector,
         timelock: networkConfig.timelock,
         cometProxyAdmin: networkConfig.cometProxyAdmin,
         assetListFactory: networkConfig.assetListFactory,
@@ -140,6 +148,7 @@ async function loadDeploymentConfig(): Promise<L2DeploymentConfig> {
 
     console.log("      Deployment Configuration:");
     console.log(`      CCIP Router: ${config.ccipRouter}`);
+    console.log(`      Source Chain Selector: ${config.sourceChainSelector}`);
     console.log(`      Timelock: ${config.timelock}`);
     console.log(`      Comet Proxy Admin: ${config.cometProxyAdmin}`);
     console.log(`      Asset List Factory: ${config.assetListFactory}`);
@@ -165,7 +174,12 @@ async function deployL2DeployManager(
     const L2DeployManager = await ethers.getContractFactory("L2DeployManager");
 
     // Deploy contract (non-upgradeable)
-    const l2DeployManager = await L2DeployManager.deploy(config.l1DeployManager, config.ccipRouter, config.timelock);
+    const l2DeployManager = await L2DeployManager.deploy(
+        config.sourceChainSelector,
+        config.l1DeployManager,
+        config.ccipRouter,
+        config.timelock
+    );
 
     // Wait for deployment
     await l2DeployManager.waitForDeployment();
@@ -179,15 +193,17 @@ async function deployL2DeployManager(
             "L2DeployManager",
             l2DeployManager,
             deploymentTx,
-            [config.l1DeployManager, config.ccipRouter],
+            [config.sourceChainSelector, config.l1DeployManager, config.ccipRouter, config.timelock],
             false // Non-upgradeable
         );
     }
 
     const address = await l2DeployManager.getAddress();
     console.log(`      L2DeployManager deployed: ${address}`);
+    console.log(`      Source Chain Selector: ${config.sourceChainSelector}`);
     console.log(`      L1 Deploy Manager: ${config.l1DeployManager}`);
     console.log(`      CCIP Router: ${config.ccipRouter}`);
+    console.log(`      Local Timelock: ${config.timelock}`);
 
     return address;
 }
@@ -209,7 +225,8 @@ async function deployMarketFactory(
     const marketFactory = await MarketFactory.deploy(
         l2DeployManagerAddress, // IBytecodeProvider
         config.cometProxyAdmin,
-        config.assetListFactory
+        config.assetListFactory,
+        config.timelock
     );
 
     // Wait for deployment
@@ -310,7 +327,7 @@ async function main() {
         console.log(`    Balance: ${ethers.formatEther(balance)} ETH`);
 
         if (balance === 0n) {
-            throw new Error("Deployer account has no ETH balance");
+            throw new Error("Deployer account has no Native Coin balance");
         }
 
         console.log("\\nSTARTING L2 DEPLOYMENTS");
