@@ -321,6 +321,43 @@ versionController.addSubDeveloper(subDeveloperAddress);
 // Same process as key developer, but limited to their key dev's contract types
 ```
 
+**Upload via CLI Script**
+
+The `uploadBytecode.ts` script provides a convenient CLI for uploading bytecode.
+It validates developer access before sending a transaction and supports loading bytecode from Hardhat/Foundry artifacts, custom JSON files, or raw hex files.
+
+```bash
+# Initial release (creates version 1.0.0) from a Hardhat compilation artifact
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type initial \
+  --source-url "https://github.com/compound-finance/comet/releases/v1.0.0" \
+  --bytecode-file artifacts/contracts/Comet.sol/Comet.json
+
+# Patch release (creates next patch under 1.0.x)
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type patch --major 1 --minor 0 \
+  --source-url "https://github.com/compound-finance/comet/releases/v1.0.1" \
+  --bytecode-file artifacts/contracts/Comet.sol/Comet.json
+
+# Alternative version (creates 1.0.0-gas-optimized)
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type alternative --major 1 --minor 0 --patch 0 --alternative gas-optimized \
+  --source-url "https://github.com/compound-finance/comet/releases/v1.0.0-gas-optimized" \
+  --bytecode-file artifacts/contracts/CometGasOptimized.sol/CometGasOptimized.json
+
+# Load bytecode from a custom JSON file with a specific key
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type initial \
+  --source-url "https://github.com/..." \
+  --bytecode-file bytecodes/contracts.json --json-key CometInitCode
+```
+
+Run `npx hardhat run scripts/cli/uploadBytecode.ts -- --help` for the full list of flags.
+
 ### Phase 3: Audit & Verification 🔍
 
 **Step 1: Auditor Review Process**
