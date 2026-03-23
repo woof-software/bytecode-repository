@@ -419,6 +419,28 @@ versionController.verifyAudit(
 // At least one signature is sufficient to allow deployment of the bytecode
 ```
 
+**Sign & Verify via CLI Scripts**
+
+The `signAuditReport.ts` script lets an auditor generate an EIP-712 signature off-chain.
+It validates the signer has `AUDITOR_ROLE` and retrieves bytecode data from the contract before signing.
+
+```bash
+# Auditor signs an audit report for Comet v1.0.0
+npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 \
+  --audit-report-url "https://audits.firm.com/comet-v1.0.0-report.pdf"
+
+# Sign for an alternative version
+npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 --alternative gas-optimized \
+  --audit-report-url "https://audits.firm.com/comet-gas-optimized-report.pdf"
+```
+
+The script outputs the signature, bytecode version hash, and init code hash.
+A developer then submits the signature on-chain via `verifyBytecode()`.
+
 ### Phase 4: Cross-chain Distribution 🌐
 
 **Step 1: L1 to L2 Transmission**
