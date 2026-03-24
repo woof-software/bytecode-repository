@@ -439,7 +439,37 @@ npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
 ```
 
 The script outputs the signature, bytecode version hash, and init code hash.
-A developer then submits the signature on-chain via `verifyBytecode()`.
+A developer then submits the signature on-chain using `submitAuditReport.ts`.
+
+**Submit Audit Report via CLI Script**
+
+The `submitAuditReport.ts` script lets a developer submit an auditor-signed audit report on-chain
+via `verifyBytecode()`. It recovers the auditor address from the EIP-712 signature, validates both
+developer access and auditor role before sending the transaction.
+
+```bash
+# Developer submits audit report for Comet v1.0.0
+npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 \
+  --audit-report-url "https://audits.firm.com/comet-v1.0.0-report.pdf" \
+  --signature 0xabc123...def456
+
+# Submit for an alternative version
+npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 --alternative gas-optimized \
+  --audit-report-url "https://audits.firm.com/comet-gas-optimized-report.pdf" \
+  --signature 0xabc123...def456
+
+# With explicit VersionController address
+npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
+  --version-controller 0x1234...abcd \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 \
+  --audit-report-url "https://audits.firm.com/report.pdf" \
+  --signature 0xabc123...def456
+```
 
 ### Phase 4: Cross-chain Distribution 🌐
 
