@@ -11,42 +11,45 @@
  *   - Raw hex file:      .hex or .bin files containing the bytecode as a hex string
  *
  * Usage:
+ *   Note: Hardhat's `run` command does not pass CLI flags through to the script.
+ *   Run the script directly with ts-node and set HARDHAT_NETWORK to select the network.
+ *
  *   # Initial release (creates version 1.0.0)
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --contract-type Comet \
  *     --release-type initial \
  *     --source-url "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol" \
  *     --bytecode-file artifacts/contracts/Comet.sol/Comet.json
  *
  *   # Major version release
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --contract-type Comet --release-type major \
  *     --source-url "..." --bytecode-file artifacts/contracts/CometV2.sol/CometV2.json
  *
  *   # Minor version release (under major version 1)
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --contract-type Comet --release-type minor --major 1 \
  *     --source-url "..." --bytecode-file path/to/bytecode.json
  *
  *   # Patch version release (under version 1.2.x)
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --contract-type Comet --release-type patch --major 1 --minor 2 \
  *     --source-url "..." --bytecode-file path/to/bytecode.json
  *
  *   # Alternative version (creates 1.0.0-optimized)
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --contract-type Comet --release-type alternative \
  *     --major 1 --minor 0 --patch 0 --alternative optimized \
  *     --source-url "..." --bytecode-file path/to/bytecode.json
  *
  *   # Using custom JSON with specific key
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --contract-type Comet --release-type initial \
  *     --source-url "..." \
  *     --bytecode-file bytecodes/contracts.json --json-key CometInitCode
  *
  *   # With explicit VersionController address
- *   npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \
  *     --version-controller 0x1234...abcd \
  *     --contract-type Comet --release-type initial \
  *     --source-url "..." --bytecode-file path/to/bytecode.json
@@ -97,13 +100,13 @@ Supported bytecode file formats:
 
 Examples:
   # Initial release from Hardhat artifact
-  npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \\
+  HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \\
     --contract-type Comet --release-type initial \\
     --source-url "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol" \\
     --bytecode-file artifacts/contracts/Comet.sol/Comet.json
 
   # Patch release
-  npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \\
+  HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts \\
     --contract-type Comet --release-type patch --major 1 --minor 0 \\
     --source-url "https://github.com/..." --bytecode-file path/to/bytecode.json
 `;
@@ -123,7 +126,7 @@ interface CliArgs {
 }
 
 /**
- * Parse CLI arguments. Unknown flags are silently ignored (e.g., --network consumed by Hardhat).
+ * Parse CLI arguments. Unknown flags are silently ignored.
  */
 function parseCliArgs(): CliArgs {
     const args = process.argv.slice(2);

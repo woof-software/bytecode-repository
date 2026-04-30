@@ -25,7 +25,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access,
     @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-explicit-any */
 
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 export interface SignAuditReportParams {
@@ -139,12 +139,16 @@ export async function signAuditReport(
         );
     }
 
-    // EIP-712 domain matching VersionController's EIP5267 implementation
+    // EIP-712 domain matching VersionController's EIP5267 implementation.
+    // Use the live provider's chainId (== block.chainid on-chain) rather than
+    // network.config.chainId, which is undefined for networks without an explicit
+    // entry in hardhat.config.ts (e.g., the built-in `localhost` network).
     const vcAddress = await versionController.getAddress();
+    const { chainId } = await ethers.provider.getNetwork();
     const domain = {
         name: "VersionController",
         version: "1",
-        chainId: network.config.chainId,
+        chainId,
         verifyingContract: vcAddress
     };
 

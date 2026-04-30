@@ -74,8 +74,8 @@ const AUDITOR_1 = "0x7234567890123456789012345678901234567890"; // Primary audit
 // All contract types to be assigned to the key developer
 const CONTRACT_TYPES = [
     // Comet contracts
-    "CometWithAssetList",
-    "CometExtWithAssetList",
+    "CometWithExtAssetList",
+    "CometExtAssetList",
 
     // Governance
     "CompoundGovernor",
@@ -98,11 +98,11 @@ const CONTRACT_TYPES = [
     "CometCollateralSwap",
 
     // CAPO
-    "ChainlinkCorrelatedAssetsPriceOracle",
-    "ERC4626CorrelatedAssetsPriceOracle",
-    "RateBasedCorrelatedAssetsPriceOracle",
-    "RsETHCorrelatedAssetsPriceOracle",
-    "WstETHCorrelatedAssetsPriceOracle"
+    //"ChainlinkCorrelatedAssetsPriceOracle",
+    //"ERC4626CorrelatedAssetsPriceOracle",
+    //"RateBasedCorrelatedAssetsPriceOracle",
+    //"RsETHCorrelatedAssetsPriceOracle",
+    //"WstETHCorrelatedAssetsPriceOracle"
 ];
 
 // Auditors to grant roles
@@ -400,8 +400,8 @@ async function main() {
         }
 
         const deployments = JSON.parse(fs.readFileSync(deploymentPath, "utf8"));
-        const versionControllerAddress = deployments.VersionController;
-        const l1DeployManagerAddress = deployments.L1DeployManager;
+        const versionControllerAddress = deployments.contracts?.VersionController?.address;
+        const l1DeployManagerAddress = deployments.contracts?.L1DeployManager?.address;
 
         if (!versionControllerAddress || !l1DeployManagerAddress) {
             throw new Error("VersionController or L1DeployManager not found in deployments");

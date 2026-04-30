@@ -6,20 +6,23 @@
  * `verifyBytecode()` on the VersionController contract.
  *
  * Usage:
+ *   Note: Hardhat's `run` command does not pass CLI flags through to the script.
+ *   Run the script directly with ts-node and set HARDHAT_NETWORK to select the network.
+ *
  *   # Sign audit report for version 1.0.0
- *   npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/signAuditReport.ts \
  *     --contract-type Comet \
  *     --major 1 --minor 0 --patch 0 \
  *     --audit-report-url "https://audits.firm.com/comet-v1.0.0-report.pdf"
  *
  *   # Sign audit report for an alternative version
- *   npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/signAuditReport.ts \
  *     --contract-type Comet \
  *     --major 1 --minor 0 --patch 0 --alternative gas-optimized \
  *     --audit-report-url "https://audits.firm.com/comet-v1.0.0-gas-optimized-report.pdf"
  *
  *   # With explicit VersionController address
- *   npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+ *   HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/signAuditReport.ts \
  *     --version-controller 0x1234...abcd \
  *     --contract-type Comet \
  *     --major 1 --minor 0 --patch 0 \
@@ -55,12 +58,12 @@ Optional flags:
 
 Examples:
   # Sign audit for Comet v1.0.0
-  npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \\
+  HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/signAuditReport.ts \\
     --contract-type Comet --major 1 --minor 0 --patch 0 \\
     --audit-report-url "https://audits.firm.com/comet-v1.0.0-report.pdf"
 
   # Sign audit for an alternative version
-  npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \\
+  HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/signAuditReport.ts \\
     --contract-type Comet --major 1 --minor 0 --patch 0 --alternative gas-optimized \\
     --audit-report-url "https://audits.firm.com/comet-gas-optimized-report.pdf"
 `;
@@ -77,7 +80,7 @@ interface CliArgs {
 }
 
 /**
- * Parse CLI arguments. Unknown flags are silently ignored (e.g., --network consumed by Hardhat).
+ * Parse CLI arguments. Unknown flags are silently ignored.
  */
 function parseCliArgs(): CliArgs {
     const args = process.argv.slice(2);

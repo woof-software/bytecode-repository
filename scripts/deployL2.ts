@@ -20,13 +20,15 @@
  *
  * Usage:
  * ```bash
- * # Deploy with network-specific config
+ * # Deploy with network-specific config (no extra flags — `hardhat run` is fine)
  * npx hardhat run scripts/deployL2.ts --network arbitrum
  * npx hardhat run scripts/deployL2.ts --network optimism
  * npx hardhat run scripts/deployL2.ts --network polygon
  *
- * # Deploy with custom addresses
- * npx hardhat run scripts/deployL2.ts --network arbitrum -- --timelock 0x123... --ccip-router 0x456...
+ * # Deploy with custom addresses.
+ * # Hardhat's `run` does not pass CLI flags through, so invoke ts-node directly
+ * # and select the network via HARDHAT_NETWORK.
+ * HARDHAT_NETWORK=arbitrum npx ts-node scripts/deployL2.ts --timelock 0x123... --ccip-router 0x456...
  * ```
  *
  * NOTE: This script is designed for PRODUCTION deployment on L2 mainnets only.

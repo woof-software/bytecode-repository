@@ -25,7 +25,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access,
     @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { validateDeveloperAccess } from "./uploadBytecode";
 import { validateAuditorRole } from "./signAuditReport";
 
@@ -110,10 +110,11 @@ export async function recoverAuditorAddress(versionController: any, params: Subm
     }
 
     const vcAddress = await versionController.getAddress();
+    const { chainId } = await ethers.provider.getNetwork();
     const domain = {
         name: "VersionController",
         version: "1",
-        chainId: network.config.chainId,
+        chainId,
         verifyingContract: vcAddress
     };
 

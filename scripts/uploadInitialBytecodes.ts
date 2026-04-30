@@ -18,14 +18,17 @@
  *   3. Calls releaseBytecode() via the uploadBytecode utility
  *
  * Usage:
+ *   Note: Hardhat's `run` command does not pass CLI flags through to the script.
+ *   Run the script directly with ts-node and set HARDHAT_NETWORK to select the network.
+ *
  *   # Upload initial bytecodes on Ethereum Mainnet
- *   npx hardhat run scripts/uploadInitialBytecodes.ts --network mainnet
+ *   HARDHAT_NETWORK=mainnet npx ts-node scripts/uploadInitialBytecodes.ts
  *
  *   # Preview without sending transactions
- *   npx hardhat run scripts/uploadInitialBytecodes.ts --network mainnet -- --dry-run
+ *   HARDHAT_NETWORK=mainnet npx ts-node scripts/uploadInitialBytecodes.ts --dry-run
  *
  *   # Override VersionController address
- *   npx hardhat run scripts/uploadInitialBytecodes.ts --network mainnet -- \
+ *   HARDHAT_NETWORK=mainnet npx ts-node scripts/uploadInitialBytecodes.ts \
  *     --version-controller 0x1234...abcd
  */
 
@@ -53,8 +56,8 @@ Optional flags:
   --help                        Show this help message
 
 Usage:
-  npx hardhat run scripts/uploadInitialBytecodes.ts --network mainnet
-  npx hardhat run scripts/uploadInitialBytecodes.ts --network mainnet -- --dry-run
+  HARDHAT_NETWORK=mainnet npx ts-node scripts/uploadInitialBytecodes.ts
+  HARDHAT_NETWORK=mainnet npx ts-node scripts/uploadInitialBytecodes.ts --dry-run
 `;
 
 interface CliArgs {
