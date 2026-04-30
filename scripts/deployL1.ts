@@ -146,7 +146,7 @@ async function main() {
         const MarketFactory = await ethers.getContractFactory("MarketFactory");
 
         const marketFactoryArgs = [
-            l1DeployManagerAddress, // bytecodeProvider
+            versionControllerAddress, // bytecodeProvider
             COMET_PROXY_ADMIN, // cometProxyAdmin
             ASSET_LIST_FACTORY, // assetListFactory
             GOVERNOR_ADDRESS // timelock (using governor as timelock)
@@ -183,7 +183,7 @@ async function main() {
 
         const cometFactoryArgs = [
             INITIAL_VERSION, // initialVersion
-            l1DeployManagerAddress, // bytecodeProvider
+            versionControllerAddress, // bytecodeProvider
             GOVERNOR_ADDRESS, // timelock (using governor as timelock)
             false // withAssetList
         ];
