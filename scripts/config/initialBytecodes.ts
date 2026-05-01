@@ -59,15 +59,15 @@ export const INITIAL_BYTECODES: InitialBytecodeEntry[] = [
         sourceURL: `${REPO_BASE_URL}/contracts/factories/CometFactoryV2.sol`
     },
     {
-        contractType: "CometWithExtAssetList",
+        contractType: "CometWithAssetList",
         bytecodeFile: "bytecodes/CometWithExtendedAssetList.json",
         sourceURL: "https://github.com/woof-software/comet/blob/main/contracts/CometWithExtendedAssetList.sol"
     },
     {
-        contractType: "CometExtAssetList",
+        contractType: "CometExtWithAssetList",
         bytecodeFile: "bytecodes/CometExtAssetList.json",
         sourceURL: "https://github.com/woof-software/comet/blob/main/contracts/CometExtAssetList.sol"
-    },
+    }
 
     // ── External contracts (loaded from bytecode files) ─────────────────────
     //

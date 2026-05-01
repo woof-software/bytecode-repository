@@ -74,8 +74,8 @@ const AUDITOR_1 = "0x7234567890123456789012345678901234567890"; // Primary audit
 // All contract types to be assigned to the key developer
 const CONTRACT_TYPES = [
     // Comet contracts
-    "CometWithExtAssetList",
-    "CometExtAssetList",
+    "CometWithAssetList",
+    "CometExtWithAssetList",
 
     // Governance
     "CompoundGovernor",
@@ -95,7 +95,7 @@ const CONTRACT_TYPES = [
 
     // Utilities
     "CometMultiplier",
-    "CometCollateralSwap",
+    "CometCollateralSwap"
 
     // CAPO
     //"ChainlinkCorrelatedAssetsPriceOracle",
