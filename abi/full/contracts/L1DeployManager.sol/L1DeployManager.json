@@ -1,7 +1,6 @@
 [
     "constructor(address _versionController, address _routerClient)",
     "error AddressEmptyCode(address target)",
-    "error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash)",
     "error CantRevokeDeveloper(address _account)",
     "error Create2EmptyBytecode()",
     "error ERC1967InvalidImplementation(address implementation)",
