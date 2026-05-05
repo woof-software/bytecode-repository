@@ -353,6 +353,17 @@
         "type": "error"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "NotGovernorOrGuadian",
+        "type": "error"
+    },
+    {
         "inputs": [],
         "name": "NotInitializing",
         "type": "error"

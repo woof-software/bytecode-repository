@@ -27,6 +27,7 @@
     "error NonExistingVersion(bytes32,tuple(tuple(uint64,uint64,uint64),string))",
     "error NotAuthorizedForContractType(bytes32,address)",
     "error NotDeveloper(address)",
+    "error NotGovernorOrGuadian(address)",
     "error NotInitializing()",
     "error NotSubDeveloper(address)",
     "error SameKeyDeveloper(address)",

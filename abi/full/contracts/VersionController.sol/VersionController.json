@@ -27,6 +27,7 @@
     "error NonExistingVersion(bytes32 _contractType, tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) _version)",
     "error NotAuthorizedForContractType(bytes32 _contractType, address _caller)",
     "error NotDeveloper(address _account)",
+    "error NotGovernorOrGuadian(address _account)",
     "error NotInitializing()",
     "error NotSubDeveloper(address _subDeveloper)",
     "error SameKeyDeveloper(address _keyDeveloper)",
