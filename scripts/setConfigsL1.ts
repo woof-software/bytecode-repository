@@ -80,29 +80,18 @@ const AUDITORS = [
 
 // All contract types to be assigned to the key developer
 const CONTRACT_TYPES = [
-    // Comet contracts
+    // Comet contracts (Service patch)
     "CometWithAssetList",
     "CometExtWithAssetList",
 
-    // Governance
-    "CompoundGovernor",
-
-    // Core system
+    // Core BR system
     "VersionController",
     "L1DeployManager",
     "L2DeployManager",
 
     // Factories
     "MarketFactory",
-    "CometFactoryV2",
-
-    // Streaming
-    "Streamer",
-    "StreamerFactory",
-
-    // Utilities
-    "CometMultiplier",
-    "CometCollateralSwap"
+    "CometFactoryV2"
 
     // CAPO
     //"ChainlinkCorrelatedAssetsPriceOracle",
