@@ -146,7 +146,6 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
             _bytecodeVersion.contractType,
             _bytecodeVersion.version
         );
-        if (isVersionSentToChain[_chainId][bytecodeHash]) revert BytecodeAlreadySent(_chainId, bytecodeHash);
         _ccipSend(
             _chainId,
             _gasLimit,

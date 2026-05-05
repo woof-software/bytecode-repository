@@ -193,21 +193,6 @@ describe("L1/L2 DeployManager", function () {
         expect(await l1DeployManager.isVersionSentToChain(mockOtherChainId, bytecodeHash_1_0_0)).to.be.true;
     });
 
-    it("Should not let send same bytecode to same chain more than once", async () => {
-        const { WOOF, l1DeployManager, bytecodeVersion_1_0_0, bytecodeHash_1_0_0 } = await restore();
-        await l1DeployManager
-            .connect(WOOF.keyDeveloper)
-            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
-        // Try to send one more time
-        await expect(
-            l1DeployManager
-                .connect(WOOF.subDevelopers[0])
-                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee })
-        )
-            .revertedWithCustomError(l1DeployManager, "BytecodeAlreadySent")
-            .withArgs(mockOtherChainId, bytecodeHash_1_0_0);
-    });
-
     it("Should not send same bytecode if not enough ETH funds sent", async () => {
         const { WOOF, l1DeployManager, bytecodeVersion_1_0_0 } = await restore();
         const insufficientValue = ethers.parseEther("0.099");
