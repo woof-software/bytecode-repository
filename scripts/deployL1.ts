@@ -13,7 +13,7 @@ import { DeploymentManager, waitForConfirmations, logDeploymentStep } from "./ut
  *
  * Production Configuration:
  * - Governor: 0x6d903f6003cca6255D85CcA4D3B5E5146dC33925 (Ethereum Mainnet Timelock)
- * - Guardian: 0x7d903f6003cca6255D85CcA4D3B5E5146dC33926 (Guardian for cooldown resets)
+ * - Guardian: 0xbbf3f1421D886E9b2c5D716B5192aC998af2012c (Guardian for cooldown resets)
  * - CCIP Router: 0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D (Ethereum Mainnet CCIP Router)
  *
  * Usage:
@@ -65,117 +65,117 @@ async function main() {
     const deployedContracts: Record<string, string> = {};
 
     try {
-        // // 1. Deploy VersionController (upgradeable)
-        // logDeploymentStep(1, 4, "Deploying VersionController (upgradeable)...");
-        // const VersionController = await ethers.getContractFactory("VersionController");
+        // 1. Deploy VersionController (upgradeable)
+        logDeploymentStep(1, 4, "Deploying VersionController (upgradeable)...");
+        const VersionController = await ethers.getContractFactory("VersionController");
 
-        // console.log("Deploying proxy and implementation...");
-        // const versionController = await upgrades.deployProxy(
-        //     VersionController,
-        //     [initialAdmin, GUARDIAN_ADDRESS], // initializer arguments
-        //     {
-        //         initializer: "initialize",
-        //         kind: "uups"
-        //     }
-        // );
+        console.log("Deploying proxy and implementation...");
+        const versionController = await upgrades.deployProxy(
+            VersionController,
+            [initialAdmin, GUARDIAN_ADDRESS], // initializer arguments
+            {
+                initializer: "initialize",
+                kind: "uups"
+            }
+        );
 
-        // // Wait for deployment
-        // await versionController.waitForDeployment();
-        // const deploymentTx = versionController.deploymentTransaction();
-        // if (deploymentTx) {
-        //     await waitForConfirmations(deploymentTx, 1, "VersionController");
-        // }
+        // Wait for deployment
+        await versionController.waitForDeployment();
+        const deploymentTx = versionController.deploymentTransaction();
+        if (deploymentTx) {
+            await waitForConfirmations(deploymentTx, 1, "VersionController");
+        }
 
-        // const versionControllerAddress = await versionController.getAddress();
-        // deployedContracts.VersionController = versionControllerAddress;
+        const versionControllerAddress = await versionController.getAddress();
+        deployedContracts.VersionController = versionControllerAddress;
 
-        // // Save deployment artifact
-        // await deploymentManager.saveDeployment(
-        //     "VersionController",
-        //     versionController,
-        //     deploymentTx,
-        //     [initialAdmin, GUARDIAN_ADDRESS],
-        //     true // isUpgradeable
-        // );
+        // Save deployment artifact
+        await deploymentManager.saveDeployment(
+            "VersionController",
+            versionController,
+            deploymentTx,
+            [initialAdmin, GUARDIAN_ADDRESS],
+            true // isUpgradeable
+        );
 
-        // const versionControllerImplAddress = await upgrades.erc1967.getImplementationAddress(versionControllerAddress);
-        // console.log("VersionController Proxy:", versionControllerAddress);
-        // console.log("VersionController Implementation:", versionControllerImplAddress);
+        const versionControllerImplAddress = await upgrades.erc1967.getImplementationAddress(versionControllerAddress);
+        console.log("VersionController Proxy:", versionControllerAddress);
+        console.log("VersionController Implementation:", versionControllerImplAddress);
 
-        // // 2. Deploy L1DeployManager (upgradeable)
-        // logDeploymentStep(2, 4, "Deploying L1DeployManager (upgradeable)...");
-        // const L1DeployManager = await ethers.getContractFactory("L1DeployManager");
+        // 2. Deploy L1DeployManager (upgradeable)
+        logDeploymentStep(2, 4, "Deploying L1DeployManager (upgradeable)...");
+        const L1DeployManager = await ethers.getContractFactory("L1DeployManager");
 
-        // console.log("Deploying proxy and implementation...");
-        // const l1DeployManager = await upgrades.deployProxy(
-        //     L1DeployManager,
-        //     [], // L1DeployManager.initialize() takes no parameters
-        //     {
-        //         initializer: "initialize",
-        //         kind: "uups",
-        //         constructorArgs: [versionControllerAddress, CCIP_ROUTER_ADDRESS] // Constructor arguments for immutable variables
-        //     }
-        // );
+        console.log("Deploying proxy and implementation...");
+        const l1DeployManager = await upgrades.deployProxy(
+            L1DeployManager,
+            [], // L1DeployManager.initialize() takes no parameters
+            {
+                initializer: "initialize",
+                kind: "uups",
+                constructorArgs: [versionControllerAddress, CCIP_ROUTER_ADDRESS] // Constructor arguments for immutable variables
+            }
+        );
 
-        // // Wait for deployment
-        // await l1DeployManager.waitForDeployment();
-        // const l1DeploymentTx = l1DeployManager.deploymentTransaction();
-        // if (l1DeploymentTx) {
-        //     await waitForConfirmations(l1DeploymentTx, 1, "L1DeployManager");
-        // }
+        // Wait for deployment
+        await l1DeployManager.waitForDeployment();
+        const l1DeploymentTx = l1DeployManager.deploymentTransaction();
+        if (l1DeploymentTx) {
+            await waitForConfirmations(l1DeploymentTx, 1, "L1DeployManager");
+        }
 
-        // const l1DeployManagerAddress = await l1DeployManager.getAddress();
-        // deployedContracts.L1DeployManager = l1DeployManagerAddress;
+        const l1DeployManagerAddress = await l1DeployManager.getAddress();
+        deployedContracts.L1DeployManager = l1DeployManagerAddress;
 
-        // // Save deployment artifact
-        // await deploymentManager.saveDeployment(
-        //     "L1DeployManager",
-        //     l1DeployManager,
-        //     l1DeploymentTx,
-        //     [versionControllerAddress, CCIP_ROUTER_ADDRESS],
-        //     true // isUpgradeable
-        // );
+        // Save deployment artifact
+        await deploymentManager.saveDeployment(
+            "L1DeployManager",
+            l1DeployManager,
+            l1DeploymentTx,
+            [versionControllerAddress, CCIP_ROUTER_ADDRESS],
+            true // isUpgradeable
+        );
 
-        // const l1DeployManagerImplAddress = await upgrades.erc1967.getImplementationAddress(l1DeployManagerAddress);
-        // console.log("L1DeployManager Proxy:", l1DeployManagerAddress);
-        // console.log("L1DeployManager Implementation:", l1DeployManagerImplAddress);
-        // console.log("");
+        const l1DeployManagerImplAddress = await upgrades.erc1967.getImplementationAddress(l1DeployManagerAddress);
+        console.log("L1DeployManager Proxy:", l1DeployManagerAddress);
+        console.log("L1DeployManager Implementation:", l1DeployManagerImplAddress);
+        console.log("");
 
-        // // 3. Deploy MarketFactory (non-upgradeable)
-        // logDeploymentStep(3, 4, "Deploying MarketFactory...");
-        // const MarketFactory = await ethers.getContractFactory("MarketFactory");
+        // 3. Deploy MarketFactory (non-upgradeable)
+        logDeploymentStep(3, 4, "Deploying MarketFactory...");
+        const MarketFactory = await ethers.getContractFactory("MarketFactory");
 
-        // const marketFactoryArgs = [
-        //     versionControllerAddress, // bytecodeProvider
-        //     COMET_PROXY_ADMIN, // cometProxyAdmin
-        //     ASSET_LIST_FACTORY, // assetListFactory
-        //     GOVERNOR_ADDRESS // timelock (using governor as timelock)
-        // ];
+        const marketFactoryArgs = [
+            versionControllerAddress, // bytecodeProvider
+            COMET_PROXY_ADMIN, // cometProxyAdmin
+            ASSET_LIST_FACTORY, // assetListFactory
+            GOVERNOR_ADDRESS // timelock (using governor as timelock)
+        ];
 
-        // console.log("Deploying contract...");
-        // const marketFactory = await MarketFactory.deploy(...marketFactoryArgs);
+        console.log("Deploying contract...");
+        const marketFactory = await MarketFactory.deploy(...marketFactoryArgs);
 
-        // // Wait for deployment
-        // await marketFactory.waitForDeployment();
-        // const marketFactoryTx = marketFactory.deploymentTransaction();
-        // if (marketFactoryTx) {
-        //     await waitForConfirmations(marketFactoryTx, 1, "MarketFactory");
-        // }
+        // Wait for deployment
+        await marketFactory.waitForDeployment();
+        const marketFactoryTx = marketFactory.deploymentTransaction();
+        if (marketFactoryTx) {
+            await waitForConfirmations(marketFactoryTx, 1, "MarketFactory");
+        }
 
-        // const marketFactoryAddress = await marketFactory.getAddress();
-        // deployedContracts.MarketFactory = marketFactoryAddress;
+        const marketFactoryAddress = await marketFactory.getAddress();
+        deployedContracts.MarketFactory = marketFactoryAddress;
 
-        // // Save deployment artifact
-        // await deploymentManager.saveDeployment(
-        //     "MarketFactory",
-        //     marketFactory,
-        //     marketFactoryTx,
-        //     marketFactoryArgs,
-        //     false // isUpgradeable
-        // );
+        // Save deployment artifact
+        await deploymentManager.saveDeployment(
+            "MarketFactory",
+            marketFactory,
+            marketFactoryTx,
+            marketFactoryArgs,
+            false // isUpgradeable
+        );
 
-        // console.log("MarketFactory:", marketFactoryAddress);
-        // console.log("");
+        console.log("MarketFactory:", marketFactoryAddress);
+        console.log("");
 
         // 4. Deploy CometFactoryV2 (non-upgradeable)
         logDeploymentStep(4, 4, "Deploying CometFactoryV2...");
