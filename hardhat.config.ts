@@ -126,12 +126,7 @@ const config: HardhatUserConfig = {
     },
     etherscan: {
         // To see supported networks and their identifiers for `apiKey`, run `pnpm hardhat verify --list-networks`.
-        apiKey: {
-            mainnet: envs.ETHERSCAN_API_KEY ?? "",
-            sepolia: envs.ETHERSCAN_API_KEY ?? "",
-            holesky: envs.ETHERSCAN_API_KEY ?? ""
-            // hoodi: envs.ETHERSCAN_API_KEY ?? ""
-        }
+        apiKey: envs.ETHERSCAN_API_KEY ?? ""
     },
     sourcify: {
         enabled: enableSourcify

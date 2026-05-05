@@ -321,6 +321,43 @@ versionController.addSubDeveloper(subDeveloperAddress);
 // Same process as key developer, but limited to their key dev's contract types
 ```
 
+**Upload via CLI Script**
+
+The `uploadBytecode.ts` script provides a convenient CLI for uploading bytecode.
+It validates developer access before sending a transaction and supports loading bytecode from Hardhat/Foundry artifacts, custom JSON files, or raw hex files.
+
+```bash
+# Initial release (creates version 1.0.0) from a Hardhat compilation artifact
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type initial \
+  --source-url "https://github.com/compound-finance/comet/releases/v1.0.0" \
+  --bytecode-file artifacts/contracts/Comet.sol/Comet.json
+
+# Patch release (creates next patch under 1.0.x)
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type patch --major 1 --minor 0 \
+  --source-url "https://github.com/compound-finance/comet/releases/v1.0.1" \
+  --bytecode-file artifacts/contracts/Comet.sol/Comet.json
+
+# Alternative version (creates 1.0.0-gas-optimized)
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type alternative --major 1 --minor 0 --patch 0 --alternative gas-optimized \
+  --source-url "https://github.com/compound-finance/comet/releases/v1.0.0-gas-optimized" \
+  --bytecode-file artifacts/contracts/CometGasOptimized.sol/CometGasOptimized.json
+
+# Load bytecode from a custom JSON file with a specific key
+npx hardhat run scripts/cli/uploadBytecode.ts --network ethereum -- \
+  --contract-type Comet \
+  --release-type initial \
+  --source-url "https://github.com/..." \
+  --bytecode-file bytecodes/contracts.json --json-key CometInitCode
+```
+
+Run `npx hardhat run scripts/cli/uploadBytecode.ts -- --help` for the full list of flags.
+
 ### Phase 3: Audit & Verification 🔍
 
 **Step 1: Auditor Review Process**
@@ -380,6 +417,58 @@ versionController.verifyAudit(
 // Multiple auditors can verify the same bytecode
 // System tracks all audit signatures and reports
 // At least one signature is sufficient to allow deployment of the bytecode
+```
+
+**Sign & Verify via CLI Scripts**
+
+The `signAuditReport.ts` script lets an auditor generate an EIP-712 signature off-chain.
+It validates the signer has `AUDITOR_ROLE` and retrieves bytecode data from the contract before signing.
+
+```bash
+# Auditor signs an audit report for Comet v1.0.0
+npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 \
+  --audit-report-url "https://audits.firm.com/comet-v1.0.0-report.pdf"
+
+# Sign for an alternative version
+npx hardhat run scripts/cli/signAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 --alternative gas-optimized \
+  --audit-report-url "https://audits.firm.com/comet-gas-optimized-report.pdf"
+```
+
+The script outputs the signature, bytecode version hash, and init code hash.
+A developer then submits the signature on-chain using `submitAuditReport.ts`.
+
+**Submit Audit Report via CLI Script**
+
+The `submitAuditReport.ts` script lets a developer submit an auditor-signed audit report on-chain
+via `verifyBytecode()`. It recovers the auditor address from the EIP-712 signature, validates both
+developer access and auditor role before sending the transaction.
+
+```bash
+# Developer submits audit report for Comet v1.0.0
+npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 \
+  --audit-report-url "https://audits.firm.com/comet-v1.0.0-report.pdf" \
+  --signature 0xabc123...def456
+
+# Submit for an alternative version
+npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 --alternative gas-optimized \
+  --audit-report-url "https://audits.firm.com/comet-gas-optimized-report.pdf" \
+  --signature 0xabc123...def456
+
+# With explicit VersionController address
+npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
+  --version-controller 0x1234...abcd \
+  --contract-type Comet \
+  --major 1 --minor 0 --patch 0 \
+  --audit-report-url "https://audits.firm.com/report.pdf" \
+  --signature 0xabc123...def456
 ```
 
 ### Phase 4: Cross-chain Distribution 🌐

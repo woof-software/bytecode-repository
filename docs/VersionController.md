@@ -187,7 +187,7 @@ constructor() public
 ### initialize
 
 ```solidity
-function initialize(address _governor, address _guardian) external
+function initialize(address _initialAdmin, address _guardian) external
 ```
 
 ### checkDeveloper

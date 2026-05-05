@@ -6,14 +6,17 @@
  *
  * Usage:
  * ```bash
+ * # Note: Hardhat's `run` command does not pass CLI flags through to the script.
+ * # Run the script directly with ts-node so that --l1-network reaches process.argv.
+ *
  * # Update from mainnet L1 deployment
- * npx hardhat run scripts/utils/updateL1Addresses.ts -- --l1-network ethereum
+ * npx ts-node scripts/utils/updateL1Addresses.ts --l1-network ethereum
  *
  * # Update from testnet L1 deployment
- * npx hardhat run scripts/utils/updateL1Addresses.ts -- --l1-network sepolia
+ * npx ts-node scripts/utils/updateL1Addresses.ts --l1-network sepolia
  *
- * # Interactive mode
- * npx hardhat run scripts/utils/updateL1Addresses.ts
+ * # Interactive mode (no flag — prints available networks)
+ * npx ts-node scripts/utils/updateL1Addresses.ts
  * ```
  */
 
@@ -60,8 +63,8 @@ async function selectL1Network(): Promise<string> {
 Please specify the L1 network using the --l1-network flag:
 
 Examples:
-  npx hardhat run scripts/utils/updateL1Addresses.ts -- --l1-network ethereum
-  npx hardhat run scripts/utils/updateL1Addresses.ts -- --l1-network sepolia
+  npx ts-node scripts/utils/updateL1Addresses.ts --l1-network ethereum
+  npx ts-node scripts/utils/updateL1Addresses.ts --l1-network sepolia
 `);
 }
 

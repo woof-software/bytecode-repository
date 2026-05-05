@@ -103,12 +103,12 @@ contract VersionController is
         _disableInitializers();
     }
 
-    function initialize(address _governor, address _guardian) external initializer {
-        if (_governor == address(0) || _guardian == address(0)) revert ZeroAddress();
+    function initialize(address _initialAdmin, address _guardian) external initializer {
+        if (_initialAdmin == address(0) || _guardian == address(0)) revert ZeroAddress();
         __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
         __EIP712_init("VersionController", "1");
-        _grantRole(DEFAULT_ADMIN_ROLE, _governor);
+        _grantRole(DEFAULT_ADMIN_ROLE, _initialAdmin);
         _grantRole(GUARDIAN_ROLE, _guardian);
     }
 

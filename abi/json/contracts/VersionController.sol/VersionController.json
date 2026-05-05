@@ -1538,7 +1538,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_governor",
+                "name": "_initialAdmin",
                 "type": "address"
             },
             {
