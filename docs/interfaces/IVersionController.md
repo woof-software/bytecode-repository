@@ -188,6 +188,12 @@ error AdminCantAddSubDevs()
 error ConflictingRoles(address _account)
 ```
 
+### NotGovernorOrGuadian
+
+```solidity
+error NotGovernorOrGuadian(address _account)
+```
+
 ### assignDeveloperForContractTypes
 
 ```solidity
