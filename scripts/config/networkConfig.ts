@@ -86,18 +86,6 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    ronin: {
-        name: "ronin",
-        chainId: 2020,
-        ccipRouter: "0x46527571D5D1B68eE7Eb60B18A32e6C60DcEAf99",
-        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
-        destinationChainSelector: "6916147374840168594", // Ronin CCIP selector
-        timelock: "0xBbb0Ebd903fafbb8fFF58B922fD0CD85E251ac2c",
-        cometProxyAdmin: "0xfa64A82a3d13D4c05d5133E53b2EbB8A0FA9c3F6",
-        assetListFactory: "0x84fc63de5d127e9c074c1da6591ee8fa70a60de1",
-        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
-    },
-
     unichain: {
         name: "unichain",
         chainId: 130,
