@@ -152,10 +152,9 @@ contract VersionController is
     /// @dev Correctness of  contract type should be checked by the Governance before calling this function.
     /// @param _contractTypes An array containing types of contracts to assign developer for.
     /// @param _keyDeveloper An address of key developer to assign. address(0) is allowed to remove developer for contract type.
-    function assignDeveloperForContractTypes(
-        bytes32[] calldata _contractTypes,
-        address _keyDeveloper
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function assignDeveloperForContractTypes(bytes32[] calldata _contractTypes, address _keyDeveloper) external {
+        if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && !hasRole(GUARDIAN_ROLE, msg.sender))
+            revert NotGovernorOrGuadian(msg.sender);
         uint256 contractTypesLengths = _contractTypes.length;
         if (contractTypesLengths == 0) revert ZeroLength();
         if (_keyDeveloper != address(0)) _grantRole(KEY_DEVELOPER_ROLE, _keyDeveloper);
