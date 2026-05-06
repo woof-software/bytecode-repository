@@ -314,3 +314,9 @@ function versionExists(bytes32 _bytecodeHash) external view returns (bool)
 function getAllAlternativeVersions(bytes32 _contractType) external view returns (struct Types.VersionWithAlternative[])
 ```
 
+### getVerifiedInitCodeHash
+
+```solidity
+function getVerifiedInitCodeHash(struct Types.BytecodeVersion _version) external view returns (bytes32)
+```
+

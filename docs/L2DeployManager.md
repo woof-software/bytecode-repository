@@ -14,7 +14,7 @@ This contract receives audited bytecode from L1 via Chainlink CCIP and enables s
   3. Query stored bytecode availability to verify cross-chain synchronization status and plan deployments.
   4. Retrieve bytecode for custom deployment logic or verification purposes through the BytecodeProvider interface.
 - The contract automatically handles:
-  1. CCIP message reception and validation from trusted L1DeployManager to ensure bytecode authenticity and prevent malicious injections.
+  1. CCIP message reception and validation from trusted L1DeployManager to ensure init code hash authenticity and prevent malicious injections.
   2. Bytecode storage using SSTORE2 with automatic chunking for large contracts exceeding network gas limits or size constraints.
   3. Address computation using identical salt generation as L1DeployManager, guaranteeing cross-chain address consistency.
   4. Integration with factory contracts via BytecodeProvider interface for specialized deployment patterns and protocol-specific logic.
@@ -54,6 +54,14 @@ address localTimelock
 ```
 
 The address of local timelock.
+
+### bytecodeRequested
+
+```solidity
+mapping(bytes32 => bytes32) bytecodeRequested
+```
+
+Hash of bytecode, which should be uploaded. If non-empty, an init code which generates the exact hash must be uploaded.
 
 ### developerUntil
 
@@ -95,6 +103,25 @@ Bytecode will be deployed through the appropriate Factory if it is set. Otherwis
 | _bytecodeVersion | struct Types.BytecodeVersion | A specific version of contract type to deploy. |
 | _salt | bytes32 | A value necessary to generate a unique salt for Create2. |
 | _constructorParams | bytes | parameters necessary to deploy a specified contract. |
+
+### uploadBytecode
+
+```solidity
+function uploadBytecode(struct Types.BytecodeVersion _bytecodeVersion, bytes _initCode) external
+```
+
+Uploads init code for a requested bytecode version.
+
+_Uploading must first be requested via L1 through CCIP.
+The hash of init code must match the hash stored in _ccipReceive.
+Anyone can upload bytecode as long as valid init code is provided._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _bytecodeVersion | struct Types.BytecodeVersion | Version of bytecode for which to upload. |
+| _initCode | bytes | Valid init code matching stored init code hash to upload. |
 
 ### getVerifiedBytecode
 
@@ -182,5 +209,5 @@ _The sender of the message from Ethereum must be L1DeployManager._
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| any2EvmMessage | struct Client.Any2EVMMessage | params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE. and address of developer for BECOME_DEVELOPER or REVOKE_DEVELOPER. |
+| any2EvmMessage | struct Client.Any2EVMMessage | params necessary for the cross-chain message. Data contains bytecode hash and its init code hash for SEND_BYTECODE. and address of developer for BECOME_DEVELOPER or REVOKE_DEVELOPER. |
 

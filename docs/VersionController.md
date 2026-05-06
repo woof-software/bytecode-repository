@@ -698,6 +698,28 @@ _Throws and error if bytecode is not verified by at least one auditor._
 | ---- | ---- | ----------- |
 | [0] | bytes | A bytecode of specified contract type and version. |
 
+### getVerifiedInitCodeHash
+
+```solidity
+function getVerifiedInitCodeHash(struct Types.BytecodeVersion _version) external view returns (bytes32)
+```
+
+Returns the hash of a verified bytecode of a specified contract type and version.
+
+_Throws and error if bytecode is not verified by at least one auditor._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _version | struct Types.BytecodeVersion | A bytecode version for which to return init code hash. |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | Init code hash of specified contract type and version. |
+
 ### getAllAlternativeVersions
 
 ```solidity

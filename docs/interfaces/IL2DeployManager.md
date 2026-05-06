@@ -2,10 +2,16 @@
 
 ## IL2DeployManager
 
-### BytecodeReceived
+### BytecodeRequested
 
 ```solidity
-event BytecodeReceived(bytes32 _messageId, bytes32 _bytecodeHash)
+event BytecodeRequested(bytes32 _messageId, bytes32 _bytecodeHash, bytes32 _initCodeHash)
+```
+
+### BytecodeUploaded
+
+```solidity
+event BytecodeUploaded(bytes32 _bytecodeHash)
 ```
 
 ### ContractDeployed
@@ -54,6 +60,24 @@ error OnlyDeveloperOrGovernor()
 
 ```solidity
 error ZeroAddress()
+```
+
+### BytecodeAlreadyUploaded
+
+```solidity
+error BytecodeAlreadyUploaded(bytes32 _bytecodeHash)
+```
+
+### InvalidBytecode
+
+```solidity
+error InvalidBytecode(bytes32 _bytecodeHash, bytes32 _initCodeHash)
+```
+
+### BytecodeNotRequested
+
+```solidity
+error BytecodeNotRequested(bytes32 _bytecodeHash)
 ```
 
 ### MessageType
