@@ -99,4 +99,6 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     function versionExists(bytes32 _bytecodeHash) external view returns (bool);
 
     function getAllAlternativeVersions(bytes32 _contractType) external view returns (VersionWithAlternative[] memory);
+
+    function getVerifiedInitCodeHash(Types.BytecodeVersion calldata _version) external view returns (bytes32);
 }

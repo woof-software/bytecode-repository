@@ -25,7 +25,7 @@ import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
  *   3. Query stored bytecode availability to verify cross-chain synchronization status and plan deployments.
  *   4. Retrieve bytecode for custom deployment logic or verification purposes through the BytecodeProvider interface.
  * - The contract automatically handles:
- *   1. CCIP message reception and validation from trusted L1DeployManager to ensure bytecode authenticity and prevent malicious injections.
+ *   1. CCIP message reception and validation from trusted L1DeployManager to ensure init code hash authenticity and prevent malicious injections.
  *   2. Bytecode storage using SSTORE2 with automatic chunking for large contracts exceeding network gas limits or size constraints.
  *   3. Address computation using identical salt generation as L1DeployManager, guaranteeing cross-chain address consistency.
  *   4. Integration with factory contracts via BytecodeProvider interface for specialized deployment patterns and protocol-specific logic.
@@ -156,7 +156,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
 
     /// @notice Helper function for receiving messages from L1DeployManager.
     /// @dev The sender of the message from Ethereum must be L1DeployManager.
-    /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its init code gasg for SEND_BYTECODE.
+    /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its init code hash for SEND_BYTECODE.
     /// and address of developer for BECOME_DEVELOPER or REVOKE_DEVELOPER.
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         if (

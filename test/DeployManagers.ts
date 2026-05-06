@@ -12,7 +12,7 @@ const mockRouterFee = ethers.parseEther("0.1");
 const sepoliaSelector = "16015286601757825753";
 const mockChainSelectorId = "1234567890";
 const mockOtherChainId = 123456;
-const gasLimit = 5_000_000;
+const gasLimit = 100_000;
 
 describe("L1/L2 DeployManager", function () {
     const fixture = async () => {
@@ -226,7 +226,6 @@ describe("L1/L2 DeployManager", function () {
         await expect(
             l1DeployManager.connect(users[0]).setChainConfig(2, {
                 l2DeployManager: ethers.ZeroAddress,
-                gasLimit: 120_000,
                 destinationChainSelector: 1000
             })
         ).revertedWithCustomError(l1DeployManager, "OnlyGovernor");

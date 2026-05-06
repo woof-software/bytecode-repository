@@ -510,6 +510,15 @@ contract VersionController is
             );
     }
 
+    /// @notice Returns the hash of a verified bytecode of a specified contract type and version.
+    /// @dev Throws and error if bytecode is not verified by at least one auditor.
+    /// @param _version A bytecode version for which to return init code hash.
+    /// @return Init code hash of specified contract type and version.
+    function getVerifiedInitCodeHash(BytecodeVersion calldata _version) external view returns (bytes32) {
+        if (!isBytecodeVerified(_version)) revert BytecodeNotVerified(_version);
+        return bytecodes[computeBytecodeHash(_version.contractType, _version.version)].initCodeHash;
+    }
+
     /// @notice Returns all alternative versions for given contract type.
     /// @param _contractType A type of contract for which to return alternative versions.
     /// @return Array containing all the alternative versions of given contract type.
