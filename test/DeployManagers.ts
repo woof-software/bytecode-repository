@@ -83,6 +83,7 @@ describe("L1/L2 DeployManager", function () {
             version: { major: 1, minor: 0, patch: 0 },
             alternative: ""
         };
+        const initCodeHash_1_0_0 = ethers.keccak256(CometInitCode);
         const bytecodeHash_1_0_0 = await versionController.computeBytecodeHash(WOOF.contractTypes[0], version);
         const auditReport = "AUDIT_REPORT_URL";
         const signature = await prepareAuditReportSignature(
@@ -170,6 +171,7 @@ describe("L1/L2 DeployManager", function () {
             l2DeployManager,
             bytecodeVersion_1_0_0,
             bytecodeHash_1_0_0,
+            initCodeHash_1_0_0,
             mockBaseToken,
             mockCollateralToken,
             constantPriceFeedAddr,
@@ -179,17 +181,29 @@ describe("L1/L2 DeployManager", function () {
 
     const restore = async () => await loadFixture(fixture);
 
-    it("Should send bytecode to other chain", async () => {
-        const { WOOF, l1DeployManager, l2DeployManager, versionController, bytecodeVersion_1_0_0, bytecodeHash_1_0_0 } =
-            await restore();
+    it("Should send bytecode hash to other chain and create a request", async () => {
+        const {
+            WOOF,
+            l1DeployManager,
+            l2DeployManager,
+            versionController,
+            bytecodeVersion_1_0_0,
+            bytecodeHash_1_0_0,
+            initCodeHash_1_0_0
+        } = await restore();
 
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
 
         const expectedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
-        expect(await l2DeployManager.getVerifiedBytecode(bytecodeVersion_1_0_0)).to.equal(expectedBytecode);
-        expect(await l2DeployManager.versionExists(bytecodeVersion_1_0_0)).to.be.true;
+        // Bytecode should not be verified until uploadBytecode is called
+        await expect(l2DeployManager.getVerifiedBytecode(bytecodeVersion_1_0_0)).revertedWithCustomError(
+            l2DeployManager,
+            "BytecodeIsEmpty"
+        );
+        expect(await l2DeployManager.versionExists(bytecodeVersion_1_0_0)).to.be.false;
+        expect(await l2DeployManager.bytecodeRequested(bytecodeHash_1_0_0)).to.equal(initCodeHash_1_0_0);
         expect(await l1DeployManager.isVersionSentToChain(mockOtherChainId, bytecodeHash_1_0_0)).to.be.true;
     });
 
@@ -290,11 +304,107 @@ describe("L1/L2 DeployManager", function () {
         );
     });
 
-    it("Should deploy contract on L2 after bytecode is sent and developer access is granted", async () => {
+    it("Should upload bytecode on L2 after requesting", async () => {
+        const { WOOF, l1DeployManager, l2DeployManager, versionController, bytecodeVersion_1_0_0, bytecodeHash_1_0_0 } =
+            await restore();
+        const verifiedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+        expect(await l2DeployManager.bytecodeRequested(bytecodeHash_1_0_0)).to.equal(
+            ethers.keccak256(verifiedBytecode)
+        );
+
+        // Upload bytecode on L2
+        await l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode);
+
+        // Do not expect bytecode any longer
+        expect(await l2DeployManager.bytecodeRequested(bytecodeHash_1_0_0)).to.equal(ethers.ZeroHash);
+        expect(await l2DeployManager.versionExists(bytecodeVersion_1_0_0)).to.be.true;
+    });
+
+    it("Should not let upload bytecode if it is not requested", async () => {
+        const { WOOF, l1DeployManager, l2DeployManager, versionController, bytecodeVersion_1_0_0 } = await restore();
+        const verifiedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
+
+        // Upload reverts when bytecode was never requested
+        await expect(l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode)).revertedWithCustomError(
+            l2DeployManager,
+            "BytecodeNotRequested"
+        );
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+
+        // Upload bytecode on L2
+        await l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode);
+
+        // Uploading second time reverts
+        await expect(l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode)).revertedWithCustomError(
+            l2DeployManager,
+            "BytecodeNotRequested"
+        );
+    });
+
+    it("Should not let upload invalid bytecode", async () => {
+        const { WOOF, l1DeployManager, l2DeployManager, bytecodeVersion_1_0_0 } = await restore();
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+
+        // Try to upload invalid bytecode
+        const invalidBytecode = CometExtInitCode;
+        await expect(l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, invalidBytecode)).revertedWithCustomError(
+            l2DeployManager,
+            "InvalidBytecode"
+        );
+    });
+
+    it("Should not let request already uploaded bytecode", async () => {
         const {
             WOOF,
             l1DeployManager,
             l2DeployManager,
+            versionController,
+            bytecodeVersion_1_0_0,
+            bytecodeHash_1_0_0,
+            mockRouter
+        } = await restore();
+
+        // First send bytecode to L2
+        await l1DeployManager
+            .connect(WOOF.keyDeveloper)
+            .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+
+        // Upload bytecode on L2
+        const verifiedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
+        await l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode);
+
+        // Try to send again
+        const selector = ethers.id("BytecodeAlreadyUploaded(bytes32)").slice(0, 10);
+        const encodedArg = ethers.AbiCoder.defaultAbiCoder().encode(["bytes32"], [bytecodeHash_1_0_0]);
+        const revertData = selector + encodedArg.slice(2);
+        await expect(
+            l1DeployManager
+                .connect(WOOF.keyDeveloper)
+                .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee })
+        )
+            .revertedWithCustomError(mockRouter, "ReceiverError")
+            .withArgs(revertData);
+    });
+
+    it("Should deploy contract on L2 after bytecode is sent and uploaded and developer access is granted", async () => {
+        const {
+            WOOF,
+            l1DeployManager,
+            l2DeployManager,
+            versionController,
             bytecodeVersion_1_0_0,
             mockBaseToken,
             mockCollateralToken,
@@ -306,6 +416,10 @@ describe("L1/L2 DeployManager", function () {
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+
+        // Upload bytecode on L2
+        const verifiedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
+        await l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode);
 
         // Become Developer on L2
         await l1DeployManager
@@ -438,6 +552,7 @@ describe("L1/L2 DeployManager", function () {
             WOOF,
             l1DeployManager,
             l2DeployManager,
+            versionController,
             bytecodeVersion_1_0_0,
             mockBaseToken,
             mockCollateralToken,
@@ -449,6 +564,10 @@ describe("L1/L2 DeployManager", function () {
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+
+        // Upload bytecode on L2
+        const verifiedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
+        await l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode);
 
         // Prepare Comet constructor parameters
         const cometConfiguration = {
@@ -547,6 +666,7 @@ describe("L1/L2 DeployManager", function () {
             WOOF,
             l1DeployManager,
             l2DeployManager,
+            versionController,
             bytecodeVersion_1_0_0,
             users,
             mockBaseToken,
@@ -559,6 +679,10 @@ describe("L1/L2 DeployManager", function () {
         await l1DeployManager
             .connect(WOOF.keyDeveloper)
             .sendBytecodeToOtherChain(bytecodeVersion_1_0_0, mockOtherChainId, gasLimit, { value: mockRouterFee });
+
+        // Upload bytecode on L2
+        const verifiedBytecode = await versionController.getVerifiedBytecode(bytecodeVersion_1_0_0);
+        await l2DeployManager.uploadBytecode(bytecodeVersion_1_0_0, verifiedBytecode);
 
         // Prepare Comet constructor parameters
         const cometConfiguration = {

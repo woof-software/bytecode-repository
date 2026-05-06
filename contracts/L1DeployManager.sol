@@ -149,7 +149,11 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
         _ccipSend(
             _chainId,
             _gasLimit,
-            abi.encode(MessageType.SEND_BYTECODE, bytecodeHash, versionController.getVerifiedBytecode(_bytecodeVersion))
+            abi.encode(
+                MessageType.SEND_BYTECODE,
+                bytecodeHash,
+                keccak256(versionController.getVerifiedBytecode(_bytecodeVersion))
+            )
         );
         isVersionSentToChain[_chainId][bytecodeHash] = true;
 
