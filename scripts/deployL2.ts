@@ -145,7 +145,7 @@ async function loadDeploymentConfig(): Promise<L2DeploymentConfig> {
             },
             alternative: ""
         },
-        withAssetList: false // Set to true if extended asset list support is needed
+        withAssetList: true // Set to true if extended asset list support is needed
     };
 
     console.log("      Deployment Configuration:");
