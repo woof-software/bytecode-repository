@@ -33,13 +33,7 @@
  *   once the system has been verified
  * - Final state (after renounceAdminRoleL1.ts): Only permanent governor has DEFAULT_ADMIN_ROLE
  *
- * Contract Types (all assigned to single key developer):
- * - CometWithAssetList, CometExtWithAssetList
- * - CompoundGovernor
- * - VersionController, L1DeployManager, L2DeployManager
- * - MarketFactory, CometFactoryV2
- * - Streamer, StreamerFactory
- * - CometMultiplier, CometCollateralSwap
+ * Contract Types from CONTRACT_TYPES are assigned to a single key developer.
  *
  * BEFORE RUNNING:
  * 1. Update KEY_DEVELOPER address (replace placeholder 0x1234567890123456789012345678901234567890)
@@ -78,11 +72,71 @@ const AUDITORS = [
     { address: "0x7234567890123456789012345678901234567890", name: "Secondary Auditor" }
 ];
 
-// All contract types to be assigned to the key developer
+// All contract types to be assigned to the key developer.
+//
+// bytes32 fits up to 31 ASCII bytes (encodeBytes32String limit). Names longer
+// than 31 bytes are aliased — the canonical name is preserved in a trailing
+// comment. Two existing entries are also aliases dictated by the on-chain
+// factories' hardcoded constants (CometFactoryV2.sol, MarketFactory.sol):
+//   - "CometWithAssetList"     ≡ canonical "CometWithExtendedAssetList"
+//   - "CometExtWithAssetList"  ≡ canonical "CometExtAssetList"
 const CONTRACT_TYPES = [
-    // Comet contracts (Service patch)
-    "CometWithAssetList",
-    "CometExtWithAssetList",
+    // Comet
+    "Comet", //
+    "CometExt",
+    "CometFactory",
+    "CometWithAssetList", // canonical: "CometWithExtendedAssetList"
+    "CometExtWithAssetList", // canonical: "CometExtAssetList"
+    "AssetList",
+    "AssetListFactory",
+    "CometFactoryWithAssetList", // canonical: "CometFactoryWithExtendedAssetList"
+
+    // Bridge Receivers
+    "ArbitrumBridgeReceiver",
+    "LineaBridgeReceiver",
+    "OptimismBridgeReceiver",
+    "PolygonBridgeReceiver",
+    "RoninBridgeReceiver",
+    "ScrollBridgeReceiver",
+
+    // Comet Infra
+    "Configurator",
+    "ConfiguratorProxy",
+    "CometRewards",
+    "CometProxyAdmin",
+
+    // Bulkers
+    "BaseBulker",
+    "MainnetBulker",
+    "MainnetBulkerWithWstETHSupport",
+
+    // Governance
+    "Timelock",
+    "Comp",
+    "CompoundGovernor",
+
+    // Streamer
+    "Streamer",
+    "StreamerFactory",
+
+    // Price feeds
+    "ChainlinkCorrelatedPriceOracle", // canonical: "ChainlinkCorrelatedAssetsPriceOracle"
+    "ConstantPriceFeed",
+    "EACAggregatorProxy",
+    "ERC4626CorrelatedPriceOracle", // canonical: "ERC4626CorrelatedAssetsPriceOracle"
+    "EzETHExchangeRatePriceFeed",
+    "MinMaxConstantPriceFeed",
+    "MultiplicativePriceFeed",
+    "PriceFeedWith4626Support",
+    "RsETHCorrelatedPriceOracle", // canonical: "RsETHCorrelatedAssetsPriceOracle"
+    "RETHCorrelatedAssetsPriceOracle", // 31B — fits as-is
+    "RateBasedCorrelatedPriceOracle", // canonical: "RateBasedCorrelatedAssetsPriceOracle"
+    "RateBasedScalingPriceFeed",
+    "ReverseMultiplicativePriceFeed",
+    "ScalingPriceFeed",
+    "ScalingPriceFeedCustomDesc", // canonical: "ScalingPriceFeedWithCustomDescription"
+    "WBTCPriceFeed",
+    "WstETHCorrelatedPriceOracle", // canonical: "WstETHCorrelatedAssetsPriceOracle"
 
     // Core BR system
     "VersionController",
@@ -92,13 +146,6 @@ const CONTRACT_TYPES = [
     // Factories
     "MarketFactory",
     "CometFactoryV2"
-
-    // CAPO
-    //"ChainlinkCorrelatedAssetsPriceOracle",
-    //"ERC4626CorrelatedAssetsPriceOracle",
-    //"RateBasedCorrelatedAssetsPriceOracle",
-    //"RsETHCorrelatedAssetsPriceOracle",
-    //"WstETHCorrelatedAssetsPriceOracle"
 ];
 
 // ChainConfig struct matches IL1DeployManager.sol:41-44
@@ -147,7 +194,7 @@ function getL2DeploymentInfo(networkName: string): L2DeploymentInfo | null {
 function getL2NetworksForL1(l1ChainId: bigint): string[] {
     // Ethereum Mainnet (1) -> L2 production networks
     if (l1ChainId === 1n) {
-        return ["arbitrum", "optimism", "polygon", "base", "linea", "ronin", "unichain", "mantle", "scroll"];
+        return ["arbitrum", "optimism", "polygon", "base", "linea", "unichain", "mantle", "scroll"];
     } else {
         throw new Error(
             `Unsupported L1 network with chain ID: ${l1ChainId}. ` +
