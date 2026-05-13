@@ -62,15 +62,12 @@ const L1_GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Per
 
 // Developer address for all contract type assignments
 // TODO: Replace with actual developer address before deployment
-const KEY_DEVELOPER = "0x1234567890123456789012345678901234567890"; // Main key developer for all contract types
+const KEY_DEVELOPER = "0x4c894222653870C5e5a346E2c293a75DAC8d77a8"; // Main key developer for all contract types
 
 // Auditors to grant AUDITOR_ROLE.
 // TODO: Replace placeholder addresses with actual auditor addresses before deployment.
 // Add or remove entries as needed.
-const AUDITORS = [
-    { address: "0x7234567890123456789012345678901234567890", name: "Certora Auditor" },
-    { address: "0x7234567890123456789012345678901234567890", name: "Secondary Auditor" }
-];
+const AUDITORS = [{ address: "0x4A3a60ee1007A477EDFccB7182ee7F4Ef876fa25", name: "Certora Auditor" }];
 
 // All contract types to be assigned to the key developer.
 //

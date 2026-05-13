@@ -122,11 +122,61 @@ const config: HardhatUserConfig = {
             chainId: 560048,
             url: envs.HOODI_URL ?? "",
             accounts: [...ethereumTestnetKeys]
+        },
+        arbitrum: {
+            chainId: 42161,
+            url: envs.ARBITRUM_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        optimism: {
+            chainId: 10,
+            url: envs.OPTIMISM_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        polygon: {
+            chainId: 137,
+            url: envs.POLYGON_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        base: {
+            chainId: 8453,
+            url: envs.BASE_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        linea: {
+            chainId: 59144,
+            url: envs.LINEA_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        unichain: {
+            chainId: 130,
+            url: envs.UNICHAIN_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        mantle: {
+            chainId: 5000,
+            url: envs.MANTLE_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
+        },
+        scroll: {
+            chainId: 534352,
+            url: envs.SCROLL_URL ?? "",
+            accounts: [...ethereumMainnetKeys]
         }
     },
     etherscan: {
         // To see supported networks and their identifiers for `apiKey`, run `pnpm hardhat verify --list-networks`.
-        apiKey: envs.ETHERSCAN_API_KEY ?? ""
+        apiKey: envs.ETHERSCAN_API_KEY ?? "",
+        customChains: [
+            {
+                network: "linea",
+                chainId: 59144,
+                urls: {
+                    apiURL: "https://lineascan.build/api",
+                    browserURL: "https://lineascan.build/"
+                }
+            }
+        ]
     },
     sourcify: {
         enabled: enableSourcify
