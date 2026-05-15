@@ -183,7 +183,7 @@ async function main() {
 
         const cometFactoryArgs = [
             INITIAL_VERSION, // initialVersion
-            "0x6e937eDEa2858c2760B74dA605a377078DBd3997", // bytecodeProvider
+            versionControllerAddress, // bytecodeProvider
             GOVERNOR_ADDRESS // timelock (using governor as timelock)
         ];
 
