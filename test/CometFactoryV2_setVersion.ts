@@ -22,7 +22,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             return cometFactoryV2;
         };
 
@@ -78,7 +78,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             return cometFactoryV2;
         };
 
@@ -121,7 +121,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 1n, minor: 2n, patch: 3n },
@@ -144,7 +144,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
 
             const newVersion = {
                 version: { major: 1n, minor: 2n, patch: 1n },
@@ -170,7 +170,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 2n, minor: 0n, patch: 0n },
@@ -193,7 +193,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
 
             const newVersion = {
                 version: { major: 2n, minor: 5n, patch: 7n },
@@ -217,7 +217,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
 
             const newVersion = {
                 version: { major: 2n, minor: 0n, patch: 1n },
@@ -243,7 +243,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 1n, minor: 3n, patch: 0n },
@@ -266,7 +266,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 2n, minor: 0n, patch: 0n },
@@ -291,7 +291,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 1n, minor: 2n, patch: 3n },
@@ -309,7 +309,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 1n, minor: 2n, patch: 3n },
@@ -327,7 +327,7 @@ describe("CometFactoryV2 setVersion()", function () {
                 };
                 const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                     .connect(timelock)
-                    .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                    .deploy(initialVersion, bytecodeProviderMock, timelock);
                 return cometFactoryV2;
             };
 
@@ -365,7 +365,7 @@ describe("CometFactoryV2 setVersion()", function () {
                 };
                 const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                     .connect(timelock)
-                    .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                    .deploy(initialVersion, bytecodeProviderMock, timelock);
                 return cometFactoryV2;
             };
 
@@ -403,7 +403,7 @@ describe("CometFactoryV2 setVersion()", function () {
             };
             const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
                 .connect(timelock)
-                .deploy(initialVersion, bytecodeProviderMock, timelock, true);
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
             // Check
             const newVersion = {
                 version: { major: 1n, minor: 9n, patch: 9n },

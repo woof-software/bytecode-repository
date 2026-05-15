@@ -58,7 +58,6 @@ interface L2DeploymentConfig {
         };
         alternative: string;
     };
-    withAssetList: boolean;
 }
 
 /**
@@ -144,8 +143,7 @@ async function loadDeploymentConfig(): Promise<L2DeploymentConfig> {
                 patch: 0n
             },
             alternative: ""
-        },
-        withAssetList: true // Set to true if extended asset list support is needed
+        }
     };
 
     console.log("      Deployment Configuration:");
@@ -158,7 +156,6 @@ async function loadDeploymentConfig(): Promise<L2DeploymentConfig> {
     console.log(
         `      Initial Version: v${config.initialVersion.version.major}.${config.initialVersion.version.minor}.${config.initialVersion.version.patch}`
     );
-    console.log(`      With Asset List: ${config.withAssetList}`);
 
     return config;
 }
@@ -274,8 +271,7 @@ async function deployCometFactoryV2(
     const cometFactoryV2 = await CometFactoryV2.deploy(
         config.initialVersion,
         l2DeployManagerAddress, // IBytecodeProvider
-        config.timelock,
-        config.withAssetList
+        config.timelock
     );
 
     // Wait for deployment
@@ -290,7 +286,7 @@ async function deployCometFactoryV2(
             "CometFactoryV2",
             cometFactoryV2,
             deploymentTx,
-            [config.initialVersion, l2DeployManagerAddress, config.timelock, config.withAssetList],
+            [config.initialVersion, l2DeployManagerAddress, config.timelock],
             false // Non-upgradeable
         );
     }
@@ -302,7 +298,6 @@ async function deployCometFactoryV2(
     );
     console.log(`      Bytecode Provider: ${l2DeployManagerAddress}`);
     console.log(`      Timelock: ${config.timelock}`);
-    console.log(`      With Asset List: ${config.withAssetList}`);
 
     return address;
 }
