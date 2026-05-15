@@ -1,5 +1,5 @@
 [
-    "constructor(tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) _initialVersion, address _bytecodeProvider, address _timelock, bool _withAssetList)",
+    "constructor(tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) _initialVersion, address _bytecodeProvider, address _timelock)",
     "error Create2EmptyBytecode()",
     "error FailedDeployment()",
     "error InsufficientBalance(uint256 balance, uint256 needed)",
