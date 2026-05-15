@@ -35,7 +35,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0x3fB4d38ea7EC20D91917c09591490Eeda38Cf88A", // Arbitrum Timelock
         cometProxyAdmin: "0xD10b40fF1D92e2267D099Da3509253D9Da4D715e",
         assetListFactory: "0x17867848406f185CEc6ba91142b15086F7399D85",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     optimism: {
@@ -47,7 +47,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07", // Optimism Timelock
         cometProxyAdmin: "0x24D86Da09C4Dd64e50dB7501b0f695d030f397aF",
         assetListFactory: "0x2f7439252Da796Ab9A93f7E478E70DED43Db5B89",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     polygon: {
@@ -59,7 +59,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02", // Polygon Timelock
         cometProxyAdmin: "0xd712ACe4ca490D4F3E92992Ecf3DE12251b975F9",
         assetListFactory: "0x62623C1374D12F946a9CA8597a137BbfBE015665",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     base: {
@@ -71,7 +71,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02", // Base Timelock
         cometProxyAdmin: "0xbdE8F31D2DdDA895264e27DD990faB3DC87b372d",
         assetListFactory: "0x995E394b8B2437aC8Ce61Ee0bC610D617962B214",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     linea: {
@@ -83,7 +83,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0x4A900f81dEdA753bbBab12453b3775D5f26df6F3",
         cometProxyAdmin: "0x4b5DeE60531a72C1264319Ec6A22678a4D0C8118",
         assetListFactory: "0x2F4eAF29dfeeF4654bD091F7112926E108eF4Ed0",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     unichain: {
@@ -95,7 +95,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0x2F4eAF29dfeeF4654bD091F7112926E108eF4Ed0",
         cometProxyAdmin: "0xaeB318360f27748Acb200CE616E389A6C9409a07",
         assetListFactory: "0x4cfCE7795bF75dC3795369A953d9A9b8C2679AE4",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     mantle: {
@@ -107,7 +107,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0x16C7B5C1b10489F4B111af11de2Bd607c9728107", // Mantle Timelock
         cometProxyAdmin: "0xe268B436E75648aa0639e2088fa803feA517a0c7",
         assetListFactory: "0xB88e4078AAc88F10C0Ca71086ddCF512Ec54498a",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     },
 
     scroll: {
@@ -119,7 +119,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         timelock: "0xF6013e80E9e6AC211Cc031ad1CE98B3Aa20b73E4",
         cometProxyAdmin: "0x87A27b91f4130a25E9634d23A5B8E05e342bac50",
         assetListFactory: "0x5404872d8f2e24b230EC9B9eC64E3855F637FB93",
-        l1DeployManager: "0xc6bd44e144d4911bD21c12C74dD18129282C5395" // Will be set from L1 deployment
+        l1DeployManager: "0xC74CFD6BC85b6de0E8B42fac58c52ad3A478f62F" // Will be set from L1 deployment
     }
 };
 
