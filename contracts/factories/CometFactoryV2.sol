@@ -14,7 +14,7 @@ import { BaseFactory } from "./BaseFactory.sol";
  * @notice This factory contract deploys Compound Comet protocol implementations with version control and timelock governance integration for secure protocol upgrades.
  * - The contract is specifically designed for Compound V3 Configurator compatibility, enabling seamless integration with existing Compound governance and deployment infrastructure.
  * - Version management enforces iterative major version upgrades through timelock governance, preventing unauthorized or non-sequential protocol updates.
- * - Support for both standard Comet and CometWithExtendedAssetList variants enables deployment of markets with different asset capacity requirements.
+ * - Deployment targets the CometWithAssetList implementation, enabling markets with extended asset capacity.
  * - Automatic salt generation using an internal counter ensures unique deployment addresses while maintaining deterministic behavior for identical configurations.
  * - Integration with BytecodeRepository ecosystem provides audit verification and cross-chain deployment consistency for Comet protocol implementations.
  * - Timelock (governance contract) is able to:
@@ -22,20 +22,20 @@ import { BaseFactory } from "./BaseFactory.sol";
  *   2. Validate that new versions exist in the BytecodeRepository before approval, ensuring only audited implementations are deployed.
  *   3. Control the pace of protocol upgrades through time-delayed execution and community governance processes.
  * - Anyone is able to:
- *   1. Deploy new Comet implementations using the current approved version with Compound V3-compatible configuration structures.
+ *   1. Deploy new CometWithAssetList implementations using the current approved version with Compound V3-compatible configuration structures.
  *   2. Deploy markets with custom configurations including interest rate models, collateral assets, and protocol parameters.
  * - The contract automatically handles:
  *   1. Bytecode retrieval from BytecodeProvider with version validation and audit verification integration.
  *   2. Salt generation using internal counter to ensure unique addresses while maintaining deployment predictability.
  *   3. Configuration validation and deployment via inherited BaseFactory infrastructure for security and consistency.
- *   4. Support for both standard Comet (limited asset lists) and CometWithAssetList (extended asset capacity) variants.
+ *   4. Deployment of the CometWithAssetList implementation, providing extended asset capacity.
  * - Version constraints ensure protocol security by preventing arbitrary version jumps and requiring sequential major version upgrades.
  * - The factory maintains compatibility with existing Compound tooling while adding BytecodeRepository audit verification and cross-chain deployment capabilities.
  * - Deployment patterns follow Compound V3 standards for seamless integration with existing governance, monitoring, and operational infrastructure.
  */
 contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
-    /// @notice Comet contract type.
-    bytes32 public immutable COMET_CT;
+    /// @notice The contract type deployed by this factory: CometWithAssetList.
+    bytes32 public constant COMET_CT = "CometWithAssetList";
     /// @notice Address of timelock which can set the version of the bytecode.
     address public immutable timelock;
     /// @notice A value used for the salt generation during deployments.
@@ -46,12 +46,10 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
     constructor(
         Types.VersionWithAlternative memory _initialVersion,
         IBytecodeProvider _bytecodeProvider,
-        address _timelock,
-        bool _withAssetList
+        address _timelock
     ) BaseFactory(_bytecodeProvider) {
         timelock = _timelock;
         version = _initialVersion;
-        COMET_CT = _withAssetList ? bytes32("CometWithAssetList") : bytes32("Comet");
     }
 
     /* Timelock functionality */
@@ -96,10 +94,10 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
 
     /* Deploy functionality */
 
-    /// @notice Deploys a new implementation of the Comet with specified version.
+    /// @notice Deploys a new CometWithAssetList implementation with the current version.
     /// @dev The function is compatible with the Compound V3 Configurator smart contract.
-    /// @param config constructor argumets for the Comet.
-    /// @return Address of the newly deployed Comet implementation.
+    /// @param config constructor argumets for the CometWithAssetList.
+    /// @return Address of the newly deployed CometWithAssetList implementation.
     function clone(Configuration calldata config) external returns (address) {
         return
             _deployContractType(

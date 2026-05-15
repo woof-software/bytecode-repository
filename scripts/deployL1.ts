@@ -184,8 +184,7 @@ async function main() {
         const cometFactoryArgs = [
             INITIAL_VERSION, // initialVersion
             versionControllerAddress, // bytecodeProvider
-            GOVERNOR_ADDRESS, // timelock (using governor as timelock)
-            true // withAssetList
+            GOVERNOR_ADDRESS // timelock (using governor as timelock)
         ];
 
         console.log("Deploying contract...");
