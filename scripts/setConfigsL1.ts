@@ -79,9 +79,6 @@ const AUDITORS = [{ address: "0x4A3a60ee1007A477EDFccB7182ee7F4Ef876fa25", name:
 //   - "CometExtWithAssetList"  ≡ canonical "CometExtAssetList"
 const CONTRACT_TYPES = [
     // Comet
-    "Comet", //
-    "CometExt",
-    "CometFactory",
     "CometWithAssetList", // canonical: "CometWithExtendedAssetList"
     "CometExtWithAssetList", // canonical: "CometExtAssetList"
     "AssetList",
@@ -93,7 +90,6 @@ const CONTRACT_TYPES = [
     "LineaBridgeReceiver",
     "OptimismBridgeReceiver",
     "PolygonBridgeReceiver",
-    "RoninBridgeReceiver",
     "ScrollBridgeReceiver",
 
     // Comet Infra
@@ -103,13 +99,11 @@ const CONTRACT_TYPES = [
     "CometProxyAdmin",
 
     // Bulkers
-    "BaseBulker",
     "MainnetBulker",
     "MainnetBulkerWithWstETHSupport",
 
     // Governance
     "Timelock",
-    "Comp",
     "CompoundGovernor",
 
     // Streamer
@@ -119,7 +113,6 @@ const CONTRACT_TYPES = [
     // Price feeds
     "ChainlinkCorrelatedPriceOracle", // canonical: "ChainlinkCorrelatedAssetsPriceOracle"
     "ConstantPriceFeed",
-    "EACAggregatorProxy",
     "ERC4626CorrelatedPriceOracle", // canonical: "ERC4626CorrelatedAssetsPriceOracle"
     "EzETHExchangeRatePriceFeed",
     "MinMaxConstantPriceFeed",
