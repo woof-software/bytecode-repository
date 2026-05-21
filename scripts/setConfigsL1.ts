@@ -83,7 +83,6 @@ const CONTRACT_TYPES = [
     "CometExtWithAssetList", // canonical: "CometExtAssetList"
     "AssetList",
     "AssetListFactory",
-    "CometFactoryWithAssetList", // canonical: "CometFactoryWithExtendedAssetList"
 
     // Bridge Receivers
     "ArbitrumBridgeReceiver",
