@@ -75,31 +75,31 @@ export interface InitialBytecodeEntry {
 export const INITIAL_BYTECODES: InitialBytecodeEntry[] = [
     // ── Core BytecodeRepository contracts (compiled from this repo) ──────────
 
-    {
-        contractType: "VersionController",
-        artifactName: "VersionController",
-        sourceURL: `${REPO_BASE_URL}/contracts/VersionController.sol`
-    },
-    {
-        contractType: "L1DeployManager",
-        artifactName: "L1DeployManager",
-        sourceURL: `${REPO_BASE_URL}/contracts/L1DeployManager.sol`
-    },
-    {
-        contractType: "L2DeployManager",
-        artifactName: "L2DeployManager",
-        sourceURL: `${REPO_BASE_URL}/contracts/L2DeployManager.sol`
-    },
-    {
-        contractType: "CometFactoryV2",
-        artifactName: "CometFactoryV2",
-        sourceURL: `${REPO_BASE_URL}/contracts/factories/CometFactoryV2.sol`
-    },
-    {
-        contractType: "MarketFactory",
-        artifactName: "MarketFactory",
-        sourceURL: `${REPO_BASE_URL}/contracts/factories/MarketFactory.sol`
-    },
+    // {
+    //     contractType: "VersionController",
+    //     artifactName: "VersionController",
+    //     sourceURL: `${REPO_BASE_URL}/contracts/VersionController.sol`
+    // },
+    // {
+    //     contractType: "L1DeployManager",
+    //     artifactName: "L1DeployManager",
+    //     sourceURL: `${REPO_BASE_URL}/contracts/L1DeployManager.sol`
+    // },
+    // {
+    //     contractType: "L2DeployManager",
+    //     artifactName: "L2DeployManager",
+    //     sourceURL: `${REPO_BASE_URL}/contracts/L2DeployManager.sol`
+    // },
+    // {
+    //     contractType: "CometFactoryV2",
+    //     artifactName: "CometFactoryV2",
+    //     sourceURL: `${REPO_BASE_URL}/contracts/factories/CometFactoryV2.sol`
+    // },
+    // {
+    //     contractType: "MarketFactory",
+    //     artifactName: "MarketFactory",
+    //     sourceURL: `${REPO_BASE_URL}/contracts/factories/MarketFactory.sol`
+    // },
 
     // ── Comet Service Patch (woof-software/comet) ──────────
     {
@@ -133,296 +133,296 @@ export const INITIAL_BYTECODES: InitialBytecodeEntry[] = [
             "bytecodes/Comet/AssetListFactory.json",
             "contracts/AssetListFactory.sol"
         )
-    },
-
-    // ── Bridge Receivers (woof-software/comet) ──────────
-    {
-        contractType: "ArbitrumBridgeReceiver",
-        bytecodeFile: "bytecodes/BridgeReceivers/ArbitrumBridgeReceiver.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/BridgeReceivers/ArbitrumBridgeReceiver.json",
-            "contracts/bridges/arbitrum/ArbitrumBridgeReceiver.sol"
-        )
-    },
-    {
-        contractType: "LineaBridgeReceiver",
-        bytecodeFile: "bytecodes/BridgeReceivers/LineaBridgeReceiver.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/BridgeReceivers/LineaBridgeReceiver.json",
-            "contracts/bridges/linea/LineaBridgeReceiver.sol"
-        )
-    },
-    {
-        contractType: "OptimismBridgeReceiver",
-        bytecodeFile: "bytecodes/BridgeReceivers/OptimismBridgeReceiver.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/BridgeReceivers/OptimismBridgeReceiver.json",
-            "contracts/bridges/optimism/OptimismBridgeReceiver.sol"
-        )
-    },
-    {
-        contractType: "PolygonBridgeReceiver",
-        bytecodeFile: "bytecodes/BridgeReceivers/PolygonBridgeReceiver.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/BridgeReceivers/PolygonBridgeReceiver.json",
-            "contracts/bridges/polygon/PolygonBridgeReceiver.sol"
-        )
-    },
-    {
-        contractType: "ScrollBridgeReceiver",
-        bytecodeFile: "bytecodes/BridgeReceivers/ScrollBridgeReceiver.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/BridgeReceivers/ScrollBridgeReceiver.json",
-            "contracts/bridges/scroll/ScrollBridgeReceiver.sol"
-        )
-    },
-
-    // ── Comet Infrastructure (woof-software/comet) ──────────
-    {
-        contractType: "Configurator",
-        bytecodeFile: "bytecodes/CometInfrastructure/Configurator.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/CometInfrastructure/Configurator.json",
-            "contracts/Configurator.sol"
-        )
-    },
-    {
-        contractType: "ConfiguratorProxy",
-        bytecodeFile: "bytecodes/CometInfrastructure/ConfiguratorProxy.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/CometInfrastructure/ConfiguratorProxy.json",
-            "contracts/ConfiguratorProxy.sol"
-        )
-    },
-    {
-        contractType: "CometRewards",
-        bytecodeFile: "bytecodes/CometInfrastructure/CometRewards.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/CometInfrastructure/CometRewards.json",
-            "contracts/CometRewards.sol"
-        )
-    },
-    {
-        contractType: "CometProxyAdmin",
-        bytecodeFile: "bytecodes/CometInfrastructure/CometProxyAdmin.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/CometInfrastructure/CometProxyAdmin.json",
-            "contracts/CometProxyAdmin.sol"
-        )
-    },
-
-    // ── Bulkers (woof-software/comet) ──────────
-    {
-        contractType: "MainnetBulker",
-        bytecodeFile: "bytecodes/Bulkers/MainnetBulker.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/Bulkers/MainnetBulker.json",
-            "contracts/bulkers/MainnetBulker.sol"
-        )
-    },
-    {
-        contractType: "MainnetBulkerWithWstETHSupport",
-        bytecodeFile: "bytecodes/Bulkers/MainnetBulkerWithWstETHSupport.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/Bulkers/MainnetBulkerWithWstETHSupport.json",
-            "contracts/bulkers/MainnetBulkerWithWstETHSupport.sol"
-        )
-    },
-
-    // ── Governance (woof-software/compound-governance) ──────────
-    {
-        contractType: "Timelock",
-        bytecodeFile: "bytecodes/Governance/Timelock.json",
-        sourceURL: pinnedSourceURL(GOVERNANCE_REPO, "bytecodes/Governance/Timelock.json", "contracts/Timelock.sol")
-    },
-    {
-        contractType: "CompoundGovernor",
-        bytecodeFile: "bytecodes/Governance/CompoundGovernor.json",
-        sourceURL: pinnedSourceURL(
-            GOVERNANCE_REPO,
-            "bytecodes/Governance/CompoundGovernor.json",
-            "contracts/CompoundGovernor.sol"
-        )
-    },
-
-    // ── Streamer (woof-software/streamer) ──────────
-    {
-        contractType: "Streamer",
-        bytecodeFile: "bytecodes/Streamer/Streamer.json",
-        sourceURL: pinnedSourceURL(STREAMER_REPO, "bytecodes/Streamer/Streamer.json", "contracts/Streamer.sol")
-    },
-    {
-        contractType: "StreamerFactory",
-        bytecodeFile: "bytecodes/Streamer/StreamerFactory.json",
-        sourceURL: pinnedSourceURL(
-            STREAMER_REPO,
-            "bytecodes/Streamer/StreamerFactory.json",
-            "contracts/StreamerFactory.sol"
-        )
-    },
-
-    // ── CAPO (woof-software/compound-capo) ──────────
-    {
-        contractType: "ChainlinkCorrelatedPriceOracle",
-        bytecodeFile: "bytecodes/PriceFeeds/CAPO/ChainlinkCorrelatedAssetsPriceOracle.json",
-        sourceURL: pinnedSourceURL(
-            CAPO_REPO,
-            "bytecodes/PriceFeeds/CAPO/ChainlinkCorrelatedAssetsPriceOracle.json",
-            "contracts/ChainlinkCorrelatedAssetsPriceOracle.sol"
-        )
-    },
-    {
-        contractType: "ERC4626CorrelatedPriceOracle",
-        bytecodeFile: "bytecodes/PriceFeeds/CAPO/ERC4626CorrelatedAssetsPriceOracle.json",
-        sourceURL: pinnedSourceURL(
-            CAPO_REPO,
-            "bytecodes/PriceFeeds/CAPO/ERC4626CorrelatedAssetsPriceOracle.json",
-            "contracts/ERC4626CorrelatedAssetsPriceOracle.sol"
-        )
-    },
-    {
-        contractType: "RateBasedCorrelatedPriceOracle",
-        bytecodeFile: "bytecodes/PriceFeeds/CAPO/RateBasedCorrelatedAssetsPriceOracle.json",
-        sourceURL: pinnedSourceURL(
-            CAPO_REPO,
-            "bytecodes/PriceFeeds/CAPO/RateBasedCorrelatedAssetsPriceOracle.json",
-            "contracts/RateBasedCorrelatedAssetsPriceOracle.sol"
-        )
-    },
-    {
-        contractType: "RsETHCorrelatedPriceOracle",
-        bytecodeFile: "bytecodes/PriceFeeds/CAPO/RsETHCorrelatedAssetsPriceOracle.json",
-        sourceURL: pinnedSourceURL(
-            CAPO_REPO,
-            "bytecodes/PriceFeeds/CAPO/RsETHCorrelatedAssetsPriceOracle.json",
-            "contracts/RsETHCorrelatedAssetsPriceOracle.sol"
-        )
-    },
-    {
-        contractType: "WstETHCorrelatedPriceOracle",
-        bytecodeFile: "bytecodes/PriceFeeds/CAPO/WstETHCorrelatedAssetsPriceOracle.json",
-        sourceURL: pinnedSourceURL(
-            CAPO_REPO,
-            "bytecodes/PriceFeeds/CAPO/WstETHCorrelatedAssetsPriceOracle.json",
-            "contracts/WstETHCorrelatedAssetsPriceOracle.sol"
-        )
-    },
-
-    // ── RETHCorrelatedAssetsPriceOracle (woof-software/compound-capo) ──────────
-    {
-        contractType: "RETHCorrelatedAssetsPriceOracle",
-        bytecodeFile: "bytecodes/PriceFeeds/RETHCorrelatedAssetsPriceOracle/RETHCorrelatedAssetsPriceOracle.json",
-        sourceURL: pinnedSourceURL(
-            CAPO_REPO,
-            "bytecodes/PriceFeeds/RETHCorrelatedAssetsPriceOracle/RETHCorrelatedAssetsPriceOracle.json",
-            "contracts/RETHCorrelatedAssetsPriceOracle.sol"
-        )
-    },
-
-    // ── Comet Repo Feeds (woof-software/comet) ──────────
-    {
-        contractType: "ConstantPriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ConstantPriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/ConstantPriceFeed.json",
-            "contracts/pricefeeds/ConstantPriceFeed.sol"
-        )
-    },
-    {
-        contractType: "EzETHExchangeRatePriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/EzETHExchangeRatePriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/EzETHExchangeRatePriceFeed.json",
-            "contracts/pricefeeds/EzETHExchangeRatePriceFeed.sol"
-        )
-    },
-    {
-        contractType: "MultiplicativePriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/MultiplicativePriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/MultiplicativePriceFeed.json",
-            "contracts/pricefeeds/MultiplicativePriceFeed.sol"
-        )
-    },
-    {
-        contractType: "PriceFeedWith4626Support",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/PriceFeedWith4626Support.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/PriceFeedWith4626Support.json",
-            "contracts/pricefeeds/PriceFeedWith4626Support.sol"
-        )
-    },
-    {
-        contractType: "RateBasedScalingPriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/RateBasedScalingPriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/RateBasedScalingPriceFeed.json",
-            "contracts/pricefeeds/RateBasedScalingPriceFeed.sol"
-        )
-    },
-    {
-        contractType: "ReverseMultiplicativePriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ReverseMultiplicativePriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/ReverseMultiplicativePriceFeed.json",
-            "contracts/pricefeeds/ReverseMultiplicativePriceFeed.sol"
-        )
-    },
-    {
-        contractType: "ScalingPriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeed.json",
-            "contracts/pricefeeds/ScalingPriceFeed.sol"
-        )
-    },
-    {
-        contractType: "ScalingPriceFeedCustomDesc",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeedWithCustomDescription.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeedWithCustomDescription.json",
-            "contracts/pricefeeds/ScalingPriceFeedWithCustomDescription.sol"
-        )
-    },
-    {
-        contractType: "WBTCPriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/WBTCPriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            COMET_REPO,
-            "bytecodes/PriceFeeds/CometRepoFeeds/WBTCPriceFeed.json",
-            "contracts/pricefeeds/WBTCPriceFeed.sol"
-        )
-    },
-
-    // ── MinMaxConstantPriceFeed (woof-software/compound-pricefeeds) ──────────
-    {
-        contractType: "MinMaxConstantPriceFeed",
-        bytecodeFile: "bytecodes/PriceFeeds/MinMaxConstantPriceFeed/MinMaxConstantPriceFeed.json",
-        sourceURL: pinnedSourceURL(
-            PRICEFEEDS_REPO,
-            "bytecodes/PriceFeeds/MinMaxConstantPriceFeed/MinMaxConstantPriceFeed.json",
-            "contracts/MinMaxConstantPriceFeed.sol"
-        )
     }
+
+    // // ── Bridge Receivers (woof-software/comet) ──────────
+    // {
+    //     contractType: "ArbitrumBridgeReceiver",
+    //     bytecodeFile: "bytecodes/BridgeReceivers/ArbitrumBridgeReceiver.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/BridgeReceivers/ArbitrumBridgeReceiver.json",
+    //         "contracts/bridges/arbitrum/ArbitrumBridgeReceiver.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "LineaBridgeReceiver",
+    //     bytecodeFile: "bytecodes/BridgeReceivers/LineaBridgeReceiver.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/BridgeReceivers/LineaBridgeReceiver.json",
+    //         "contracts/bridges/linea/LineaBridgeReceiver.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "OptimismBridgeReceiver",
+    //     bytecodeFile: "bytecodes/BridgeReceivers/OptimismBridgeReceiver.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/BridgeReceivers/OptimismBridgeReceiver.json",
+    //         "contracts/bridges/optimism/OptimismBridgeReceiver.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "PolygonBridgeReceiver",
+    //     bytecodeFile: "bytecodes/BridgeReceivers/PolygonBridgeReceiver.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/BridgeReceivers/PolygonBridgeReceiver.json",
+    //         "contracts/bridges/polygon/PolygonBridgeReceiver.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "ScrollBridgeReceiver",
+    //     bytecodeFile: "bytecodes/BridgeReceivers/ScrollBridgeReceiver.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/BridgeReceivers/ScrollBridgeReceiver.json",
+    //         "contracts/bridges/scroll/ScrollBridgeReceiver.sol"
+    //     )
+    // },
+
+    // // ── Comet Infrastructure (woof-software/comet) ──────────
+    // {
+    //     contractType: "Configurator",
+    //     bytecodeFile: "bytecodes/CometInfrastructure/Configurator.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/CometInfrastructure/Configurator.json",
+    //         "contracts/Configurator.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "ConfiguratorProxy",
+    //     bytecodeFile: "bytecodes/CometInfrastructure/ConfiguratorProxy.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/CometInfrastructure/ConfiguratorProxy.json",
+    //         "contracts/ConfiguratorProxy.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "CometRewards",
+    //     bytecodeFile: "bytecodes/CometInfrastructure/CometRewards.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/CometInfrastructure/CometRewards.json",
+    //         "contracts/CometRewards.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "CometProxyAdmin",
+    //     bytecodeFile: "bytecodes/CometInfrastructure/CometProxyAdmin.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/CometInfrastructure/CometProxyAdmin.json",
+    //         "contracts/CometProxyAdmin.sol"
+    //     )
+    // },
+
+    // // ── Bulkers (woof-software/comet) ──────────
+    // {
+    //     contractType: "MainnetBulker",
+    //     bytecodeFile: "bytecodes/Bulkers/MainnetBulker.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/Bulkers/MainnetBulker.json",
+    //         "contracts/bulkers/MainnetBulker.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "MainnetBulkerWithWstETHSupport",
+    //     bytecodeFile: "bytecodes/Bulkers/MainnetBulkerWithWstETHSupport.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/Bulkers/MainnetBulkerWithWstETHSupport.json",
+    //         "contracts/bulkers/MainnetBulkerWithWstETHSupport.sol"
+    //     )
+    // },
+
+    // // ── Governance (woof-software/compound-governance) ──────────
+    // {
+    //     contractType: "Timelock",
+    //     bytecodeFile: "bytecodes/Governance/Timelock.json",
+    //     sourceURL: pinnedSourceURL(GOVERNANCE_REPO, "bytecodes/Governance/Timelock.json", "contracts/Timelock.sol")
+    // },
+    // {
+    //     contractType: "CompoundGovernor",
+    //     bytecodeFile: "bytecodes/Governance/CompoundGovernor.json",
+    //     sourceURL: pinnedSourceURL(
+    //         GOVERNANCE_REPO,
+    //         "bytecodes/Governance/CompoundGovernor.json",
+    //         "contracts/CompoundGovernor.sol"
+    //     )
+    // },
+
+    // // ── Streamer (woof-software/streamer) ──────────
+    // {
+    //     contractType: "Streamer",
+    //     bytecodeFile: "bytecodes/Streamer/Streamer.json",
+    //     sourceURL: pinnedSourceURL(STREAMER_REPO, "bytecodes/Streamer/Streamer.json", "contracts/Streamer.sol")
+    // },
+    // {
+    //     contractType: "StreamerFactory",
+    //     bytecodeFile: "bytecodes/Streamer/StreamerFactory.json",
+    //     sourceURL: pinnedSourceURL(
+    //         STREAMER_REPO,
+    //         "bytecodes/Streamer/StreamerFactory.json",
+    //         "contracts/StreamerFactory.sol"
+    //     )
+    // },
+
+    // // ── CAPO (woof-software/compound-capo) ──────────
+    // {
+    //     contractType: "ChainlinkCorrelatedPriceOracle",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CAPO/ChainlinkCorrelatedAssetsPriceOracle.json",
+    //     sourceURL: pinnedSourceURL(
+    //         CAPO_REPO,
+    //         "bytecodes/PriceFeeds/CAPO/ChainlinkCorrelatedAssetsPriceOracle.json",
+    //         "contracts/ChainlinkCorrelatedAssetsPriceOracle.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "ERC4626CorrelatedPriceOracle",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CAPO/ERC4626CorrelatedAssetsPriceOracle.json",
+    //     sourceURL: pinnedSourceURL(
+    //         CAPO_REPO,
+    //         "bytecodes/PriceFeeds/CAPO/ERC4626CorrelatedAssetsPriceOracle.json",
+    //         "contracts/ERC4626CorrelatedAssetsPriceOracle.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "RateBasedCorrelatedPriceOracle",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CAPO/RateBasedCorrelatedAssetsPriceOracle.json",
+    //     sourceURL: pinnedSourceURL(
+    //         CAPO_REPO,
+    //         "bytecodes/PriceFeeds/CAPO/RateBasedCorrelatedAssetsPriceOracle.json",
+    //         "contracts/RateBasedCorrelatedAssetsPriceOracle.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "RsETHCorrelatedPriceOracle",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CAPO/RsETHCorrelatedAssetsPriceOracle.json",
+    //     sourceURL: pinnedSourceURL(
+    //         CAPO_REPO,
+    //         "bytecodes/PriceFeeds/CAPO/RsETHCorrelatedAssetsPriceOracle.json",
+    //         "contracts/RsETHCorrelatedAssetsPriceOracle.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "WstETHCorrelatedPriceOracle",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CAPO/WstETHCorrelatedAssetsPriceOracle.json",
+    //     sourceURL: pinnedSourceURL(
+    //         CAPO_REPO,
+    //         "bytecodes/PriceFeeds/CAPO/WstETHCorrelatedAssetsPriceOracle.json",
+    //         "contracts/WstETHCorrelatedAssetsPriceOracle.sol"
+    //     )
+    // },
+
+    // // ── RETHCorrelatedAssetsPriceOracle (woof-software/compound-capo) ──────────
+    // {
+    //     contractType: "RETHCorrelatedAssetsPriceOracle",
+    //     bytecodeFile: "bytecodes/PriceFeeds/RETHCorrelatedAssetsPriceOracle/RETHCorrelatedAssetsPriceOracle.json",
+    //     sourceURL: pinnedSourceURL(
+    //         CAPO_REPO,
+    //         "bytecodes/PriceFeeds/RETHCorrelatedAssetsPriceOracle/RETHCorrelatedAssetsPriceOracle.json",
+    //         "contracts/RETHCorrelatedAssetsPriceOracle.sol"
+    //     )
+    // },
+
+    // // ── Comet Repo Feeds (woof-software/comet) ──────────
+    // {
+    //     contractType: "ConstantPriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ConstantPriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/ConstantPriceFeed.json",
+    //         "contracts/pricefeeds/ConstantPriceFeed.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "EzETHExchangeRatePriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/EzETHExchangeRatePriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/EzETHExchangeRatePriceFeed.json",
+    //         "contracts/pricefeeds/EzETHExchangeRatePriceFeed.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "MultiplicativePriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/MultiplicativePriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/MultiplicativePriceFeed.json",
+    //         "contracts/pricefeeds/MultiplicativePriceFeed.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "PriceFeedWith4626Support",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/PriceFeedWith4626Support.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/PriceFeedWith4626Support.json",
+    //         "contracts/pricefeeds/PriceFeedWith4626Support.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "RateBasedScalingPriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/RateBasedScalingPriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/RateBasedScalingPriceFeed.json",
+    //         "contracts/pricefeeds/RateBasedScalingPriceFeed.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "ReverseMultiplicativePriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ReverseMultiplicativePriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/ReverseMultiplicativePriceFeed.json",
+    //         "contracts/pricefeeds/ReverseMultiplicativePriceFeed.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "ScalingPriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeed.json",
+    //         "contracts/pricefeeds/ScalingPriceFeed.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "ScalingPriceFeedCustomDesc",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeedWithCustomDescription.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/ScalingPriceFeedWithCustomDescription.json",
+    //         "contracts/pricefeeds/ScalingPriceFeedWithCustomDescription.sol"
+    //     )
+    // },
+    // {
+    //     contractType: "WBTCPriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/CometRepoFeeds/WBTCPriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         COMET_REPO,
+    //         "bytecodes/PriceFeeds/CometRepoFeeds/WBTCPriceFeed.json",
+    //         "contracts/pricefeeds/WBTCPriceFeed.sol"
+    //     )
+    // },
+
+    // // ── MinMaxConstantPriceFeed (woof-software/compound-pricefeeds) ──────────
+    // {
+    //     contractType: "MinMaxConstantPriceFeed",
+    //     bytecodeFile: "bytecodes/PriceFeeds/MinMaxConstantPriceFeed/MinMaxConstantPriceFeed.json",
+    //     sourceURL: pinnedSourceURL(
+    //         PRICEFEEDS_REPO,
+    //         "bytecodes/PriceFeeds/MinMaxConstantPriceFeed/MinMaxConstantPriceFeed.json",
+    //         "contracts/MinMaxConstantPriceFeed.sol"
+    //     )
+    // }
 
     // ── External contracts (loaded from bytecode files) ─────────────────────
     //
