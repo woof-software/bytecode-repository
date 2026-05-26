@@ -33,13 +33,7 @@
  *   once the system has been verified
  * - Final state (after renounceAdminRoleL1.ts): Only permanent governor has DEFAULT_ADMIN_ROLE
  *
- * Contract Types (all assigned to single key developer):
- * - CometWithAssetList, CometExtWithAssetList
- * - CompoundGovernor
- * - VersionController, L1DeployManager, L2DeployManager
- * - MarketFactory, CometFactoryV2
- * - Streamer, StreamerFactory
- * - CometMultiplier, CometCollateralSwap
+ * Contract Types from CONTRACT_TYPES are assigned to a single key developer.
  *
  * BEFORE RUNNING:
  * 1. Update KEY_DEVELOPER address (replace placeholder 0x1234567890123456789012345678901234567890)
@@ -68,21 +62,70 @@ const L1_GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Per
 
 // Developer address for all contract type assignments
 // TODO: Replace with actual developer address before deployment
-const KEY_DEVELOPER = "0x1234567890123456789012345678901234567890"; // Main key developer for all contract types
+const KEY_DEVELOPER = "0x4c894222653870C5e5a346E2c293a75DAC8d77a8"; // Main key developer for all contract types
 
 // Auditors to grant AUDITOR_ROLE.
 // TODO: Replace placeholder addresses with actual auditor addresses before deployment.
 // Add or remove entries as needed.
-const AUDITORS = [
-    { address: "0x7234567890123456789012345678901234567890", name: "Certora Auditor" },
-    { address: "0x7234567890123456789012345678901234567890", name: "Secondary Auditor" }
-];
+const AUDITORS = [{ address: "0x4A3a60ee1007A477EDFccB7182ee7F4Ef876fa25", name: "Certora Auditor" }];
 
-// All contract types to be assigned to the key developer
+// All contract types to be assigned to the key developer.
+//
+// bytes32 fits up to 31 ASCII bytes (encodeBytes32String limit). Names longer
+// than 31 bytes are aliased — the canonical name is preserved in a trailing
+// comment. Two existing entries are also aliases dictated by the on-chain
+// factories' hardcoded constants (CometFactoryV2.sol, MarketFactory.sol):
+//   - "CometWithAssetList"     ≡ canonical "CometWithExtendedAssetList"
+//   - "CometExtWithAssetList"  ≡ canonical "CometExtAssetList"
 const CONTRACT_TYPES = [
-    // Comet contracts (Service patch)
-    "CometWithAssetList",
-    "CometExtWithAssetList",
+    // Comet
+    "CometWithAssetList", // canonical: "CometWithExtendedAssetList"
+    "CometExtWithAssetList", // canonical: "CometExtAssetList"
+    "AssetList",
+    "AssetListFactory",
+
+    // Bridge Receivers
+    "ArbitrumBridgeReceiver",
+    "LineaBridgeReceiver",
+    "OptimismBridgeReceiver",
+    "PolygonBridgeReceiver",
+    "ScrollBridgeReceiver",
+
+    // Comet Infra
+    "Configurator",
+    "ConfiguratorProxy",
+    "CometRewards",
+    "CometProxyAdmin",
+
+    // Bulkers
+    "MainnetBulker",
+    "MainnetBulkerWithWstETHSupport",
+
+    // Governance
+    "Timelock",
+    "CompoundGovernor",
+
+    // Streamer
+    "Streamer",
+    "StreamerFactory",
+
+    // Price feeds
+    "ChainlinkCorrelatedPriceOracle", // canonical: "ChainlinkCorrelatedAssetsPriceOracle"
+    "ConstantPriceFeed",
+    "ERC4626CorrelatedPriceOracle", // canonical: "ERC4626CorrelatedAssetsPriceOracle"
+    "EzETHExchangeRatePriceFeed",
+    "MinMaxConstantPriceFeed",
+    "MultiplicativePriceFeed",
+    "PriceFeedWith4626Support",
+    "RsETHCorrelatedPriceOracle", // canonical: "RsETHCorrelatedAssetsPriceOracle"
+    "RETHCorrelatedAssetsPriceOracle", // 31B — fits as-is
+    "RateBasedCorrelatedPriceOracle", // canonical: "RateBasedCorrelatedAssetsPriceOracle"
+    "RateBasedScalingPriceFeed",
+    "ReverseMultiplicativePriceFeed",
+    "ScalingPriceFeed",
+    "ScalingPriceFeedCustomDesc", // canonical: "ScalingPriceFeedWithCustomDescription"
+    "WBTCPriceFeed",
+    "WstETHCorrelatedPriceOracle", // canonical: "WstETHCorrelatedAssetsPriceOracle"
 
     // Core BR system
     "VersionController",
@@ -92,13 +135,6 @@ const CONTRACT_TYPES = [
     // Factories
     "MarketFactory",
     "CometFactoryV2"
-
-    // CAPO
-    //"ChainlinkCorrelatedAssetsPriceOracle",
-    //"ERC4626CorrelatedAssetsPriceOracle",
-    //"RateBasedCorrelatedAssetsPriceOracle",
-    //"RsETHCorrelatedAssetsPriceOracle",
-    //"WstETHCorrelatedAssetsPriceOracle"
 ];
 
 // ChainConfig struct matches IL1DeployManager.sol:41-44
@@ -147,7 +183,7 @@ function getL2DeploymentInfo(networkName: string): L2DeploymentInfo | null {
 function getL2NetworksForL1(l1ChainId: bigint): string[] {
     // Ethereum Mainnet (1) -> L2 production networks
     if (l1ChainId === 1n) {
-        return ["arbitrum", "optimism", "polygon", "base", "linea", "ronin", "unichain", "mantle", "scroll"];
+        return ["arbitrum", "optimism", "polygon", "base", "linea", "unichain", "mantle", "scroll"];
     } else {
         throw new Error(
             `Unsupported L1 network with chain ID: ${l1ChainId}. ` +
