@@ -58,7 +58,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         destinationChainSelector: "4051577828743386545", // Polygon CCIP selector
         timelock: "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02", // Polygon Timelock
         cometProxyAdmin: "0xd712ACe4ca490D4F3E92992Ecf3DE12251b975F9",
-        assetListFactory: "0xF372E84282FD0F5c631076aD8b9Da6B901E53c78",
+        assetListFactory: "0x62623C1374D12F946a9CA8597a137BbfBE015665",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
@@ -86,18 +86,6 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 
-    ronin: {
-        name: "ronin",
-        chainId: 2020,
-        ccipRouter: "0x46527571D5D1B68eE7Eb60B18A32e6C60DcEAf99",
-        sourceChainSelector: "5009297550715157269", // Ethereum Mainnet CCIP selector
-        destinationChainSelector: "6916147374840168594", // Ronin CCIP selector
-        timelock: "0xBbb0Ebd903fafbb8fFF58B922fD0CD85E251ac2c",
-        cometProxyAdmin: "0xfa64A82a3d13D4c05d5133E53b2EbB8A0FA9c3F6",
-        assetListFactory: "0x84fc63de5d127e9c074c1da6591ee8fa70a60de1",
-        l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
-    },
-
     unichain: {
         name: "unichain",
         chainId: 130,
@@ -118,7 +106,7 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
         destinationChainSelector: "1556008542357238666", // Mantle CCIP selector
         timelock: "0x16C7B5C1b10489F4B111af11de2Bd607c9728107", // Mantle Timelock
         cometProxyAdmin: "0xe268B436E75648aa0639e2088fa803feA517a0c7",
-        assetListFactory: "0x0dAf7A2772C84A82D1D46a4b628151e6D7F5b202",
+        assetListFactory: "0xB88e4078AAc88F10C0Ca71086ddCF512Ec54498a",
         l1DeployManager: "0x1234567890123456789012345678901234567890" // Will be set from L1 deployment
     },
 

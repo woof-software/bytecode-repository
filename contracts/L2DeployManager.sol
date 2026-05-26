@@ -25,7 +25,7 @@ import { IL2DeployManager } from "./interfaces/IL2DeployManager.sol";
  *   3. Query stored bytecode availability to verify cross-chain synchronization status and plan deployments.
  *   4. Retrieve bytecode for custom deployment logic or verification purposes through the BytecodeProvider interface.
  * - The contract automatically handles:
- *   1. CCIP message reception and validation from trusted L1DeployManager to ensure bytecode authenticity and prevent malicious injections.
+ *   1. CCIP message reception and validation from trusted L1DeployManager to ensure init code hash authenticity and prevent malicious injections.
  *   2. Bytecode storage using SSTORE2 with automatic chunking for large contracts exceeding network gas limits or size constraints.
  *   3. Address computation using identical salt generation as L1DeployManager, guaranteeing cross-chain address consistency.
  *   4. Integration with factory contracts via BytecodeProvider interface for specialized deployment patterns and protocol-specific logic.
@@ -43,6 +43,8 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
     address public immutable l1DeployManager;
     /// @notice The address of local timelock.
     address public immutable localTimelock;
+    /// @notice Hash of bytecode, which should be uploaded. If non-empty, an init code which generates the exact hash must be uploaded.
+    mapping(bytes32 => bytes32) public bytecodeRequested;
     /// @notice Address pointers at which parts of bytecode are stored. Contract types => pointers.
     mapping(bytes32 => address[]) private storedBytecodePtrs;
     /// @notice A timestamp until which the account has a developer role on current chain.
@@ -86,6 +88,25 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
 
         emit ContractDeployed(_bytecodeVersion, _constructorParams, newContract, msg.sender);
         return newContract;
+    }
+
+    /// @notice Uploads init code for a requested bytecode version.
+    /// @dev Uploading must first be requested via L1 through CCIP.
+    /// @dev The hash of init code must match the hash stored in _ccipReceive.
+    /// @dev Anyone can upload bytecode as long as valid init code is provided.
+    /// @param _bytecodeVersion Version of bytecode for which to upload.
+    /// @param _initCode Valid init code matching stored init code hash to upload.
+    function uploadBytecode(Types.BytecodeVersion calldata _bytecodeVersion, bytes calldata _initCode) external {
+        bytes32 bytecodeHash = BytecodeStore._computeBytecodeHash(
+            _bytecodeVersion.contractType,
+            _bytecodeVersion.version
+        );
+        bytes32 initCodeHash = keccak256(_initCode);
+        if (bytecodeRequested[bytecodeHash] == bytes32(0)) revert BytecodeNotRequested(bytecodeHash);
+        if (bytecodeRequested[bytecodeHash] != initCodeHash) revert InvalidBytecode(bytecodeHash, initCodeHash);
+        storedBytecodePtrs[bytecodeHash] = BytecodeStore._writeInitCode(_initCode);
+        delete bytecodeRequested[bytecodeHash];
+        emit BytecodeUploaded(bytecodeHash);
     }
 
     /* View functions */
@@ -135,7 +156,7 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
 
     /// @notice Helper function for receiving messages from L1DeployManager.
     /// @dev The sender of the message from Ethereum must be L1DeployManager.
-    /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its bytecode for SEND_BYTECODE.
+    /// @param any2EvmMessage params necessary for the cross-chain message. Data contains bytecode hash and its init code hash for SEND_BYTECODE.
     /// and address of developer for BECOME_DEVELOPER or REVOKE_DEVELOPER.
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         if (
@@ -144,13 +165,14 @@ contract L2DeployManager is IL2DeployManager, IBytecodeProvider, CCIPReceiver {
         ) revert InvalidSender();
         MessageType mt = abi.decode(any2EvmMessage.data, (MessageType));
         if (mt == MessageType.SEND_BYTECODE) {
-            (, bytes32 bytecodeHash, bytes memory initCode) = abi.decode(
+            (, bytes32 bytecodeHash, bytes32 initCodeHash) = abi.decode(
                 any2EvmMessage.data,
-                (MessageType, bytes32, bytes)
+                (MessageType, bytes32, bytes32)
             );
-            storedBytecodePtrs[bytecodeHash] = BytecodeStore._writeInitCode(initCode);
+            if (storedBytecodePtrs[bytecodeHash].length != 0) revert BytecodeAlreadyUploaded(bytecodeHash);
+            bytecodeRequested[bytecodeHash] = initCodeHash;
 
-            emit BytecodeReceived(any2EvmMessage.messageId, bytecodeHash);
+            emit BytecodeRequested(any2EvmMessage.messageId, bytecodeHash, initCodeHash);
         } else if (mt == MessageType.BECOME_DEVELOPER) {
             (, address developer) = abi.decode(any2EvmMessage.data, (MessageType, address));
             developerUntil[developer] = block.timestamp + DEVELOPER_ACCESS_DURATION;

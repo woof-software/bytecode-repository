@@ -44,11 +44,6 @@
                 "internalType": "address",
                 "name": "_timelock",
                 "type": "address"
-            },
-            {
-                "internalType": "bool",
-                "name": "_withAssetList",
-                "type": "bool"
             }
         ],
         "stateMutability": "nonpayable",

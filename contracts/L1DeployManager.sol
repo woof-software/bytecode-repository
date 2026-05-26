@@ -31,7 +31,7 @@ import { IL1DeployManager } from "./interfaces/IL1DeployManager.sol";
  *   1. Donate ETH to the contract to subsidize cross-chain message costs for developers and community deployments.
  *   2. Query chain configurations and deployment status for transparency and integration planning.
  * - The contract validates bytecode audit status before deployment, ensuring only auditor-verified contracts reach production networks.
- * - CCIP message encoding includes bytecode hash and full initCode, with automatic chunking via SSTORE2 for large contracts exceeding network limits.
+ * - CCIP message encoding includes bytecode hash and initCode hash, requesting an upload of bytecode on other chain.
  * - Address computation matches L2DeployManager behavior exactly, guaranteeing identical contract addresses across all supported networks.
  * - The contract serves as the canonical L1 coordinator for the BytecodeRepository ecosystem, bridging audited bytecode storage with multi-chain deployment execution.
  */
@@ -146,11 +146,14 @@ contract L1DeployManager is IL1DeployManager, UUPSUpgradeable {
             _bytecodeVersion.contractType,
             _bytecodeVersion.version
         );
-        if (isVersionSentToChain[_chainId][bytecodeHash]) revert BytecodeAlreadySent(_chainId, bytecodeHash);
         _ccipSend(
             _chainId,
             _gasLimit,
-            abi.encode(MessageType.SEND_BYTECODE, bytecodeHash, versionController.getVerifiedBytecode(_bytecodeVersion))
+            abi.encode(
+                MessageType.SEND_BYTECODE,
+                bytecodeHash,
+                versionController.getVerifiedInitCodeHash(_bytecodeVersion)
+            )
         );
         isVersionSentToChain[_chainId][bytecodeHash] = true;
 

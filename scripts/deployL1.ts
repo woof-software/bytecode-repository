@@ -13,7 +13,7 @@ import { DeploymentManager, waitForConfirmations, logDeploymentStep } from "./ut
  *
  * Production Configuration:
  * - Governor: 0x6d903f6003cca6255D85CcA4D3B5E5146dC33925 (Ethereum Mainnet Timelock)
- * - Guardian: 0x7d903f6003cca6255D85CcA4D3B5E5146dC33926 (Guardian for cooldown resets)
+ * - Guardian: 0xbbf3f1421D886E9b2c5D716B5192aC998af2012c (Guardian for cooldown resets)
  * - CCIP Router: 0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D (Ethereum Mainnet CCIP Router)
  *
  * Usage:
@@ -184,8 +184,7 @@ async function main() {
         const cometFactoryArgs = [
             INITIAL_VERSION, // initialVersion
             versionControllerAddress, // bytecodeProvider
-            GOVERNOR_ADDRESS, // timelock (using governor as timelock)
-            true // withAssetList
+            GOVERNOR_ADDRESS // timelock (using governor as timelock)
         ];
 
         console.log("Deploying contract...");

@@ -353,6 +353,17 @@
         "type": "error"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "NotGovernorOrGuadian",
+        "type": "error"
+    },
+    {
         "inputs": [],
         "name": "NotInitializing",
         "type": "error"
@@ -1487,6 +1498,66 @@
                 "internalType": "bytes",
                 "name": "",
                 "type": "bytes"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_version",
+                "type": "tuple"
+            }
+        ],
+        "name": "getVerifiedInitCodeHash",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
             }
         ],
         "stateMutability": "view",

@@ -61,11 +61,11 @@ A cross-chain smart contract bytecode repository system that enables secure, ver
 
 **📡 L2DeployManager** - L2 deployment receiver that ensures bytecode integrity
 
-- CCIP message receiver for secure cross-chain bytecode synchronization
+- CCIP message receiver for cross-chain bytecode requests: L1 commits only `(bytecodeHash, initCodeHash)` per message, keeping the receive cost constant (~30k gas) and well under CCIP's per-message gas cap regardless of contract size
+- Permissionless `uploadBytecode` function: anyone can supply the full init code on L2, accepted only if `keccak256(initCode)` matches the hash committed from L1 — integrity is enforced cryptographically without restricting who pays the upload gas
 - SSTORE2-based storage system for gas-efficient bytecode persistence on L2s
 - CREATE2 deployment matching L1 addresses for consistent multi-chain presence
 - Factory integration for specialized contract types deployment (Comet, Market, etc.)
-- Automatic bytecode validation and verification before storage
 - Developers can request deployment access through L1DeployManager
 
 **🏭 BaseFactory** - Abstract deployment factory with standardized patterns
@@ -139,9 +139,10 @@ BytecodeRepository provides a **three-layer solution**:
 
 **How it works**:
 
-- L1DeployManager encodes bytecode and version information into CCIP messages.
+- L1DeployManager sends a compact `(bytecodeHash, initCodeHash)` commitment via CCIP — not the bytecode itself. This keeps the cross-chain payload tiny and the L2 receive gas constant, fitting comfortably inside CCIP's per-message gas limit even for the largest contracts (full Comet exceeds 4M gas to write, well past CCIP's cap).
 - Messages are validated by Chainlink's Risk Management Network.
-- L2DeployManager receives and validates messages before storing bytecode.
+- L2DeployManager receives the commitment and records `bytecodeRequested[bytecodeHash] = initCodeHash`.
+- Anyone may then call `uploadBytecode(version, initCode)` on L2DeployManager. The init code is accepted only if `keccak256(initCode)` matches the committed `initCodeHash`, guaranteeing the stored bytes are exactly what L1 audited.
 
 #### 3. CREATE2 Deterministic Deployment
 
@@ -473,10 +474,14 @@ npx hardhat run scripts/cli/submitAuditReport.ts --network ethereum -- \
 
 ### Phase 4: Cross-chain Distribution 🌐
 
-**Step 1: L1 to L2 Transmission**
+Cross-chain distribution is a **two-step** process: L1 commits the bytecode hash via CCIP, then anyone uploads the matching init code on L2. Splitting the steps lets the system ship arbitrarily large contracts — the CCIP message itself is constant-size.
+
+**Step 1: L1 commits the bytecode hash via CCIP**
+
+`sendBytecodeToOtherChain` reads the audit-verified `initCodeHash` from VersionController and sends only the `(bytecodeHash, initCodeHash)` pair across CCIP — never the full bytecode.
 
 ```solidity
-// Send audited bytecode to L2 networks. Any user with the developer role can initiate the operation for any audited bytecode.
+// Audited bytecode version to make available on another chain. Any user with the developer role can initiate the operation for any audited bytecode.
 BytecodeVersion memory bytecodeVersion = BytecodeVersion({
     contractType: "Comet",
     version: VersionWithAlternative({
@@ -485,19 +490,40 @@ BytecodeVersion memory bytecodeVersion = BytecodeVersion({
     })
 });
 
-// Send to Arbitrum
-l1DeployManager.sendBytecodeToChain(42161, bytecodeVersion);
+// L2 _ccipReceive consumes ~30k gas; 100k is a comfortable margin for ABI/decode overhead
+uint256 ccipGasLimit = 100_000;
 
-// Send to Polygon
-l1DeployManager.sendBytecodeToChain(137, bytecodeVersion);
+// Commit the hash to Arbitrum, Polygon, Optimism. msg.value pays the CCIP fee
+// (or the contract's donated balance is used if available).
+l1DeployManager.sendBytecodeToOtherChain{ value: ccipFee }(bytecodeVersion, 42161, ccipGasLimit);
+l1DeployManager.sendBytecodeToOtherChain{ value: ccipFee }(bytecodeVersion, 137, ccipGasLimit);
+l1DeployManager.sendBytecodeToOtherChain{ value: ccipFee }(bytecodeVersion, 10, ccipGasLimit);
 
-// Send to Optimism
-l1DeployManager.sendBytecodeToChain(10, bytecodeVersion);
-
-// At this point, no additional actions is required.
-//CCIP handles the routing of the message.
-//L2DeployManager validates received message and stores the bytecode.
+// After CCIP delivery, L2DeployManager._ccipReceive records:
+//   bytecodeRequested[bytecodeHash] = initCodeHash
+// and emits BytecodeRequested(messageId, bytecodeHash, initCodeHash).
 ```
+
+**Step 2: Anyone uploads the actual init code on L2**
+
+Once the request is recorded on L2, any account can supply the bytes. The contract accepts the upload only if `keccak256(initCode)` equals the `initCodeHash` committed by L1 — so the upload is permissionless without weakening integrity. Front-runners cannot inject malicious bytecode; they would just be doing the work for someone else.
+
+```solidity
+// initCode can be obtained from VersionController on L1 (getVerifiedBytecode) or
+// from any public source matching the audited release.
+bytes memory initCode = /* full init code matching the L1-committed hash */;
+
+l2DeployManager.uploadBytecode(bytecodeVersion, initCode);
+
+// L2DeployManager:
+// 1. Recomputes bytecodeHash from version
+// 2. Reverts if no matching request is pending (BytecodeNotRequested)
+// 3. Reverts if keccak256(initCode) != bytecodeRequested[bytecodeHash] (InvalidBytecode)
+// 4. Stores the init code via SSTORE2 (chunked across multiple data contracts)
+// 5. Clears bytecodeRequested[bytecodeHash] and emits BytecodeUploaded(bytecodeHash)
+```
+
+After this step the bytecode is available for `deploy()` calls on L2DeployManager and any factory that uses the BytecodeProvider interface.
 
 ### Phase 5: Deployment Scenarios 🚀
 

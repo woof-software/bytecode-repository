@@ -26,8 +26,30 @@
         "type": "constructor"
     },
     {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeAlreadyUploaded",
+        "type": "error"
+    },
+    {
         "inputs": [],
         "name": "BytecodeIsEmpty",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeNotRequested",
         "type": "error"
     },
     {
@@ -59,6 +81,22 @@
             }
         ],
         "name": "InsufficientBalance",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_initCodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "InvalidBytecode",
         "type": "error"
     },
     {
@@ -106,9 +144,28 @@
                 "internalType": "bytes32",
                 "name": "_bytecodeHash",
                 "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_initCodeHash",
+                "type": "bytes32"
             }
         ],
-        "name": "BytecodeReceived",
+        "name": "BytecodeRequested",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "_bytecodeHash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BytecodeUploaded",
         "type": "event"
     },
     {
@@ -217,6 +274,25 @@
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "bytecodeRequested",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
             }
         ],
         "stateMutability": "view",
@@ -586,6 +662,65 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "contractType",
+                        "type": "bytes32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "major",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "minor",
+                                        "type": "uint64"
+                                    },
+                                    {
+                                        "internalType": "uint64",
+                                        "name": "patch",
+                                        "type": "uint64"
+                                    }
+                                ],
+                                "internalType": "struct Types.Version",
+                                "name": "version",
+                                "type": "tuple"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "alternative",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct Types.VersionWithAlternative",
+                        "name": "version",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct Types.BytecodeVersion",
+                "name": "_bytecodeVersion",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_initCode",
+                "type": "bytes"
+            }
+        ],
+        "name": "uploadBytecode",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {

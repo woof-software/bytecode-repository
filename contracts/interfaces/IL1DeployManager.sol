@@ -20,7 +20,6 @@ interface IL1DeployManager {
     error OnlyGuardian();
     error OnlyDeveloper();
     error OnlyDeveloperOrGovernor();
-    error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash);
     error ZeroAddress();
     error CantRevokeDeveloper(address _account);
 

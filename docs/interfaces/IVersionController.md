@@ -188,6 +188,12 @@ error AdminCantAddSubDevs()
 error ConflictingRoles(address _account)
 ```
 
+### NotGovernorOrGuadian
+
+```solidity
+error NotGovernorOrGuadian(address _account)
+```
+
 ### assignDeveloperForContractTypes
 
 ```solidity
@@ -306,5 +312,11 @@ function versionExists(bytes32 _bytecodeHash) external view returns (bool)
 
 ```solidity
 function getAllAlternativeVersions(bytes32 _contractType) external view returns (struct Types.VersionWithAlternative[])
+```
+
+### getVerifiedInitCodeHash
+
+```solidity
+function getVerifiedInitCodeHash(struct Types.BytecodeVersion _version) external view returns (bytes32)
 ```
 

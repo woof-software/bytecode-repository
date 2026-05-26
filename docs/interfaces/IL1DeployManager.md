@@ -62,12 +62,6 @@ error OnlyDeveloper()
 error OnlyDeveloperOrGovernor()
 ```
 
-### BytecodeAlreadySent
-
-```solidity
-error BytecodeAlreadySent(uint256 _chainId, bytes32 _bytecodeHash)
-```
-
 ### ZeroAddress
 
 ```solidity

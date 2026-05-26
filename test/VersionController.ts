@@ -922,12 +922,12 @@ describe("VersionController", function () {
             .withArgs(users[0], await versionController.AUDITOR_ROLE());
     });
 
-    it("Should not let non-admin assign dev for contract type", async () => {
+    it("Should not let non-admin or non-guardian assign dev for contract type", async () => {
         const { users, versionController } = await restore();
         const newContractType = ethers.encodeBytes32String("New_Contract_Type");
         await expect(versionController.connect(users[0]).assignDeveloperForContractTypes([newContractType], users[1]))
-            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
-            .withArgs(users[0], await versionController.DEFAULT_ADMIN_ROLE());
+            .revertedWithCustomError(versionController, "NotGovernorOrGuadian")
+            .withArgs(users[0]);
     });
 
     it("Should not let key developer assign dev for contract type (admin-only function)", async () => {
@@ -937,8 +937,19 @@ describe("VersionController", function () {
                 .connect(devTeam2.keyDeveloper)
                 .assignDeveloperForContractTypes([WOOF.contractTypes[0]], devTeam3.keyDeveloper)
         )
-            .revertedWithCustomError(versionController, "AccessControlUnauthorizedAccount")
-            .withArgs(devTeam2.keyDeveloper, await versionController.DEFAULT_ADMIN_ROLE());
+            .revertedWithCustomError(versionController, "NotGovernorOrGuadian")
+            .withArgs(devTeam2.keyDeveloper);
+    });
+
+    it("Should let guardian assign dev for contract type", async () => {
+        const { guardian, devTeam2, versionController } = await restore();
+        const newContractType = ethers.encodeBytes32String("New_Contract_Type");
+        await versionController
+            .connect(guardian)
+            .assignDeveloperForContractTypes([newContractType], devTeam2.keyDeveloper);
+        expect(await versionController.contractTypeKeyDeveloper(newContractType)).to.equal(devTeam2.keyDeveloper);
+        const registeredTypes = await versionController.getRegisteredContractTypes();
+        expect(registeredTypes[registeredTypes.length - 1]).to.equal(newContractType);
     });
 
     it("Should not let revoked key developer assign dev for contract type", async () => {

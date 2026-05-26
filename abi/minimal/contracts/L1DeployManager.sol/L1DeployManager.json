@@ -1,7 +1,6 @@
 [
     "constructor(address,address)",
     "error AddressEmptyCode(address)",
-    "error BytecodeAlreadySent(uint256,bytes32)",
     "error CantRevokeDeveloper(address)",
     "error Create2EmptyBytecode()",
     "error ERC1967InvalidImplementation(address)",

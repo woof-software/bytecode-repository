@@ -1,19 +1,16 @@
 import { expect } from "chai";
-import { network, ethers, upgrades } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
-    CometInitCode,
     CometV2MockInitCode,
     CometV3MockInitCode,
     CometWithExtendedAssetListInitCode,
-    CometExtInitCode,
     CometExtAssetList,
     ConstantPriceFeedInitCode,
     AssetListFactoryInitCode
 } from "./testData.json";
-import { domainResultToPlainObject, prepareAuditReportSignature } from "./helpers";
-import type { EIP712Domain, Developers } from "./helpers";
+import { prepareAuditReportSignature } from "./helpers";
+import type { Developers } from "./helpers";
 
 const abiCoder = new ethers.AbiCoder();
 
@@ -56,7 +53,7 @@ describe("CometFactoryV2", function () {
         for (const subDev of WOOF.subDevelopers)
             await versionController.connect(WOOF.keyDeveloper).addSubDeveloper(subDev);
 
-        // Release and verify Comet bytecode
+        // Release and verify CometWithAssetList bytecode
         const URL = "https://github.com/compound-finance/comet/blob/main/contracts";
         const auditReport = "AUDIT_REPORT_URL";
         const version_1_0_0 = {
@@ -68,30 +65,13 @@ describe("CometFactoryV2", function () {
             alternative: ""
         };
 
-        // Release Comet v1.0.0
-        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
-            contractType: WOOF.contractTypes[0], // Comet
-            initCode: CometInitCode,
-            sourceURL: URL
-        });
-        let signature = await prepareAuditReportSignature(
-            await versionController.computeBytecodeHash(WOOF.contractTypes[0], version_1_0_0),
-            ethers.keccak256(CometInitCode),
-            auditReport,
-            await versionController.getAddress(),
-            auditors[0]
-        );
-        await versionController
-            .connect(WOOF.keyDeveloper)
-            .verifyBytecode({ contractType: WOOF.contractTypes[0], version: version_1_0_0 }, auditReport, signature);
-
         // Release CometWithAssetList v1.0.0
         await versionController.connect(WOOF.subDevelopers[1]).releaseBytecode({
             contractType: WOOF.contractTypes[1], // CometWithAssetList
             initCode: CometWithExtendedAssetListInitCode,
             sourceURL: URL
         });
-        signature = await prepareAuditReportSignature(
+        let signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[1], version_1_0_0),
             ethers.keccak256(CometWithExtendedAssetListInitCode),
             auditReport,
@@ -102,15 +82,15 @@ describe("CometFactoryV2", function () {
             .connect(WOOF.keyDeveloper)
             .verifyBytecode({ contractType: WOOF.contractTypes[1], version: version_1_0_0 }, auditReport, signature);
 
-        // Release Comet v2.0.0 for version upgrade tests
+        // Release CometWithAssetList v2.0.0 for version upgrade tests
         await time.increase(time.duration.days(90));
-        await versionController.connect(WOOF.subDevelopers[0]).releaseMajorVersion({
-            contractType: WOOF.contractTypes[0], // Comet
+        await versionController.connect(WOOF.subDevelopers[1]).releaseMajorVersion({
+            contractType: WOOF.contractTypes[1], // CometWithAssetList
             initCode: CometV2MockInitCode, // Using different bytecode to avoid BytecodeAlreadyUploaded error
             sourceURL: URL
         });
         signature = await prepareAuditReportSignature(
-            await versionController.computeBytecodeHash(WOOF.contractTypes[0], version_2_0_0),
+            await versionController.computeBytecodeHash(WOOF.contractTypes[1], version_2_0_0),
             ethers.keccak256(CometV2MockInitCode),
             auditReport,
             await versionController.getAddress(),
@@ -118,24 +98,7 @@ describe("CometFactoryV2", function () {
         );
         await versionController
             .connect(WOOF.keyDeveloper)
-            .verifyBytecode({ contractType: WOOF.contractTypes[0], version: version_2_0_0 }, auditReport, signature);
-
-        // Deploy CometExt for extension delegates
-        await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
-            contractType: WOOF.contractTypes[2], // CometExt
-            initCode: CometExtInitCode,
-            sourceURL: URL
-        });
-        signature = await prepareAuditReportSignature(
-            await versionController.computeBytecodeHash(WOOF.contractTypes[2], version_1_0_0),
-            ethers.keccak256(CometExtInitCode),
-            auditReport,
-            await versionController.getAddress(),
-            auditors[0]
-        );
-        await versionController
-            .connect(WOOF.keyDeveloper)
-            .verifyBytecode({ contractType: WOOF.contractTypes[2], version: version_1_0_0 }, auditReport, signature);
+            .verifyBytecode({ contractType: WOOF.contractTypes[1], version: version_2_0_0 }, auditReport, signature);
 
         // Deploy CometExtWithAssetList for CometWithAssetList extension delegates
         await versionController.connect(WOOF.subDevelopers[0]).releaseBytecode({
@@ -224,22 +187,35 @@ describe("CometFactoryV2", function () {
             .connect(WOOF.keyDeveloper)
             .deploy({ contractType: WOOF.contractTypes[5], version: version_1_0_0 }, ethers.ZeroHash, "0x");
 
-        // Deploy CometFactoryV2 instances (both variants)
+        // Deploy CometExtWithAssetList to use as the extension delegate for CometWithAssetList
+        const extConfiguration = [
+            ethers.encodeBytes32String("Compound Mock Base"),
+            ethers.encodeBytes32String("cMockBaseV3")
+        ];
+        const cometExtAddr = await l1DeployManager.computeAddress(
+            { contractType: WOOF.contractTypes[3], version: version_1_0_0 }, // CometExtWithAssetList
+            ethers.ZeroHash,
+            abiCoder.encode(["tuple(bytes32,bytes32)", "address"], [extConfiguration, assetListFactoryAddr]),
+            WOOF.keyDeveloper.address
+        );
+        await l1DeployManager.connect(WOOF.keyDeveloper).deploy(
+            { contractType: WOOF.contractTypes[3], version: version_1_0_0 }, // CometExtWithAssetList
+            ethers.ZeroHash,
+            abiCoder.encode(["tuple(bytes32,bytes32)", "address"], [extConfiguration, assetListFactoryAddr])
+        );
+
+        // Deploy the CometFactoryV2 instance (deploys CometWithAssetList)
         const cometFactory = await (
             await ethers.getContractFactory("CometFactoryV2")
-        ).deploy(version_1_0_0, versionController, timelock, false);
+        ).deploy(version_1_0_0, versionController, timelock);
 
-        const cometFactoryWithAssetList = await (
-            await ethers.getContractFactory("CometFactoryV2")
-        ).deploy(version_1_0_0, versionController, timelock, true);
-
-        // Create sample Comet configuration
+        // Create sample Comet configuration with a valid CometExtWithAssetList extension delegate
         const cometConfiguration = {
             governor: governor.address,
             pauseGuardian: governor.address,
             baseToken: await mockBaseToken.getAddress(),
             baseTokenPriceFeed: constantPriceFeedAddr,
-            extensionDelegate: ethers.ZeroAddress,
+            extensionDelegate: cometExtAddr,
             supplyKink: "900000000000000000",
             supplyPerYearInterestRateSlopeLow: "36000000000000000",
             supplyPerYearInterestRateSlopeHigh: "3200000000000000000",
@@ -276,11 +252,9 @@ describe("CometFactoryV2", function () {
             users,
             versionController,
             cometFactory,
-            cometFactoryWithAssetList,
             mockBaseToken,
             mockCollateralToken,
             constantPriceFeedAddr,
-            assetListFactoryAddr,
             cometConfiguration,
             version_1_0_0,
             version_2_0_0,
@@ -291,28 +265,18 @@ describe("CometFactoryV2", function () {
     const restore = async () => await loadFixture(fixture);
 
     describe("Constructor", function () {
-        it("Should set initial state correctly for standard Comet factory", async () => {
+        it("Should set initial state correctly", async () => {
             const { cometFactory, timelock, versionController, version_1_0_0 } = await restore();
 
             expect(await cometFactory.timelock()).to.equal(timelock.address);
             expect(await cometFactory.bytecodeProvider()).to.equal(await versionController.getAddress());
-            expect(await cometFactory.COMET_CT()).to.equal(ethers.encodeBytes32String("Comet"));
+            expect(await cometFactory.COMET_CT()).to.equal(ethers.encodeBytes32String("CometWithAssetList"));
 
             const currentVersion = await cometFactory.version();
             expect(currentVersion.version.major).to.equal(version_1_0_0.version.major);
             expect(currentVersion.version.minor).to.equal(version_1_0_0.version.minor);
             expect(currentVersion.version.patch).to.equal(version_1_0_0.version.patch);
             expect(currentVersion.alternative).to.equal(version_1_0_0.alternative);
-        });
-
-        it("Should set COMET_CT to CometWithAssetList when withAssetList is true", async () => {
-            const { cometFactoryWithAssetList, timelock, versionController } = await restore();
-
-            expect(await cometFactoryWithAssetList.timelock()).to.equal(timelock.address);
-            expect(await cometFactoryWithAssetList.bytecodeProvider()).to.equal(await versionController.getAddress());
-            expect(await cometFactoryWithAssetList.COMET_CT()).to.equal(
-                ethers.encodeBytes32String("CometWithAssetList")
-            );
         });
     });
 
@@ -411,7 +375,7 @@ describe("CometFactoryV2", function () {
     });
 
     describe("clone", function () {
-        it("Should deploy Comet successfully with valid configuration", async () => {
+        it("Should deploy CometWithAssetList successfully with valid configuration", async () => {
             const { cometFactory, users, cometConfiguration } = await restore();
 
             const deployedAddress = await cometFactory.connect(users[0]).clone.staticCall(cometConfiguration);
@@ -420,9 +384,13 @@ describe("CometFactoryV2", function () {
 
             expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
 
-            // Verify the deployed contract has correct governor
-            const comet = await ethers.getContractAt(["function governor() view returns (address)"], deployedAddress);
+            // Verify the deployed contract has correct governor and an asset list
+            const comet = await ethers.getContractAt(
+                ["function governor() view returns (address)", "function assetList() view returns (address)"],
+                deployedAddress
+            );
             expect(await comet.governor()).to.equal(cometConfiguration.governor);
+            expect(await comet.assetList()).to.not.equal(ethers.ZeroAddress);
         });
 
         it("Should increment counter for deployer", async () => {
@@ -462,7 +430,7 @@ describe("CometFactoryV2", function () {
             expect(await cometFactory.counters(users[0].address)).to.equal(2);
         });
 
-        // TODO prepare valid v2 Comet for test
+        // TODO prepare valid v2 CometWithAssetList for test
         // it("Should work with updated version after setVersion", async () => {
         //     const { cometFactory, timelock, users, cometConfiguration, version_2_0_0 } = await restore();
 
@@ -474,63 +442,5 @@ describe("CometFactoryV2", function () {
 
         //     expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
         // });
-    });
-
-    describe("CometWithAssetList variant", function () {
-        it("Should deploy CometWithAssetList successfully", async () => {
-            const {
-                cometFactoryWithAssetList,
-                users,
-                cometConfiguration,
-                assetListFactoryAddr,
-                l1DeployManager,
-                WOOF,
-                version_1_0_0
-            } = await restore();
-
-            // First deploy CometExtWithAssetList to use as extensionDelegate
-            const extConfiguration = [
-                ethers.encodeBytes32String("Compound Mock Base"),
-                ethers.encodeBytes32String("cMockBaseV3")
-            ];
-
-            const cometExtAddr = await l1DeployManager.computeAddress(
-                { contractType: WOOF.contractTypes[3], version: version_1_0_0 }, // CometExtWithAssetList
-                ethers.ZeroHash,
-                abiCoder.encode(["tuple(bytes32,bytes32)", "address"], [extConfiguration, assetListFactoryAddr]),
-                WOOF.keyDeveloper.address
-            );
-
-            await l1DeployManager.connect(WOOF.keyDeveloper).deploy(
-                { contractType: WOOF.contractTypes[3], version: version_1_0_0 }, // CometExtWithAssetList
-                ethers.ZeroHash,
-                abiCoder.encode(["tuple(bytes32,bytes32)", "address"], [extConfiguration, assetListFactoryAddr])
-            );
-
-            // Update configuration to use the deployed CometExt as extensionDelegate
-            const configWithExtension = {
-                ...cometConfiguration,
-                extensionDelegate: cometExtAddr
-            };
-
-            const deployedAddress = await cometFactoryWithAssetList
-                .connect(users[0])
-                .clone.staticCall(configWithExtension);
-            await cometFactoryWithAssetList.connect(users[0]).clone(configWithExtension);
-
-            expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
-
-            // Verify the deployed contract has an asset list
-            const comet = await ethers.getContractAt(["function assetList() view returns (address)"], deployedAddress);
-            expect(await comet.assetList()).to.not.equal(ethers.ZeroAddress);
-        });
-
-        it("Should use CometWithAssetList contract type", async () => {
-            const { cometFactoryWithAssetList } = await restore();
-
-            expect(await cometFactoryWithAssetList.COMET_CT()).to.equal(
-                ethers.encodeBytes32String("CometWithAssetList")
-            );
-        });
     });
 });

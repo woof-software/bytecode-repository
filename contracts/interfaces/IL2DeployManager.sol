@@ -4,7 +4,8 @@ pragma solidity 0.8.30;
 import { Types } from "./Types.sol";
 
 interface IL2DeployManager {
-    event BytecodeReceived(bytes32 _messageId, bytes32 _bytecodeHash);
+    event BytecodeRequested(bytes32 _messageId, bytes32 _bytecodeHash, bytes32 _initCodeHash);
+    event BytecodeUploaded(bytes32 _bytecodeHash);
     event ContractDeployed(
         Types.BytecodeVersion _bytecodeVersion,
         bytes _constructorParams,
@@ -19,6 +20,9 @@ interface IL2DeployManager {
     error BytecodeIsEmpty();
     error OnlyDeveloperOrGovernor();
     error ZeroAddress();
+    error BytecodeAlreadyUploaded(bytes32 _bytecodeHash);
+    error InvalidBytecode(bytes32 _bytecodeHash, bytes32 _initCodeHash);
+    error BytecodeNotRequested(bytes32 _bytecodeHash);
 
     /// @notice A type of message to receive from Ethereum.
     enum MessageType {

@@ -152,10 +152,9 @@ contract VersionController is
     /// @dev Correctness of  contract type should be checked by the Governance before calling this function.
     /// @param _contractTypes An array containing types of contracts to assign developer for.
     /// @param _keyDeveloper An address of key developer to assign. address(0) is allowed to remove developer for contract type.
-    function assignDeveloperForContractTypes(
-        bytes32[] calldata _contractTypes,
-        address _keyDeveloper
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function assignDeveloperForContractTypes(bytes32[] calldata _contractTypes, address _keyDeveloper) external {
+        if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && !hasRole(GUARDIAN_ROLE, msg.sender))
+            revert NotGovernorOrGuadian(msg.sender);
         uint256 contractTypesLengths = _contractTypes.length;
         if (contractTypesLengths == 0) revert ZeroLength();
         if (_keyDeveloper != address(0)) _grantRole(KEY_DEVELOPER_ROLE, _keyDeveloper);
@@ -509,6 +508,15 @@ contract VersionController is
             BytecodeStore._readInitCode(
                 bytecodes[computeBytecodeHash(_version.contractType, _version.version)].initCodePtrs
             );
+    }
+
+    /// @notice Returns the hash of a verified bytecode of a specified contract type and version.
+    /// @dev Throws and error if bytecode is not verified by at least one auditor.
+    /// @param _version A bytecode version for which to return init code hash.
+    /// @return Init code hash of specified contract type and version.
+    function getVerifiedInitCodeHash(BytecodeVersion calldata _version) external view returns (bytes32) {
+        if (!isBytecodeVerified(_version)) revert BytecodeNotVerified(_version);
+        return bytecodes[computeBytecodeHash(_version.contractType, _version.version)].initCodeHash;
     }
 
     /// @notice Returns all alternative versions for given contract type.

@@ -5,10 +5,13 @@
  * - Configures L2 chain settings in L1DeployManager
  * - Assigns key developers to contract types
  * - Grants auditor roles
- * - Transfers admin role to permanent governor
+ * - Grants DEFAULT_ADMIN_ROLE to the permanent governor
  *
  * IMPORTANT: This script requires the deployer to have DEFAULT_ADMIN_ROLE in VersionController.
- * The deployer receives this role during initial deployment (deployL1.ts).
+ * The deployer receives this role during initial deployment (deployL1.ts). The deployer KEEPS
+ * this role after this script runs so that configuration can be re-run or extended (e.g. add a
+ * new auditor) without going through the governor. Renunciation is performed separately by
+ * `scripts/renounceAdminRoleL1.ts` once the operator has verified the on-chain state.
  *
  * Flow:
  * 1. Validate developer and auditor addresses (warn about placeholders)
@@ -20,15 +23,15 @@
  * 7. Assign key developer to all 12 contract types
  * 8. Grant AUDITOR_ROLE to configured auditors
  * 9. Display role assignment summary
- * 10. Renounce DEFAULT_ADMIN_ROLE from deployer (permanent governor retains role)
  *
  * Role Management:
- * - Deployer starts with DEFAULT_ADMIN_ROLE (granted in deployL1.ts)
+ * - Deployer starts with DEFAULT_ADMIN_ROLE (granted in deployL1.ts) and retains it after this script
  * - This script grants DEFAULT_ADMIN_ROLE to permanent governor
  * - One key developer is assigned to all contract types and receives KEY_DEVELOPER_ROLE
  * - Auditors receive AUDITOR_ROLE for bytecode verification
- * - Deployer renounces their DEFAULT_ADMIN_ROLE (unless deployer IS the governor)
- * - Final state: Only permanent governor has DEFAULT_ADMIN_ROLE
+ * - Deployer's DEFAULT_ADMIN_ROLE is renounced by a separate script (renounceAdminRoleL1.ts)
+ *   once the system has been verified
+ * - Final state (after renounceAdminRoleL1.ts): Only permanent governor has DEFAULT_ADMIN_ROLE
  *
  * Contract Types (all assigned to single key developer):
  * - CometWithAssetList, CometExtWithAssetList
@@ -40,7 +43,7 @@
  *
  * BEFORE RUNNING:
  * 1. Update KEY_DEVELOPER address (replace placeholder 0x1234567890123456789012345678901234567890)
- * 2. Update auditor addresses (AUDITOR_1, AUDITOR_2)
+ * 2. Update auditor addresses in the AUDITORS array
  * 3. Ensure L2 contracts are already deployed
  * 4. Verify deployer has sufficient gas
  *
@@ -67,35 +70,28 @@ const L1_GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Per
 // TODO: Replace with actual developer address before deployment
 const KEY_DEVELOPER = "0x1234567890123456789012345678901234567890"; // Main key developer for all contract types
 
-// Auditor addresses
-// TODO: Replace with actual auditor addresses before deployment
-const AUDITOR_1 = "0x7234567890123456789012345678901234567890"; // Primary auditor
+// Auditors to grant AUDITOR_ROLE.
+// TODO: Replace placeholder addresses with actual auditor addresses before deployment.
+// Add or remove entries as needed.
+const AUDITORS = [
+    { address: "0x7234567890123456789012345678901234567890", name: "Certora Auditor" },
+    { address: "0x7234567890123456789012345678901234567890", name: "Secondary Auditor" }
+];
 
 // All contract types to be assigned to the key developer
 const CONTRACT_TYPES = [
-    // Comet contracts
+    // Comet contracts (Service patch)
     "CometWithAssetList",
     "CometExtWithAssetList",
 
-    // Governance
-    "CompoundGovernor",
-
-    // Core system
+    // Core BR system
     "VersionController",
     "L1DeployManager",
     "L2DeployManager",
 
     // Factories
     "MarketFactory",
-    "CometFactoryV2",
-
-    // Streaming
-    "Streamer",
-    "StreamerFactory",
-
-    // Utilities
-    "CometMultiplier",
-    "CometCollateralSwap"
+    "CometFactoryV2"
 
     // CAPO
     //"ChainlinkCorrelatedAssetsPriceOracle",
@@ -104,9 +100,6 @@ const CONTRACT_TYPES = [
     //"RsETHCorrelatedAssetsPriceOracle",
     //"WstETHCorrelatedAssetsPriceOracle"
 ];
-
-// Auditors to grant roles
-const AUDITORS = [{ address: AUDITOR_1, name: "Certora Auditor" }];
 
 // ChainConfig struct matches IL1DeployManager.sol:41-44
 interface ChainConfig {
@@ -182,7 +175,7 @@ async function validateDeployerRole(versionController: any, deployerAddress: str
 }
 
 /**
- * Validate governor retains DEFAULT_ADMIN_ROLE after renunciation
+ * Validate governor holds DEFAULT_ADMIN_ROLE
  */
 async function validateGovernorRole(versionController: any, governorAddress: string): Promise<void> {
     const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -501,7 +494,7 @@ async function main() {
         }
         console.log("");
 
-        // Validate governor has role before deployer renounces
+        // Validate governor now holds the admin role
         console.log("Step 5: Validating permanent governor role...");
         await validateGovernorRole(versionController, L1_GOVERNOR_ADDRESS);
         console.log("");
@@ -516,30 +509,6 @@ async function main() {
         // Display role assignments summary
         await displayRolesSummary(versionController);
 
-        // Renounce deployer's DEFAULT_ADMIN_ROLE
-        console.log("Step 9: Renouncing deployer's DEFAULT_ADMIN_ROLE...");
-        console.log("⚠️  WARNING: This action is IRREVERSIBLE");
-
-        console.log(`   Deployer: ${deployer.address}`);
-        console.log(`   Renouncing role: DEFAULT_ADMIN_ROLE`);
-
-        const renounceTx = await versionController.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address);
-        console.log(`   Transaction hash: ${renounceTx.hash}`);
-
-        const renounceReceipt = await renounceTx.wait(1);
-        console.log(`   ✓ Confirmed in block ${renounceReceipt?.blockNumber}`);
-
-        // Verify deployer no longer has role
-        const stillHasRole = await versionController.hasRole(DEFAULT_ADMIN_ROLE, deployer.address);
-        if (stillHasRole) {
-            throw new Error("Role renunciation failed - deployer still has DEFAULT_ADMIN_ROLE");
-        }
-        console.log("   ✓ Deployer no longer has DEFAULT_ADMIN_ROLE");
-
-        // Final validation that governor retains role
-        await validateGovernorRole(versionController, L1_GOVERNOR_ADDRESS);
-
-        console.log("");
         console.log("═".repeat(60));
         console.log("🎉 L1 CHAIN CONFIGURATION COMPLETED SUCCESSFULLY!");
         console.log("═".repeat(60));
@@ -549,18 +518,14 @@ async function main() {
         console.log(`  - Permanent Governor has DEFAULT_ADMIN_ROLE: ${L1_GOVERNOR_ADDRESS}`);
         console.log(`  - Assigned key developer to ${CONTRACT_TYPES.length} contract type(s)`);
         console.log(`  - Granted AUDITOR_ROLE to ${AUDITORS.length} auditor(s)`);
-
-        if (deployer.address.toLowerCase() !== L1_GOVERNOR_ADDRESS.toLowerCase()) {
-            console.log(`  - Deployer role renounced: ${deployer.address}`);
-        } else {
-            console.log(`  - Deployer IS permanent governor (role retained)`);
-        }
+        console.log(`  - Deployer ${deployer.address} retains DEFAULT_ADMIN_ROLE`);
+        console.log("    (renounce separately via scripts/renounceAdminRoleL1.ts after verification)");
         console.log("");
-        console.log("Role Management Complete:");
+        console.log("Role Management Status:");
         console.log("  ✓ Permanent governor has DEFAULT_ADMIN_ROLE");
-        console.log("  ✓ Deployer admin role properly transferred/renounced");
         console.log("  ✓ Key developer assigned to all contract types");
         console.log("  ✓ Auditor roles granted");
+        console.log("  ⚠ Deployer admin role NOT yet renounced — run renounceAdminRoleL1.ts when ready");
         console.log("");
         console.log("Next Steps:");
         console.log("  1. Verify L2 chain configurations:");
@@ -574,6 +539,8 @@ async function main() {
         console.log("  5. Developers can now upload bytecode for their assigned contract types");
         console.log("  6. Auditors can verify uploaded bytecode with EIP-712 signatures");
         console.log("  7. Test cross-chain bytecode transmission");
+        console.log("  8. Once the system is verified, renounce deployer admin:");
+        console.log(`     npx hardhat run scripts/renounceAdminRoleL1.ts --network mainnet`);
         console.log("");
     } catch (error) {
         console.error("\n❌ Configuration failed:", error);

@@ -38,6 +38,7 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     error ZeroLength();
     error AdminCantAddSubDevs();
     error ConflictingRoles(address _account);
+    error NotGovernorOrGuadian(address _account);
 
     // Governor
     function assignDeveloperForContractTypes(bytes32[] calldata _contractTypes, address _keyDeveloper) external;
@@ -98,4 +99,6 @@ interface IVersionController is IAccessControl, Types, IBytecodeProvider {
     function versionExists(bytes32 _bytecodeHash) external view returns (bool);
 
     function getAllAlternativeVersions(bytes32 _contractType) external view returns (VersionWithAlternative[] memory);
+
+    function getVerifiedInitCodeHash(Types.BytecodeVersion calldata _version) external view returns (bytes32);
 }
