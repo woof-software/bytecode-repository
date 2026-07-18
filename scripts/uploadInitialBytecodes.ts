@@ -38,9 +38,12 @@
 
 import hre from "hardhat";
 import { ethers } from "hardhat";
-import fs from "fs";
-import path from "path";
-import { uploadBytecode, loadBytecodeFromFile, validateDeveloperAccess } from "./utils/uploadBytecode";
+import {
+    uploadBytecode,
+    loadBytecodeFromFile,
+    validateDeveloperAccess,
+    resolveController
+} from "./utils/uploadBytecode";
 import { INITIAL_BYTECODES, InitialBytecodeEntry } from "./config/initialBytecodes";
 
 const HELP_TEXT = `
@@ -94,24 +97,6 @@ function parseCliArgs(): CliArgs {
     }
 
     return result;
-}
-
-/**
- * Resolve VersionController address from deployment artifacts or CLI override.
- */
-function loadVersionControllerAddress(networkName: string, override?: string): string {
-    if (override) return override;
-
-    const deploymentFile = path.join(process.cwd(), "deployments", networkName, "VersionController.json");
-    if (fs.existsSync(deploymentFile)) {
-        const deployment = JSON.parse(fs.readFileSync(deploymentFile, "utf8"));
-        return deployment.address as string;
-    }
-
-    throw new Error(
-        `VersionController address not found for network "${networkName}".\n` +
-            `Either deploy first or provide --version-controller <address>`
-    );
 }
 
 /**
@@ -180,13 +165,15 @@ async function main() {
         throw new Error("Signer account has no ETH balance");
     }
 
-    // Resolve VersionController address
-    const vcAddress = loadVersionControllerAddress(network.name, cliArgs.versionController);
-    console.log(`VersionController: ${vcAddress}`);
-    console.log("");
+    // Resolve the controller and bind the ABI of whichever variant is actually deployed
+    const controller = await resolveController(network.name, cliArgs.versionController);
+    const versionController = controller.contract;
 
-    // Get contract instance
-    const versionController = await ethers.getContractAt("VersionController", vcAddress);
+    console.log(`Controller: ${controller.artifact} @ ${controller.address}`);
+    if (controller.kind === "light") {
+        console.log(`  Note: LightVersionController is a test-only contract — no audit gating.`);
+    }
+    console.log("");
 
     // Resolve all bytecodes first (fail fast if any entry is invalid)
     console.log(`Resolving bytecodes for ${INITIAL_BYTECODES.length} entries...`);
@@ -253,23 +240,19 @@ async function main() {
         }
 
         try {
-            // Validate developer access
+            // Validate developer access (pass the known kind to skip re-detection per entry)
             console.log(`  Validating developer access...`);
-            await validateDeveloperAccess(versionController, entry.contractType, signer.address);
+            await validateDeveloperAccess(versionController, entry.contractType, signer.address, controller.kind);
             console.log(`  Developer access validated`);
 
             // Upload
             console.log(`  Uploading...`);
-            const result = await uploadBytecode(
-                versionController,
-                {
-                    contractType: entry.contractType,
-                    releaseType: "initial",
-                    initCode,
-                    sourceURL: entry.sourceURL
-                },
-                signer.address
-            );
+            const result = await uploadBytecode(versionController, {
+                contractType: entry.contractType,
+                releaseType: "initial",
+                initCode,
+                sourceURL: entry.sourceURL
+            });
 
             console.log(`  Uploaded successfully`);
             console.log(`    Tx:       ${result.txHash}`);
