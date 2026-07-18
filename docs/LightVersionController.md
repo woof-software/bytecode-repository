@@ -57,18 +57,6 @@ mapping(bytes32 => bool) isBytecodeUploaded
 
 Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
 
-### DeveloperAssigned
-
-```solidity
-event DeveloperAssigned(address _developer)
-```
-
-### DeveloperRemoved
-
-```solidity
-event DeveloperRemoved(address _developer)
-```
-
 ### BytecodeUploaded
 
 ```solidity
