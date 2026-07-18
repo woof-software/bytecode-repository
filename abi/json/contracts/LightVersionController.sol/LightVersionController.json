@@ -366,32 +366,6 @@
         "anonymous": false,
         "inputs": [
             {
-                "indexed": false,
-                "internalType": "address",
-                "name": "_developer",
-                "type": "address"
-            }
-        ],
-        "name": "DeveloperAssigned",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "_developer",
-                "type": "address"
-            }
-        ],
-        "name": "DeveloperRemoved",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
                 "indexed": true,
                 "internalType": "bytes32",
                 "name": "role",

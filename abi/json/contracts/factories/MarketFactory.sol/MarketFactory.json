@@ -452,6 +452,11 @@
                         "internalType": "struct AssetConfig[]",
                         "name": "assetConfigs",
                         "type": "tuple[]"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "liquidationModule",
+                        "type": "address"
                     }
                 ],
                 "internalType": "struct Configuration",
@@ -720,6 +725,11 @@
                         "internalType": "struct AssetConfig[]",
                         "name": "assetConfigs",
                         "type": "tuple[]"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "liquidationModule",
+                        "type": "address"
                     }
                 ],
                 "internalType": "struct Configuration",

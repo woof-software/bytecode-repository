@@ -19,8 +19,6 @@
     "error ZeroAddress()",
     "event BytecodeUploaded(bytes32,tuple(uint64,uint64,uint64))",
     "event ContractDeployed(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string)),bytes,address,address)",
-    "event DeveloperAssigned(address)",
-    "event DeveloperRemoved(address)",
     "event RoleAdminChanged(bytes32 indexed,bytes32 indexed,bytes32 indexed)",
     "event RoleGranted(bytes32 indexed,address indexed,address indexed)",
     "event RoleRevoked(bytes32 indexed,address indexed,address indexed)",
