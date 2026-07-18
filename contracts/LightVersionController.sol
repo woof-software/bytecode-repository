@@ -38,8 +38,6 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     /// @notice Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
     mapping(bytes32 => bool) public isBytecodeUploaded;
 
-    event DeveloperAssigned(address _developer);
-    event DeveloperRemoved(address _developer);
     event BytecodeUploaded(bytes32 _contractType, Version _version);
     event ContractDeployed(
         BytecodeVersion _bytecodeVersion,
