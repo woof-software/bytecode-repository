@@ -46,17 +46,6 @@
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "_bytecodeHash",
-                "type": "bytes32"
-            }
-        ],
-        "name": "BytecodeAlreadyUploaded",
-        "type": "error"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
                 "name": "_contractType",
                 "type": "bytes32"
             }
@@ -933,25 +922,6 @@
             }
         ],
         "name": "hasRole",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "name": "isBytecodeUploaded",
         "outputs": [
             {
                 "internalType": "bool",
