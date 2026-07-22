@@ -35,8 +35,6 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     mapping(bytes32 => VersionWithAlternative[]) private alternativeVersions;
     /// @notice Stores the bytecode information for given bytecode version hash.
     mapping(bytes32 => Bytecode) public bytecodes;
-    /// @notice Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
-    mapping(bytes32 => bool) public isBytecodeUploaded;
 
     event BytecodeUploaded(bytes32 _contractType, Version _version);
     event ContractDeployed(
@@ -55,7 +53,6 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     error NonExistingMinorVersion(bytes32 _contractType, uint64 _major, uint64 _minor);
     error NonExistingVersion(bytes32 _contractType, VersionWithAlternative _version);
     error VersionAlreadyExists(bytes32 _contractType, VersionWithAlternative _version);
-    error BytecodeAlreadyUploaded(bytes32 _bytecodeHash);
     error EmptyURL();
 
     /// @param _initialAdmin An address that receives the DEFAULT_ADMIN_ROLE.
@@ -295,7 +292,8 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     /* Internal helpers */
 
     /// @notice Stores the bytecode of given contract type and version.
-    /// @dev Validates that the raw init code has not been uploaded before and the version does not already exist.
+    /// @dev Validates that the version slot (contract type + version) does not already exist. The same
+    /// raw init code may be uploaded multiple times (e.g. reused across contract types or versions).
     /// @param _bytecodeInput A struct of params containing info about bytecode.
     /// @param _version A new version of bytecode for which it is uploaded.
     function _uploadBytecode(
@@ -304,9 +302,6 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     ) internal checkURL(_bytecodeInput.sourceURL) {
         address[] memory initCodePointers = BytecodeStore._writeInitCode(_bytecodeInput.initCode);
         bytes32 initCodeHash = keccak256(_bytecodeInput.initCode);
-
-        if (isBytecodeUploaded[initCodeHash]) revert BytecodeAlreadyUploaded(initCodeHash);
-        isBytecodeUploaded[initCodeHash] = true;
 
         Bytecode memory bc = Bytecode({
             contractType: _bytecodeInput.contractType,

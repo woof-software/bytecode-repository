@@ -124,6 +124,30 @@ describe("LightVersionController", function () {
         expect(await lvc.getVerifiedBytecode({ contractType, version })).to.equal(CometInitCode);
     });
 
+    it("Should allow uploading the same bytecode more than once", async () => {
+        const { lvc, developer, contractType } = await restore();
+        const otherContractType = ethers.encodeBytes32String("COMET_COPY");
+        const v1 = { version: { major: 1, minor: 0, patch: 0 }, alternative: "" };
+        const v2 = { version: { major: 2, minor: 0, patch: 0 }, alternative: "" };
+
+        // Same init code registered under a first contract type.
+        await lvc.connect(developer).releaseBytecode({ contractType, initCode: CometInitCode, sourceURL: URL });
+        // Same init code registered again under a different contract type.
+        await lvc
+            .connect(developer)
+            .releaseBytecode({ contractType: otherContractType, initCode: CometInitCode, sourceURL: URL });
+        // Same init code registered again as a new version of the first contract type.
+        await lvc.connect(developer).releaseMajorVersion({ contractType, initCode: CometInitCode, sourceURL: URL });
+
+        // All three slots exist and resolve to the same bytecode.
+        expect(await lvc[VERSION_EXISTS]({ contractType, version: v1 })).to.be.true;
+        expect(await lvc[VERSION_EXISTS]({ contractType, version: v2 })).to.be.true;
+        expect(await lvc[VERSION_EXISTS]({ contractType: otherContractType, version: v1 })).to.be.true;
+        expect(await lvc.getVerifiedBytecode({ contractType, version: v1 })).to.equal(CometInitCode);
+        expect(await lvc.getVerifiedBytecode({ contractType, version: v2 })).to.equal(CometInitCode);
+        expect(await lvc.getVerifiedBytecode({ contractType: otherContractType, version: v1 })).to.equal(CometInitCode);
+    });
+
     it("Should deploy a registered bytecode via CREATE2", async () => {
         const { lvc, developer } = await restore();
         const contractType = ethers.encodeBytes32String("ConstantPriceFeed");
