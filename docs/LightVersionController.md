@@ -49,14 +49,6 @@ mapping(bytes32 => struct Types.Bytecode) bytecodes
 
 Stores the bytecode information for given bytecode version hash.
 
-### isBytecodeUploaded
-
-```solidity
-mapping(bytes32 => bool) isBytecodeUploaded
-```
-
-Stores the status of bytecode uploading. keccak256(initCode) => boolean status.
-
 ### BytecodeUploaded
 
 ```solidity
@@ -121,12 +113,6 @@ error NonExistingVersion(bytes32 _contractType, struct Types.VersionWithAlternat
 
 ```solidity
 error VersionAlreadyExists(bytes32 _contractType, struct Types.VersionWithAlternative _version)
-```
-
-### BytecodeAlreadyUploaded
-
-```solidity
-error BytecodeAlreadyUploaded(bytes32 _bytecodeHash)
 ```
 
 ### EmptyURL
@@ -495,7 +481,8 @@ function _uploadBytecode(struct Types.BytecodeInput _bytecodeInput, struct Types
 
 Stores the bytecode of given contract type and version.
 
-_Validates that the raw init code has not been uploaded before and the version does not already exist._
+_Validates that the version slot (contract type + version) does not already exist. The same
+raw init code may be uploaded multiple times (e.g. reused across contract types or versions)._
 
 #### Parameters
 
