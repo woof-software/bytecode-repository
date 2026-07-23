@@ -1,15 +1,20 @@
 /**
- * Core bytecode upload utilities for VersionController.
+ * Core bytecode upload utilities for the version controllers.
  *
- * Reusable module for uploading bytecode to the VersionController contract.
- * Import these functions in batch upload scripts for programmatic access.
+ * Reusable module for uploading bytecode to either {VersionController} or
+ * {LightVersionController}. Import these functions in batch upload scripts.
+ *
+ * Bind the ABI of whichever variant is actually deployed — the two expose different
+ * developer APIs, and mixing them makes calls revert with a bare "execution reverted".
+ * Use {detectControllerKind} rather than assuming.
  *
  * @example
  * ```typescript
  * import { ethers } from "hardhat";
- * import { uploadBytecode, loadBytecodeFromFile } from "./utils/uploadBytecode";
+ * import { uploadBytecode, loadBytecodeFromFile, detectControllerKind, CONTROLLER_ARTIFACT } from "./utils/uploadBytecode";
  *
- * const vc = await ethers.getContractAt("VersionController", "0x...");
+ * const kind = await detectControllerKind("0x...");
+ * const vc = await ethers.getContractAt(CONTROLLER_ARTIFACT[kind], "0x...");
  * const results = [];
  *
  * for (const entry of batch) {
@@ -30,11 +35,123 @@
 
 import { ethers } from "hardhat";
 import { readFileSync, existsSync } from "fs";
-import { resolve, extname } from "path";
+import { resolve, extname, join } from "path";
 
 export type ReleaseType = "initial" | "major" | "minor" | "patch" | "alternative";
 
 export const VALID_RELEASE_TYPES: ReleaseType[] = ["initial", "major", "minor", "patch", "alternative"];
+
+/**
+ * Which controller variant is deployed at an address.
+ * - "full"  — {VersionController}: Key/Sub developer hierarchy, per-contract-type assignment.
+ * - "light" — {LightVersionController}: a single flat DEVELOPER_ROLE, no assignment.
+ *
+ * The two expose different developer APIs, so callers must not assume one ABI fits both.
+ */
+export type ControllerKind = "full" | "light";
+
+/** Artifact name to bind for each controller kind. */
+export const CONTROLLER_ARTIFACT: Record<ControllerKind, string> = {
+    full: "VersionController",
+    light: "LightVersionController"
+};
+
+/**
+ * Determine which controller variant lives at an address by probing for a role
+ * constant unique to each: KEY_DEVELOPER_ROLE (full) vs DEVELOPER_ROLE (light).
+ *
+ * On-chain detection is authoritative — a deployment artifact name can be stale, and
+ * an address passed via --version-controller carries no name at all.
+ *
+ * Throws if neither probe answers, rather than guessing: silently assuming "light"
+ * against a full controller would skip the real authorization check.
+ */
+export async function detectControllerKind(address: string, runner?: any): Promise<ControllerKind> {
+    const provider = runner ?? ethers.provider;
+
+    const code = await ethers.provider.getCode(address);
+    if (code === "0x") throw new Error(`No contract deployed at ${address}`);
+
+    const probe = (signature: string) => new ethers.Contract(address, [signature], provider);
+
+    try {
+        await probe("function KEY_DEVELOPER_ROLE() view returns (bytes32)").KEY_DEVELOPER_ROLE();
+        return "full";
+    } catch {
+        // Not a full controller — fall through and try the light variant.
+    }
+
+    try {
+        await probe("function DEVELOPER_ROLE() view returns (bytes32)").DEVELOPER_ROLE();
+        return "light";
+    } catch {
+        // Neither — reported below.
+    }
+
+    throw new Error(
+        `Contract at ${address} is neither a VersionController nor a LightVersionController.\n` +
+            `Neither KEY_DEVELOPER_ROLE() nor DEVELOPER_ROLE() could be read. ` +
+            `Check the address and the network.`
+    );
+}
+
+/**
+ * Resolve the controller address for a network from deployment artifacts, or a CLI override.
+ *
+ * Either variant may be deployed, so both artifact names are searched. VersionController
+ * wins if both exist — a network with the full controller deployed should not upload
+ * through a light one left over from testing.
+ */
+export function loadControllerAddress(networkName: string, override?: string): string {
+    if (override) return override;
+
+    const candidates = [CONTROLLER_ARTIFACT.full, CONTROLLER_ARTIFACT.light];
+
+    for (const artifact of candidates) {
+        const deploymentFile = join(process.cwd(), "deployments", networkName, `${artifact}.json`);
+        if (existsSync(deploymentFile)) {
+            const deployment = JSON.parse(readFileSync(deploymentFile, "utf8"));
+            return deployment.address as string;
+        }
+    }
+
+    throw new Error(
+        `No controller address found for network "${networkName}".\n` +
+            `Looked for ${candidates.map((c) => `deployments/${networkName}/${c}.json`).join(" and ")}.\n` +
+            `Either deploy first or provide --version-controller <address>`
+    );
+}
+
+export interface ResolvedController {
+    /** Address of the deployed controller. */
+    address: string;
+    /** Which variant is deployed there. */
+    kind: ControllerKind;
+    /** Artifact name bound for `contract`. */
+    artifact: string;
+    /** Contract instance bound to the ABI of the variant actually deployed. */
+    contract: any;
+}
+
+/**
+ * Resolve the controller for a network and bind the ABI of whichever variant is actually
+ * deployed there.
+ *
+ * Always prefer this over `getContractAt("VersionController", ...)`: binding the wrong ABI
+ * makes developer checks revert with a bare "execution reverted", because the selectors do
+ * not exist on the other contract.
+ *
+ * @param networkName - Network name, used to locate the deployment artifact
+ * @param override - Explicit address (e.g. from --version-controller), skipping artifact lookup
+ */
+export async function resolveController(networkName: string, override?: string): Promise<ResolvedController> {
+    const address = loadControllerAddress(networkName, override);
+    const kind = await detectControllerKind(address);
+    const artifact = CONTROLLER_ARTIFACT[kind];
+    const contract = await ethers.getContractAt(artifact, address);
+
+    return { address, kind, artifact, contract };
+}
 
 export interface UploadBytecodeParams {
     /** Human-readable contract type name (e.g., "Comet"). Encoded to bytes32 internally. Max 31 chars. */
@@ -190,19 +307,32 @@ export function formatTargetVersion(params: UploadBytecodeParams): string {
 /**
  * Validate that the signer has permission to upload bytecode for the given contract type.
  *
- * Checks on-chain state before sending a transaction:
- * 1. Signer has KEY_DEVELOPER_ROLE or SUB_DEVELOPER_ROLE
- * 2. Signer (or their key developer, if sub-dev) is assigned to the contract type
+ * Dispatches on the deployed controller variant, whose developer models differ:
+ * - "light" — signer holds DEVELOPER_ROLE. Any developer may release any contract type.
+ * - "full"  — signer is a Key/Sub developer AND is assigned to this contract type.
  *
- * @param versionController - VersionController contract instance
+ * The contract-type checks below exist only on the full controller; calling them against
+ * a LightVersionController reverts with empty data ("execution reverted"), because the
+ * selector matches nothing and there is no fallback.
+ *
+ * @param versionController - Controller contract instance
  * @param contractType - Human-readable contract type name
  * @param signerAddress - Address of the account that will send the transaction
+ * @param kind - Controller variant. Detected on-chain when omitted.
  */
 export async function validateDeveloperAccess(
     versionController: any,
     contractType: string,
-    signerAddress: string
+    signerAddress: string,
+    kind?: ControllerKind
 ): Promise<void> {
+    const address: string = await versionController.getAddress();
+    const resolvedKind = kind ?? (await detectControllerKind(address, versionController.runner));
+
+    if (resolvedKind === "light") {
+        return validateLightDeveloperAccess(address, signerAddress, versionController.runner);
+    }
+
     const contractTypeBytes32 = ethers.encodeBytes32String(contractType);
 
     // Check 1: Is the signer a developer at all?
@@ -237,28 +367,51 @@ export async function validateDeveloperAccess(
 }
 
 /**
- * Upload bytecode to the VersionController contract.
+ * Validate developer access against a {LightVersionController}.
  *
- * Validates parameters and developer access, sends the appropriate release transaction,
- * and waits for confirmation.
- * This is the core function intended for reuse in batch upload scripts.
+ * The light controller has no key/sub developer hierarchy and no per-contract-type
+ * assignment: holding DEVELOPER_ROLE authorizes releasing any contract type.
  *
- * @param versionController - VersionController contract instance (from `ethers.getContractAt`)
+ * Binds its own minimal ABI so the check holds regardless of which ABI the caller bound.
+ */
+async function validateLightDeveloperAccess(address: string, signerAddress: string, runner?: any): Promise<void> {
+    const light = new ethers.Contract(
+        address,
+        ["function isDeveloper(address) view returns (bool)"],
+        runner ?? ethers.provider
+    );
+
+    const hasDeveloperRole: boolean = await light.isDeveloper(signerAddress);
+    if (!hasDeveloperRole) {
+        throw new Error(
+            `Account ${signerAddress} is not a developer.\n` +
+                `The account must have DEVELOPER_ROLE to upload bytecode.\n` +
+                `An admin (DEFAULT_ADMIN_ROLE) must call grantRole(DEVELOPER_ROLE, ${signerAddress}) first.`
+        );
+    }
+}
+
+/**
+ * Upload bytecode to the controller contract.
+ *
+ * Validates parameters, sends the appropriate release transaction, and waits for
+ * confirmation. Works against both controller variants — the release functions share
+ * the same signatures on each.
+ *
+ * Developer access is NOT checked here; callers invoke {validateDeveloperAccess}
+ * beforehand so a failure is reported before any transaction is built.
+ *
+ * @param versionController - Controller contract instance (from `ethers.getContractAt`)
  * @param params - Upload parameters specifying contract type, release type, bytecode, and version info
- * @param signerAddress - Address of the signer, used for pre-tx access validation
  * @returns Transaction result with hash, block number, and gas used
  */
 export async function uploadBytecode(
     versionController: any,
-    params: UploadBytecodeParams,
-    signerAddress: string
+    params: UploadBytecodeParams
 ): Promise<UploadBytecodeResult> {
     validateUploadParams(params);
 
     const contractTypeBytes32 = ethers.encodeBytes32String(params.contractType);
-
-    // Validate developer access before sending tx
-    await validateDeveloperAccess(versionController, params.contractType, signerAddress);
 
     const bytecodeInput = {
         contractType: contractTypeBytes32,

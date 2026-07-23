@@ -1,7 +1,11 @@
 /**
  * Bytecode Upload Script
  *
- * Uploads bytecode to the VersionController contract with support for all release types.
+ * Uploads bytecode with support for all release types.
+ *
+ * Targets whichever controller is deployed on the selected network — {VersionController}
+ * or the test-only {LightVersionController}. The variant is detected on-chain and the
+ * matching ABI is bound automatically, so no flag selects between them.
  *
  * Bytecode File Formats:
  *   The --bytecode-file flag accepts:
@@ -55,25 +59,24 @@
  *     --source-url "..." --bytecode-file path/to/bytecode.json
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
-    @typescript-eslint/no-non-null-assertion, @typescript-eslint/restrict-template-expressions,
+/* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/restrict-template-expressions,
     @typescript-eslint/use-unknown-in-catch-callback-variable */
 
 import { ethers } from "hardhat";
-import fs from "fs";
-import path from "path";
 import {
     uploadBytecode,
     loadBytecodeFromFile,
     formatTargetVersion,
     validateDeveloperAccess,
+    resolveController,
     VALID_RELEASE_TYPES,
     ReleaseType,
     UploadBytecodeParams
 } from "../utils/uploadBytecode";
 
 const HELP_TEXT = `
-Bytecode Upload Script — uploads bytecode to VersionController
+Bytecode Upload Script — uploads bytecode to the network's VersionController
+(or LightVersionController; the variant is detected automatically)
 
 Required flags:
   --contract-type <name>        Contract type name (e.g., "Comet", "CometExt")
@@ -89,7 +92,7 @@ Version flags (depend on release type):
 
 Optional flags:
   --json-key <key>              Key to extract bytecode from JSON file
-  --version-controller <addr>   VersionController address (default: from deployments/)
+  --version-controller <addr>   Controller address (default: from deployments/)
   --help                        Show this help message
 
 Supported bytecode file formats:
@@ -187,24 +190,6 @@ function parseCliArgs(): CliArgs {
     return result;
 }
 
-/**
- * Resolve VersionController address from deployment artifacts or CLI override.
- */
-function loadVersionControllerAddress(networkName: string, override?: string): string {
-    if (override) return override;
-
-    const deploymentFile = path.join(process.cwd(), "deployments", networkName, "VersionController.json");
-    if (fs.existsSync(deploymentFile)) {
-        const deployment = JSON.parse(fs.readFileSync(deploymentFile, "utf8"));
-        return deployment.address as string;
-    }
-
-    throw new Error(
-        `VersionController address not found for network "${networkName}".\n` +
-            `Either deploy first or provide --version-controller <address>`
-    );
-}
-
 async function main() {
     const cliArgs = parseCliArgs();
 
@@ -242,9 +227,12 @@ async function main() {
         throw new Error("Signer account has no ETH balance");
     }
 
-    // Resolve VersionController address
-    const vcAddress = loadVersionControllerAddress(network.name, cliArgs.versionController);
-    console.log(`VersionController: ${vcAddress}`);
+    // Resolve the controller and bind the ABI of whichever variant is actually deployed
+    const controller = await resolveController(network.name, cliArgs.versionController);
+    console.log(`Controller: ${controller.artifact} @ ${controller.address}`);
+    if (controller.kind === "light") {
+        console.log(`  Note: LightVersionController is a test-only contract — no audit gating.`);
+    }
     console.log("");
 
     // Load bytecode from file
@@ -276,18 +264,15 @@ async function main() {
     console.log(`  Bytecode Hash: ${ethers.keccak256(initCode)}`);
     console.log("");
 
-    // Get contract instance
-    const versionController = await ethers.getContractAt("VersionController", vcAddress);
-
-    // Validate developer access before sending tx
+    // Validate developer access before sending tx (pass the known kind to skip re-detection)
     console.log("Validating developer access...");
-    await validateDeveloperAccess(versionController, params.contractType, signer.address);
+    await validateDeveloperAccess(controller.contract, params.contractType, signer.address, controller.kind);
     console.log("  Developer access validated");
     console.log("");
 
     // Execute upload
     console.log("Uploading bytecode...");
-    const result = await uploadBytecode(versionController, params, signer.address);
+    const result = await uploadBytecode(controller.contract, params);
 
     console.log("");
     console.log("Upload successful!");
