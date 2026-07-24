@@ -10,7 +10,7 @@
     "function assetListFactory() view returns (address)",
     "function bytecodeProvider() view returns (address)",
     "function cometProxyAdmin() view returns (address)",
-    "function computeCometAddresses(tuple(tuple(uint64,uint64,uint64),string),tuple(tuple(uint64,uint64,uint64),string),tuple(bytes32,bytes32),tuple(address,address,address,address,address,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint104,uint104,uint104,tuple(address,address,uint8,uint64,uint64,uint64,uint128)[],address),bytes32,address) view returns (address, address, address)",
-    "function deployComet(tuple(tuple(uint64,uint64,uint64),string),tuple(tuple(uint64,uint64,uint64),string),tuple(bytes32,bytes32),tuple(address,address,address,address,address,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint104,uint104,uint104,tuple(address,address,uint8,uint64,uint64,uint64,uint128)[],address),bytes32) returns (address, address, address)",
+    "function computeCometAddresses(tuple(tuple(uint64,uint64,uint64),string),tuple(tuple(uint64,uint64,uint64),string),tuple(bytes32,bytes32),tuple(address,address,address,address,address,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint104,uint104,uint104,tuple(address,address,uint8,uint64,uint64,uint64,uint128)[]),bytes32,address) view returns (address, address, address)",
+    "function deployComet(tuple(tuple(uint64,uint64,uint64),string),tuple(tuple(uint64,uint64,uint64),string),tuple(bytes32,bytes32),tuple(address,address,address,address,address,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint104,uint104,uint104,tuple(address,address,uint8,uint64,uint64,uint64,uint128)[]),bytes32) returns (address, address, address)",
     "function localTimelock() view returns (address)"
 ]
