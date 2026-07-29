@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { CometInitCode, CometExtInitCode, ConstantPriceFeedInitCode } from "./testData.json";
 
@@ -7,16 +7,43 @@ import { CometInitCode, CometExtInitCode, ConstantPriceFeedInitCode } from "./te
 const VERSION_EXISTS = "versionExists((bytes32,((uint64,uint64,uint64),string)))";
 const URL = "https://github.com/compound-finance/comet/blob/main/contracts/Comet.sol";
 
+// CCIP cross-chain params for the L1DeployManager integration.
+const MOCK_ROUTER_FEE = ethers.parseEther("0.1");
+const MOCK_CHAIN_SELECTOR = "1234567890";
+const MOCK_OTHER_CHAIN_ID = 123456;
+const GAS_LIMIT = 100_000;
+
 describe("LightVersionController", function () {
     const fixture = async () => {
         const [admin, developer, user] = await ethers.getSigners();
 
-        const lvc = await (await ethers.getContractFactory("LightVersionController")).deploy(admin.address);
+        const lvc = await upgrades.deployProxy(
+            await ethers.getContractFactory("LightVersionController"),
+            [admin.address],
+            { kind: "uups" }
+        );
         const DEVELOPER_ROLE = await lvc.DEVELOPER_ROLE();
         await lvc.connect(admin).grantRole(DEVELOPER_ROLE, developer.address);
 
+        // L1DeployManager consumes LightVersionController through the surface it shares with the full
+        // VersionController: hasRole (governor check), isDeveloper, computeBytecodeHash,
+        // getVerifiedBytecode and getVerifiedInitCodeHash.
+        const mockRouter = await (await ethers.getContractFactory("MockCCIPRouter")).deploy();
+        await mockRouter.setFee(MOCK_ROUTER_FEE);
+        const l1DeployManager = await upgrades.deployProxy(await ethers.getContractFactory("L1DeployManager"), [], {
+            kind: "uups",
+            constructorArgs: [await lvc.getAddress(), await mockRouter.getAddress()]
+        });
+        // Register a destination chain so bytecode can be sent cross-chain. The admin is the governor
+        // because it holds DEFAULT_ADMIN_ROLE on the LightVersionController. The l2 address is a
+        // placeholder — this test only exercises the L1 send side.
+        await l1DeployManager.connect(admin).setChainConfig(MOCK_OTHER_CHAIN_ID, {
+            l2DeployManager: await mockRouter.getAddress(),
+            destinationChainSelector: MOCK_CHAIN_SELECTOR
+        });
+
         const contractType = ethers.encodeBytes32String("COMET");
-        return { admin, developer, user, lvc, contractType, DEVELOPER_ROLE };
+        return { admin, developer, user, lvc, l1DeployManager, contractType, DEVELOPER_ROLE };
     };
 
     const restore = async () => await loadFixture(fixture);
@@ -148,8 +175,8 @@ describe("LightVersionController", function () {
         expect(await lvc.getVerifiedBytecode({ contractType: otherContractType, version: v1 })).to.equal(CometInitCode);
     });
 
-    it("Should deploy a registered bytecode via CREATE2", async () => {
-        const { lvc, developer } = await restore();
+    it("Should let L1DeployManager deploy bytecode retrieved from LightVersionController", async () => {
+        const { lvc, l1DeployManager, developer } = await restore();
         const contractType = ethers.encodeBytes32String("ConstantPriceFeed");
         await lvc.connect(developer).releaseBytecode({
             contractType,
@@ -164,13 +191,47 @@ describe("LightVersionController", function () {
         const salt = ethers.ZeroHash;
         const constructorParams = ethers.AbiCoder.defaultAbiCoder().encode(["uint8", "int256"], [8, "100000000"]); // 1 * 10^8
 
-        const expectedAddress = await lvc.computeAddress(bytecodeVersion, salt, constructorParams, developer.address);
+        // A developer on the LightVersionController may deploy through the manager.
+        const expectedAddress = await l1DeployManager.computeAddress(
+            bytecodeVersion,
+            salt,
+            constructorParams,
+            developer.address
+        );
 
-        await expect(lvc.connect(developer).deploy(bytecodeVersion, salt, constructorParams))
-            .to.emit(lvc, "ContractDeployed")
+        await expect(l1DeployManager.connect(developer).deploy(bytecodeVersion, salt, constructorParams))
+            .to.emit(l1DeployManager, "ContractDeployed")
             .withArgs([contractType, [[1, 0, 0], ""]], constructorParams, expectedAddress, developer.address);
 
+        // The bytecode served by the LightVersionController produced a live contract at the CREATE2 address.
         expect(await ethers.provider.getCode(expectedAddress)).to.not.equal("0x");
+    });
+
+    it("Should let L1DeployManager send LightVersionController bytecode to another chain", async () => {
+        const { lvc, l1DeployManager, developer } = await restore();
+        const contractType = ethers.encodeBytes32String("ConstantPriceFeed");
+        await lvc.connect(developer).releaseBytecode({
+            contractType,
+            initCode: ConstantPriceFeedInitCode,
+            sourceURL: URL
+        });
+
+        const bytecodeVersion = {
+            contractType,
+            version: { version: { major: 1, minor: 0, patch: 0 }, alternative: "" }
+        };
+        // The manager reads the version hash and init code hash from the LightVersionController.
+        const bytecodeHash = await lvc.computeBytecodeHash(contractType, bytecodeVersion.version);
+
+        await expect(
+            l1DeployManager
+                .connect(developer)
+                .sendBytecodeToOtherChain(bytecodeVersion, MOCK_OTHER_CHAIN_ID, GAS_LIMIT, { value: MOCK_ROUTER_FEE })
+        )
+            .to.emit(l1DeployManager, "BytecodeSent")
+            .withArgs(MOCK_OTHER_CHAIN_ID, [contractType, [[1, 0, 0], ""]]);
+
+        expect(await l1DeployManager.isVersionSentToChain(MOCK_OTHER_CHAIN_ID, bytecodeHash)).to.be.true;
     });
 
     it("Should revert when a non-developer releases bytecode", async () => {
@@ -187,23 +248,5 @@ describe("LightVersionController", function () {
         )
             .to.be.revertedWithCustomError(lvc, "BytecodeNotReleased")
             .withArgs(contractType);
-    });
-
-    it("Should revert when a non-developer, non-admin deploys", async () => {
-        const { lvc, developer, user } = await restore();
-        const contractType = ethers.encodeBytes32String("ConstantPriceFeed");
-        await lvc.connect(developer).releaseBytecode({
-            contractType,
-            initCode: ConstantPriceFeedInitCode,
-            sourceURL: URL
-        });
-        const bytecodeVersion = {
-            contractType,
-            version: { version: { major: 1, minor: 0, patch: 0 }, alternative: "" }
-        };
-        const constructorParams = ethers.AbiCoder.defaultAbiCoder().encode(["uint8", "int256"], [8, "100000000"]);
-        await expect(lvc.connect(user).deploy(bytecodeVersion, ethers.ZeroHash, constructorParams))
-            .to.be.revertedWithCustomError(lvc, "NotDeveloperOrAdmin")
-            .withArgs(user);
     });
 });
