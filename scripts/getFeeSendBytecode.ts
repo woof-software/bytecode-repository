@@ -17,6 +17,7 @@ import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
 import { getNetworkConfig } from "./config/networkConfig";
+import { resolveDeploymentDir } from "./utils/deployment";
 
 // ─── Edit these between runs ──────────────────────────────────────────────
 const TARGET_L2 = "linea"; // key from networkConfig.ts (linea | scroll | base | ...)
@@ -171,7 +172,7 @@ async function main() {
 }
 
 function readDeploymentAddress(network: string, contract: string): string {
-    const p = path.join(__dirname, "..", "deployments", network, `${contract}.json`);
+    const p = path.join(__dirname, "..", "deployments", resolveDeploymentDir(network), `${contract}.json`);
     if (!fs.existsSync(p)) {
         throw new Error(`${contract} deployment not found for "${network}" at ${p}`);
     }

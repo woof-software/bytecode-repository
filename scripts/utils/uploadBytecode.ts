@@ -36,6 +36,7 @@
 import { ethers } from "hardhat";
 import { readFileSync, existsSync } from "fs";
 import { resolve, extname, join } from "path";
+import { resolveDeploymentDir } from "./deployment";
 
 export type ReleaseType = "initial" | "major" | "minor" | "patch" | "alternative";
 
@@ -105,10 +106,12 @@ export async function detectControllerKind(address: string, runner?: any): Promi
 export function loadControllerAddress(networkName: string, override?: string): string {
     if (override) return override;
 
+    // Honors DEPLOYMENT_LABEL (e.g. DEPLOYMENT_LABEL=light -> deployments/<network>-light/).
+    const deploymentDir = resolveDeploymentDir(networkName);
     const candidates = [CONTROLLER_ARTIFACT.full, CONTROLLER_ARTIFACT.light];
 
     for (const artifact of candidates) {
-        const deploymentFile = join(process.cwd(), "deployments", networkName, `${artifact}.json`);
+        const deploymentFile = join(process.cwd(), "deployments", deploymentDir, `${artifact}.json`);
         if (existsSync(deploymentFile)) {
             const deployment = JSON.parse(readFileSync(deploymentFile, "utf8"));
             return deployment.address as string;
@@ -116,9 +119,9 @@ export function loadControllerAddress(networkName: string, override?: string): s
     }
 
     throw new Error(
-        `No controller address found for network "${networkName}".\n` +
-            `Looked for ${candidates.map((c) => `deployments/${networkName}/${c}.json`).join(" and ")}.\n` +
-            `Either deploy first or provide --version-controller <address>`
+        `No controller address found in deployments/${deploymentDir}/.\n` +
+            `Looked for ${candidates.map((c) => `deployments/${deploymentDir}/${c}.json`).join(" and ")}.\n` +
+            `Either deploy first, set DEPLOYMENT_LABEL, or provide --version-controller <address>`
     );
 }
 

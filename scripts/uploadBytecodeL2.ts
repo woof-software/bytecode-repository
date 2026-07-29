@@ -18,6 +18,7 @@ import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
 import { loadBytecodeFromFile } from "./utils/uploadBytecode";
+import { resolveDeploymentDir } from "./utils/deployment";
 
 // ─── Edit these between runs ──────────────────────────────────────────────
 const CONTRACT_TYPE = "CometWithAssetList";
@@ -30,7 +31,13 @@ async function main() {
     const network = await ethers.provider.getNetwork();
     const [signer] = await ethers.getSigners();
 
-    const deploymentPath = path.join(__dirname, "..", "deployments", hre.network.name, "L2DeployManager.json");
+    const deploymentPath = path.join(
+        __dirname,
+        "..",
+        "deployments",
+        resolveDeploymentDir(hre.network.name),
+        "L2DeployManager.json"
+    );
     if (!fs.existsSync(deploymentPath)) {
         throw new Error(`L2DeployManager deployment not found for network "${hre.network.name}" at ${deploymentPath}`);
     }

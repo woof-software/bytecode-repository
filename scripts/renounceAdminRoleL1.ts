@@ -38,6 +38,7 @@
 import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
+import { resolveDeploymentDir } from "./utils/deployment";
 
 // Must match the value used in setConfigsL1.ts
 const L1_GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Permanent governor
@@ -64,7 +65,13 @@ async function main() {
     }
 
     try {
-        const deploymentPath = path.join(__dirname, "..", "deployments", network.name, "deployments.json");
+        const deploymentPath = path.join(
+            __dirname,
+            "..",
+            "deployments",
+            resolveDeploymentDir(network.name),
+            "deployments.json"
+        );
         if (!fs.existsSync(deploymentPath)) {
             throw new Error(`No deployments found for network: ${network.name}`);
         }
