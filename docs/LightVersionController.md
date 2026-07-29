@@ -2,9 +2,29 @@
 
 ## LightVersionController
 
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│   ⚠️  TEST BYTECODE REGISTRY ONLY — NOT FOR PRODUCTION USE  ⚠️         │
+│                                                                         │
+│   This registry stores bytecode exclusively for live, on-chain testing  │
+│   of protocol features. It carries no guarantees whatsoever: bytecode   │
+│   may be unaudited, incorrect, or removed/abandoned at any              │
+│   moment without notice. It is NOT the canonical VersionController — it │
+│   omits audit verification, cooldowns, and the developer hierarchy.     │
+│                                                                         │
+│   The DAO has NO control over this registry: no governance,             │
+│   no pause, no recovery, no upgrades.                                   │
+│                                                                         │
+│   The same applies to EVERY contract deployed from bytecode served by   │
+│   this instance: none of them are for production use, do not ever       │
+│   deposit funds you are not willing to risk into them.                  │
+│   Any assets supplied should be considered permanently at risk          │
+│   and potentially unrecoverable.                                        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 A lightweight variant of the {VersionController} intended for test deployments.
-- Merges the {L1DeployManager} `deploy` flow into a single contract so bytecode can be stored and
-  deployed via CREATE2 from one place.
+- Acts purely as an {IBytecodeProvider}: it stores versioned bytecode, while deployment is performed
+  by an external deploy manager (e.g. {L1DeployManager}) that retrieves bytecode from here.
 - The Admin (DEFAULT_ADMIN_ROLE) assigns and removes developers.
 - This contract is NOT for production use: it removes the security guarantees of the full
   {VersionController} and exists purely to streamline test deployments.
@@ -15,7 +35,7 @@ A lightweight variant of the {VersionController} intended for test deployments.
 bytes32 DEVELOPER_ROLE
 ```
 
-Developer role for AccessControl. Developers can release and deploy bytecode.
+Developer role for AccessControl. Developers can release bytecode.
 
 ### latestVersions
 
@@ -55,12 +75,6 @@ Stores the bytecode information for given bytecode version hash.
 event BytecodeUploaded(bytes32 _contractType, struct Types.Version _version)
 ```
 
-### ContractDeployed
-
-```solidity
-event ContractDeployed(struct Types.BytecodeVersion _bytecodeVersion, bytes _constructorParams, address _newContract, address _deployer)
-```
-
 ### ZeroAddress
 
 ```solidity
@@ -71,12 +85,6 @@ error ZeroAddress()
 
 ```solidity
 error NotDeveloper(address _account)
-```
-
-### NotDeveloperOrAdmin
-
-```solidity
-error NotDeveloperOrAdmin(address _account)
 ```
 
 ### BytecodeAlreadyReleased
@@ -124,8 +132,16 @@ error EmptyURL()
 ### constructor
 
 ```solidity
-constructor(address _initialAdmin) public
+constructor() public
 ```
+
+### initialize
+
+```solidity
+function initialize(address _initialAdmin) external
+```
+
+Initializes the contract and grants the admin role.
 
 #### Parameters
 
@@ -140,14 +156,6 @@ modifier onlyDeveloper()
 ```
 
 Validates that the caller is a developer.
-
-### onlyDeveloperOrAdmin
-
-```solidity
-modifier onlyDeveloperOrAdmin()
-```
-
-Validates that the caller is a developer or the admin.
 
 ### bytecodeReleased
 
@@ -259,54 +267,6 @@ _Specified version, for which alternative is released, must exist._
 | ---- | ---- | ----------- |
 | _bytecodeInput | struct Types.BytecodeInput | A struct of params necessary to upload the bytecode. |
 | _version | struct Types.VersionWithAlternative | A struct containing the core version for which to release an alternative and the alternative label to release. |
-
-### deploy
-
-```solidity
-function deploy(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams) external payable returns (address)
-```
-
-Allows developers or the admin to deploy a certain version of bytecode via CREATE2.
-
-_Bytecode must be registered (released) in this contract.
-Mirrors the signature of {L1DeployManager-deploy}. Any registered bytecode is deployable_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _bytecodeVersion | struct Types.BytecodeVersion | A specific version of contract type to deploy. |
-| _salt | bytes32 | A value used together with the caller to generate a unique CREATE2 salt. |
-| _constructorParams | bytes | Encoded parameters necessary to deploy the specified contract. |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | address | Address of the newly deployed contract. |
-
-### computeAddress
-
-```solidity
-function computeAddress(struct Types.BytecodeVersion _bytecodeVersion, bytes32 _salt, bytes _constructorParams, address _deployer) external view returns (address)
-```
-
-Computes a pre-deployed address of specified contract type and version.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _bytecodeVersion | struct Types.BytecodeVersion | A specific version of contract type. |
-| _salt | bytes32 | A value used together with the deployer to generate a unique CREATE2 salt. |
-| _constructorParams | bytes | Encoded parameters necessary to deploy the specified contract. |
-| _deployer | address | Address of deployer. Necessary for unique salt generation. |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | address | Address of computed pre-deployed smart contract. |
 
 ### computeBytecodeHash
 
@@ -530,4 +490,19 @@ Returns given version in human-readable format. E.g. "4.3.0".
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | string | A string containing the version. |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
+{upgradeToAndCall}.
+
+Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
+
+```solidity
+function _authorizeUpgrade(address) internal onlyOwner {}
+```_
 
