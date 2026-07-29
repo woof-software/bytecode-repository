@@ -927,6 +927,19 @@ The project can properly work without the \`.env\` file, but supports some varia
 - `EVM_VERSION="default"` and `HARDFORK="default"` if you would not like to use Prague, but would like Hardhat to behave by default.
 - `VIA_IR=false` to disable IR optimization. You may also need to disable it in `.solcover.js` if compilation issues when running coverage.
 - `COINMARKETCAP_API_KEY` and `ETHERSCAN_API_KEY` if you would like to see gas costs in dollars when running `pnpm testh:gas`.
+- `DEPLOYMENT_LABEL=<label>` to read from and write to `deployments/<network>-<label>/` instead of the production `deployments/<network>/`. This isolates a test stack — such as the light stack deployed by `scripts/deployLight.ts` (`LightVersionController` + `L1DeployManager`) — so its artifacts never overwrite production deployment records. It is honored by every script that resolves a deployment directory (deploy, upload, and config scripts).
+
+  ```shell
+  # Deploy the light test stack — writes to deployments/<network>-light/ (defaults to the "light" label)
+  npx hardhat run scripts/deployLight.ts --network ethereum
+
+  # Point any upload/config script at that stack with the matching label
+  DEPLOYMENT_LABEL=light HARDHAT_NETWORK=ethereum npx ts-node scripts/uploadInitialBytecodes.ts
+  DEPLOYMENT_LABEL=light HARDHAT_NETWORK=ethereum npx ts-node scripts/cli/uploadBytecode.ts --help
+
+  # Without DEPLOYMENT_LABEL, scripts use the production deployments/<network>/ directory as before
+  HARDHAT_NETWORK=ethereum npx ts-node scripts/uploadInitialBytecodes.ts
+  ```
 
 ### VS Code
 

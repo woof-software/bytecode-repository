@@ -1,28 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { BytecodeStore } from "./libraries/BytecodeStore.sol";
 import { IBytecodeProvider } from "./interfaces/IBytecodeProvider.sol";
 import { Types } from "./interfaces/Types.sol";
 
 /**
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ * │                                                                         │
+ * │   ⚠️  TEST BYTECODE REGISTRY ONLY — NOT FOR PRODUCTION USE  ⚠️         │
+ * │                                                                         │
+ * │   This registry stores bytecode exclusively for live, on-chain testing  │
+ * │   of protocol features. It carries no guarantees whatsoever: bytecode   │
+ * │   may be unaudited, incorrect, or removed/abandoned at any              │
+ * │   moment without notice. It is NOT the canonical VersionController — it │
+ * │   omits audit verification, cooldowns, and the developer hierarchy.     │
+ * │                                                                         │
+ * │   The DAO has NO control over this registry: no governance,             │
+ * │   no pause, no recovery, no upgrades.                                   │
+ * │                                                                         │
+ * │   The same applies to EVERY contract deployed from bytecode served by   │
+ * │   this instance: none of them are for production use, do not ever       │
+ * │   deposit funds you are not willing to risk into them.                  │
+ * │   Any assets supplied should be considered permanently at risk          │
+ * │   and potentially unrecoverable.                                        │
+ * │                                                                         │
+ * └─────────────────────────────────────────────────────────────────────────┘
  * @title LightVersionController
  * @author WOOF! Software
  * @custom:security-contact dmitriy@woof.software
  * @notice A lightweight variant of the {VersionController} intended for test deployments.
- * - Merges the {L1DeployManager} `deploy` flow into a single contract so bytecode can be stored and
- *   deployed via CREATE2 from one place.
+ * - Acts purely as an {IBytecodeProvider}: it stores versioned bytecode, while deployment is performed
+ *   by an external deploy manager (e.g. {L1DeployManager}) that retrieves bytecode from here.
  * - The Admin (DEFAULT_ADMIN_ROLE) assigns and removes developers.
  * - This contract is NOT for production use: it removes the security guarantees of the full
  *   {VersionController} and exists purely to streamline test deployments.
  */
-contract LightVersionController is AccessControl, IBytecodeProvider, Types {
+contract LightVersionController is AccessControlUpgradeable, UUPSUpgradeable, IBytecodeProvider, Types {
     using Strings for uint256;
 
-    /// @notice Developer role for AccessControl. Developers can release and deploy bytecode.
+    /// @notice Developer role for AccessControl. Developers can release bytecode.
     bytes32 public constant DEVELOPER_ROLE = keccak256("DEVELOPER_ROLE");
 
     /// @notice Stores the latest available version for given contract type.
@@ -37,16 +57,9 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     mapping(bytes32 => Bytecode) public bytecodes;
 
     event BytecodeUploaded(bytes32 _contractType, Version _version);
-    event ContractDeployed(
-        BytecodeVersion _bytecodeVersion,
-        bytes _constructorParams,
-        address _newContract,
-        address _deployer
-    );
 
     error ZeroAddress();
     error NotDeveloper(address _account);
-    error NotDeveloperOrAdmin(address _account);
     error BytecodeAlreadyReleased(bytes32 _contractType);
     error BytecodeNotReleased(bytes32 _contractType);
     error NonExistingMajorVersion(bytes32 _contractType, uint64 _major);
@@ -55,22 +68,23 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
     error VersionAlreadyExists(bytes32 _contractType, VersionWithAlternative _version);
     error EmptyURL();
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    /// @notice Initializes the contract and grants the admin role.
     /// @param _initialAdmin An address that receives the DEFAULT_ADMIN_ROLE.
-    constructor(address _initialAdmin) {
+    function initialize(address _initialAdmin) external initializer {
         if (_initialAdmin == address(0)) revert ZeroAddress();
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _initialAdmin);
     }
 
     /// @notice Validates that the caller is a developer.
     modifier onlyDeveloper() {
         if (!isDeveloper(msg.sender)) revert NotDeveloper(msg.sender);
-        _;
-    }
-
-    /// @notice Validates that the caller is a developer or the admin.
-    modifier onlyDeveloperOrAdmin() {
-        if (!isDeveloper(msg.sender) && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
-            revert NotDeveloperOrAdmin(msg.sender);
         _;
     }
 
@@ -185,46 +199,7 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
         alternativeVersions[_bytecodeInput.contractType].push(_version);
     }
 
-    /* Deploy function */
-
-    /// @notice Allows developers or the admin to deploy a certain version of bytecode via CREATE2.
-    /// @dev Bytecode must be registered (released) in this contract.
-    /// @dev Mirrors the signature of {L1DeployManager-deploy}. Any registered bytecode is deployable
-    /// @param _bytecodeVersion A specific version of contract type to deploy.
-    /// @param _salt A value used together with the caller to generate a unique CREATE2 salt.
-    /// @param _constructorParams Encoded parameters necessary to deploy the specified contract.
-    /// @return Address of the newly deployed contract.
-    function deploy(
-        BytecodeVersion calldata _bytecodeVersion,
-        bytes32 _salt,
-        bytes calldata _constructorParams
-    ) external payable onlyDeveloperOrAdmin returns (address) {
-        bytes32 uniqueSalt = keccak256(abi.encode(_salt, msg.sender));
-        bytes memory bytecodeWithParams = abi.encodePacked(_getBytecode(_bytecodeVersion), _constructorParams);
-        address newContract = Create2.deploy(msg.value, uniqueSalt, bytecodeWithParams);
-
-        emit ContractDeployed(_bytecodeVersion, _constructorParams, newContract, msg.sender);
-        return newContract;
-    }
-
     /* View functions */
-
-    /// @notice Computes a pre-deployed address of specified contract type and version.
-    /// @param _bytecodeVersion A specific version of contract type.
-    /// @param _salt A value used together with the deployer to generate a unique CREATE2 salt.
-    /// @param _constructorParams Encoded parameters necessary to deploy the specified contract.
-    /// @param _deployer Address of deployer. Necessary for unique salt generation.
-    /// @return Address of computed pre-deployed smart contract.
-    function computeAddress(
-        BytecodeVersion calldata _bytecodeVersion,
-        bytes32 _salt,
-        bytes calldata _constructorParams,
-        address _deployer
-    ) external view returns (address) {
-        bytes32 uniqueSalt = keccak256(abi.encode(_salt, _deployer));
-        bytes memory bytecodeWithParams = abi.encodePacked(_getBytecode(_bytecodeVersion), _constructorParams);
-        return Create2.computeAddress(uniqueSalt, keccak256(bytecodeWithParams));
-    }
 
     /// @notice Computes a bytecode version hash for specified contract type and its version.
     /// @param _contractType A type of contract for which to compute hash.
@@ -343,4 +318,6 @@ contract LightVersionController is AccessControl, IBytecodeProvider, Types {
                 _version.alternative
             );
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 }

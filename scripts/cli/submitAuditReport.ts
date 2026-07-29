@@ -44,6 +44,7 @@
 import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
+import { resolveDeploymentDir } from "../utils/deployment";
 import {
     submitAuditReport,
     recoverAuditorAddress,
@@ -156,7 +157,12 @@ function parseCliArgs(): CliArgs {
 function loadVersionControllerAddress(networkName: string, override?: string): string {
     if (override) return override;
 
-    const deploymentFile = path.join(process.cwd(), "deployments", networkName, "VersionController.json");
+    const deploymentFile = path.join(
+        process.cwd(),
+        "deployments",
+        resolveDeploymentDir(networkName),
+        "VersionController.json"
+    );
     if (fs.existsSync(deploymentFile)) {
         const deployment = JSON.parse(fs.readFileSync(deploymentFile, "utf8"));
         return deployment.address as string;

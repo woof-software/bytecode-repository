@@ -41,6 +41,24 @@ export interface NetworkDeployments {
     timestamp: string;
 }
 
+/**
+ * Resolve the `deployments/<dir>/` directory label to read from or write to.
+ *
+ * Deployment artifacts live in `deployments/<network>/` by default. Setting the `DEPLOYMENT_LABEL`
+ * environment variable appends a suffix, isolating a stack in its own directory — e.g.
+ * `DEPLOYMENT_LABEL=light` on network `ethereum` resolves to `ethereum-light`. This lets a test
+ * stack (see scripts/deployLight.ts) be deployed and then read by upload/config scripts without
+ * touching the production `deployments/<network>/` records.
+ *
+ * @param networkName - Base network name (e.g. from `ethers.provider.getNetwork().name`).
+ * @param defaultLabel - Fallback label when `DEPLOYMENT_LABEL` is unset (e.g. "light" for deployLight).
+ * @returns The directory name under `deployments/` to use.
+ */
+export function resolveDeploymentDir(networkName: string, defaultLabel = ""): string {
+    const label = (process.env.DEPLOYMENT_LABEL ?? defaultLabel).trim();
+    return label ? `${networkName}-${label}` : networkName;
+}
+
 export class DeploymentManager {
     private networkName: string;
     private chainId: number;
@@ -328,11 +346,12 @@ export class DeploymentManager {
     }
 
     /**
-     * Create deployment manager instance from current network
+     * Create deployment manager instance from current network.
+     * Honors the DEPLOYMENT_LABEL env var (see {@link resolveDeploymentDir}).
      */
     static async create(): Promise<DeploymentManager> {
         const network = await ethers.provider.getNetwork();
-        return new DeploymentManager(network.name, Number(network.chainId));
+        return new DeploymentManager(resolveDeploymentDir(network.name), Number(network.chainId));
     }
 }
 

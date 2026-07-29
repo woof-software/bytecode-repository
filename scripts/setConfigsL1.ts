@@ -56,6 +56,7 @@ import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
 import { getNetworkConfig, NETWORK_CONFIGS } from "./config/networkConfig";
+import { resolveDeploymentDir } from "./utils/deployment";
 
 // L1 configuration
 const L1_GOVERNOR_ADDRESS = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"; // Permanent governor
@@ -155,7 +156,13 @@ interface L2DeploymentInfo {
  */
 function getL2DeploymentInfo(networkName: string): L2DeploymentInfo | null {
     try {
-        const deploymentPath = path.join(__dirname, "..", "deployments", networkName, "L2DeployManager.json");
+        const deploymentPath = path.join(
+            __dirname,
+            "..",
+            "deployments",
+            resolveDeploymentDir(networkName),
+            "L2DeployManager.json"
+        );
 
         if (!fs.existsSync(deploymentPath)) {
             console.log(`⚠️  No deployment found for ${networkName}`);
@@ -423,7 +430,13 @@ async function main() {
 
     try {
         // Load deployed contracts
-        const deploymentPath = path.join(__dirname, "..", "deployments", network.name, "deployments.json");
+        const deploymentPath = path.join(
+            __dirname,
+            "..",
+            "deployments",
+            resolveDeploymentDir(network.name),
+            "deployments.json"
+        );
         if (!fs.existsSync(deploymentPath)) {
             throw new Error(`No deployments found for network: ${network.name}`);
         }

@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { ethers } from "hardhat";
 import { getNetworkConfig, getAvailableNetworks, NETWORK_CONFIGS } from "../config/networkConfig";
+import { resolveDeploymentDir } from "./deployment";
 
 interface L1DeploymentSummary {
     L1DeployManager: string;
@@ -25,7 +26,12 @@ export async function updateL1DeployManagerAddresses(l1NetworkName: string): Pro
 
     try {
         // Load L1 deployment summary
-        const l1DeploymentPath = join(process.cwd(), "deployments", l1NetworkName, "deployments.json");
+        const l1DeploymentPath = join(
+            process.cwd(),
+            "deployments",
+            resolveDeploymentDir(l1NetworkName),
+            "deployments.json"
+        );
         const l1DeploymentData = JSON.parse(readFileSync(l1DeploymentPath, "utf8"));
 
         const l1DeployManagerAddress = l1DeploymentData.contracts?.L1DeployManager?.address;
@@ -183,7 +189,12 @@ export async function interactiveConfigCheck(): Promise<void> {
  */
 export function getL1DeploymentSummary(l1NetworkName: string): L1DeploymentSummary | null {
     try {
-        const l1DeploymentPath = join(process.cwd(), "deployments", l1NetworkName, "deployments.json");
+        const l1DeploymentPath = join(
+            process.cwd(),
+            "deployments",
+            resolveDeploymentDir(l1NetworkName),
+            "deployments.json"
+        );
         const l1DeploymentData = JSON.parse(readFileSync(l1DeploymentPath, "utf8"));
 
         const contracts = l1DeploymentData.contracts;
