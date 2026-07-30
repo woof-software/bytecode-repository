@@ -1,0 +1,19 @@
+[
+    "constructor(tuple(tuple(uint64,uint64,uint64),string),address,address)",
+    "error Create2EmptyBytecode()",
+    "error FailedDeployment()",
+    "error InsufficientBalance(uint256,uint256)",
+    "error InvalidMinorVersion()",
+    "error NonExistingVersion()",
+    "error OnlyIterativeUpdate()",
+    "error OnlyTimelock()",
+    "error SameVersion()",
+    "event VersionSet(tuple(tuple(uint64,uint64,uint64),string))",
+    "function COMET_CT() view returns (bytes32)",
+    "function bytecodeProvider() view returns (address)",
+    "function clone(tuple(address,address,address,address,address,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint104,uint104,uint104,tuple(address,address,uint8,uint64,uint64,uint64,uint128)[])) returns (address)",
+    "function counters(address) view returns (uint256)",
+    "function setVersion(tuple(tuple(uint64,uint64,uint64),string))",
+    "function timelock() view returns (address)",
+    "function version() view returns (tuple(uint64,uint64,uint64), string)"
+]
