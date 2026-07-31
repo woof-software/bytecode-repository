@@ -19,7 +19,7 @@ describe("LightVersionController", function () {
 
         const lvc = await upgrades.deployProxy(
             await ethers.getContractFactory("LightVersionController"),
-            [admin.address],
+            [admin.address, "Integration test stack"],
             { kind: "uups" }
         );
         const DEVELOPER_ROLE = await lvc.DEVELOPER_ROLE();

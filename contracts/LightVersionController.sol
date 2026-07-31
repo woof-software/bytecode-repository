@@ -55,6 +55,8 @@ contract LightVersionController is AccessControlUpgradeable, UUPSUpgradeable, IB
     mapping(bytes32 => VersionWithAlternative[]) private alternativeVersions;
     /// @notice Stores the bytecode information for given bytecode version hash.
     mapping(bytes32 => Bytecode) public bytecodes;
+    /// @notice Describes the testing purpose of this smart contract.
+    string public testingPurpose;
 
     event BytecodeUploaded(bytes32 _contractType, Version _version);
 
@@ -75,11 +77,13 @@ contract LightVersionController is AccessControlUpgradeable, UUPSUpgradeable, IB
 
     /// @notice Initializes the contract and grants the admin role.
     /// @param _initialAdmin An address that receives the DEFAULT_ADMIN_ROLE.
-    function initialize(address _initialAdmin) external initializer {
+    /// @param _testingPurpose Testing purpose of LightVersionController.
+    function initialize(address _initialAdmin, string memory _testingPurpose) external initializer {
         if (_initialAdmin == address(0)) revert ZeroAddress();
         __AccessControl_init();
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _initialAdmin);
+        testingPurpose = _testingPurpose;
     }
 
     /// @notice Validates that the caller is a developer.
