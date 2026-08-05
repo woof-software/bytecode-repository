@@ -83,22 +83,21 @@ New version must be released._
 ### clone
 
 ```solidity
-function clone(struct Configuration config) external returns (address)
+function clone(struct Configuration config, bytes32 testingPurpose) external returns (address)
 ```
 
-Deploys a new CometWithAssetList implementation with the current version.
-
-_The function is compatible with the Compound V3 Configurator smart contract._
+Deploys a new CometLiveTest implementation with the current version.
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| config | struct Configuration | constructor argumets for the CometWithAssetList. |
+| config | struct Configuration | constructor argumets for the CometLiveTest. |
+| testingPurpose | bytes32 | Zero-padded description of the feature under test, stored as an immutable        on the deployed CometLiveTest. |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | address | Address of the newly deployed CometWithAssetList implementation. |
+| [0] | address | Address of the newly deployed CometLiveTest implementation. |
 
