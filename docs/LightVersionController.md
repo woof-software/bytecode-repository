@@ -69,6 +69,14 @@ mapping(bytes32 => struct Types.Bytecode) bytecodes
 
 Stores the bytecode information for given bytecode version hash.
 
+### testingPurpose
+
+```solidity
+string testingPurpose
+```
+
+Describes the testing purpose of this smart contract.
+
 ### BytecodeUploaded
 
 ```solidity
@@ -138,7 +146,7 @@ constructor() public
 ### initialize
 
 ```solidity
-function initialize(address _initialAdmin) external
+function initialize(address _initialAdmin, string _testingPurpose) external
 ```
 
 Initializes the contract and grants the admin role.
@@ -148,6 +156,7 @@ Initializes the contract and grants the admin role.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _initialAdmin | address | An address that receives the DEFAULT_ADMIN_ROLE. |
+| _testingPurpose | string | Testing purpose of LightVersionController. |
 
 ### onlyDeveloper
 

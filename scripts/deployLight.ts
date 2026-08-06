@@ -15,6 +15,8 @@ import { DeploymentManager, waitForConfirmations, logDeploymentStep, resolveDepl
  * Configuration:
  * - adminAddress: receives DEFAULT_ADMIN_ROLE on LightVersionController (assigns developers, upgrades,
  *   and acts as the L1DeployManager governor). Defaults to the deployer.
+ * - TESTING_PURPOSE: free-form description stored on-chain by LightVersionController, documenting what
+ *   this test deployment is for.
  * - CCIP_ROUTER_ADDRESS (env): Chainlink CCIP Router for the target network. Defaults to the Ethereum
  *   mainnet router; MUST be overridden when deploying to any other network.
  *   See https://docs.chain.link/ccip/directory for per-network router addresses.
@@ -27,6 +29,9 @@ import { DeploymentManager, waitForConfirmations, logDeploymentStep, resolveDepl
 
 // Chainlink CCIP Router.
 const CCIP_ROUTER_ADDRESS = "0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D";
+
+// Describes the testing purpose of this LightVersionController deployment (stored on-chain).
+const TESTING_PURPOSE = "Light BytecodeRepository test deployment";
 
 async function main() {
     console.log("Starting Light BytecodeRepository deployment...\n");
@@ -49,6 +54,7 @@ async function main() {
     console.log("Network:", network.name, "| Chain ID:", network.chainId.toString());
     console.log("Configuration:");
     console.log("Admin:", adminAddress);
+    console.log("Testing purpose:", `"${TESTING_PURPOSE}"`);
     console.log("CCIP Router:", CCIP_ROUTER_ADDRESS);
     console.log("Artifacts dir:", `deployments/${deploymentDir}/`);
     console.log("");
@@ -60,7 +66,7 @@ async function main() {
         logDeploymentStep(1, 2, "Deploying LightVersionController (upgradeable)...");
         const LightVersionController = await ethers.getContractFactory("LightVersionController");
 
-        const initializerArgs = [adminAddress];
+        const initializerArgs = [adminAddress, TESTING_PURPOSE];
 
         console.log("Deploying proxy and implementation...");
         const lightVersionController = await upgrades.deployProxy(LightVersionController, initializerArgs, {

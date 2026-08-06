@@ -318,6 +318,11 @@
                 "internalType": "struct Configuration",
                 "name": "config",
                 "type": "tuple"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "testingPurpose",
+                "type": "bytes32"
             }
         ],
         "name": "clone",

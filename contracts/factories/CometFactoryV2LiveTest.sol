@@ -94,15 +94,16 @@ contract CometFactoryV2LiveTest is BaseFactory, ICometFactoryV2 {
 
     /* Deploy functionality */
 
-    /// @notice Deploys a new CometWithAssetList implementation with the current version.
-    /// @dev The function is compatible with the Compound V3 Configurator smart contract.
-    /// @param config constructor argumets for the CometWithAssetList.
-    /// @return Address of the newly deployed CometWithAssetList implementation.
-    function clone(Configuration calldata config) external returns (address) {
+    /// @notice Deploys a new CometLiveTest implementation with the current version.
+    /// @param config constructor argumets for the CometLiveTest.
+    /// @param testingPurpose Zero-padded description of the feature under test, stored as an immutable
+    ///        on the deployed CometLiveTest.
+    /// @return Address of the newly deployed CometLiveTest implementation.
+    function clone(Configuration calldata config, bytes32 testingPurpose) external returns (address) {
         return
             _deployContractType(
                 Types.BytecodeVersion(COMET_CT, version),
-                abi.encode(config),
+                abi.encode(config, testingPurpose),
                 bytes32(counters[msg.sender]++)
             );
     }

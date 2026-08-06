@@ -38,7 +38,7 @@
     "function getVerifiedInitCodeHash(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string))) view returns (bytes32)",
     "function grantRole(bytes32,address)",
     "function hasRole(bytes32,address) view returns (bool)",
-    "function initialize(address)",
+    "function initialize(address,string)",
     "function isDeveloper(address) view returns (bool)",
     "function latestMinor(bytes32,uint64) view returns (uint64)",
     "function latestPatch(bytes32,uint64,uint64) view returns (uint64)",
@@ -52,6 +52,7 @@
     "function renounceRole(bytes32,address)",
     "function revokeRole(bytes32,address)",
     "function supportsInterface(bytes4) view returns (bool)",
+    "function testingPurpose() view returns (string)",
     "function upgradeToAndCall(address,bytes) payable",
     "function versionExists(tuple(bytes32,tuple(tuple(uint64,uint64,uint64),string))) view returns (bool)",
     "function versionExists(bytes32) view returns (bool)"
