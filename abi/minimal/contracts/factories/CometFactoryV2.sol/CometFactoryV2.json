@@ -7,7 +7,6 @@
     "error NonExistingVersion()",
     "error OnlyIterativeUpdate()",
     "error OnlyTimelock()",
-    "error SameVersion()",
     "event VersionSet(tuple(tuple(uint64,uint64,uint64),string))",
     "function COMET_CT() view returns (bytes32)",
     "function bytecodeProvider() view returns (address)",
