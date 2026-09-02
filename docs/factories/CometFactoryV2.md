@@ -4,12 +4,12 @@
 
 This factory contract deploys Compound Comet protocol implementations with version control and timelock governance integration for secure protocol upgrades.
 - The contract is specifically designed for Compound V3 Configurator compatibility, enabling seamless integration with existing Compound governance and deployment infrastructure.
-- Version management enforces iterative version upgrades through timelock governance, preventing unauthorized or backward protocol updates.
+- Version management enforces iterative major version upgrades through timelock governance, preventing unauthorized or non-sequential protocol updates.
 - Deployment targets the CometWithAssetList implementation, enabling markets with extended asset capacity.
 - Automatic salt generation using an internal counter ensures unique deployment addresses while maintaining deterministic behavior for identical configurations.
 - Integration with BytecodeRepository ecosystem provides audit verification and cross-chain deployment consistency for Comet protocol implementations.
 - Timelock (governance contract) is able to:
-  1. Upgrade the factory to use new versions of Comet implementations, provided the version never decreases (major/minor/patch may jump forward).
+  1. Upgrade the factory to use new major versions of Comet implementations following iterative upgrade constraints (N+1 major version only).
   2. Validate that new versions exist in the BytecodeRepository before approval, ensuring only audited implementations are deployed.
   3. Control the pace of protocol upgrades through time-delayed execution and community governance processes.
 - Anyone is able to:
@@ -20,7 +20,7 @@ This factory contract deploys Compound Comet protocol implementations with versi
   2. Salt generation using internal counter to ensure unique addresses while maintaining deployment predictability.
   3. Configuration validation and deployment via inherited BaseFactory infrastructure for security and consistency.
   4. Deployment of the CometWithAssetList implementation, providing extended asset capacity.
-- Version constraints ensure protocol security by preventing the version from ever decreasing.
+- Version constraints ensure protocol security by preventing arbitrary version jumps and requiring sequential major version upgrades.
 - The factory maintains compatibility with existing Compound tooling while adding BytecodeRepository audit verification and cross-chain deployment capabilities.
 - Deployment patterns follow Compound V3 standards for seamless integration with existing governance, monitoring, and operational infrastructure.
 
