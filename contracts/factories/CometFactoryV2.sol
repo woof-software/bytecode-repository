@@ -13,12 +13,12 @@ import { BaseFactory } from "./BaseFactory.sol";
  * @custom:security-contact dmitriy@woof.software
  * @notice This factory contract deploys Compound Comet protocol implementations with version control and timelock governance integration for secure protocol upgrades.
  * - The contract is specifically designed for Compound V3 Configurator compatibility, enabling seamless integration with existing Compound governance and deployment infrastructure.
- * - Version management enforces iterative major version upgrades through timelock governance, preventing unauthorized or non-sequential protocol updates.
+ * - Version management enforces iterative version upgrades through timelock governance, preventing unauthorized or backward protocol updates.
  * - Deployment targets the CometWithAssetList implementation, enabling markets with extended asset capacity.
  * - Automatic salt generation using an internal counter ensures unique deployment addresses while maintaining deterministic behavior for identical configurations.
  * - Integration with BytecodeRepository ecosystem provides audit verification and cross-chain deployment consistency for Comet protocol implementations.
  * - Timelock (governance contract) is able to:
- *   1. Upgrade the factory to use new major versions of Comet implementations following iterative upgrade constraints (N+1 major version only).
+ *   1. Upgrade the factory to use new versions of Comet implementations, provided the version never decreases (major/minor/patch may jump forward).
  *   2. Validate that new versions exist in the BytecodeRepository before approval, ensuring only audited implementations are deployed.
  *   3. Control the pace of protocol upgrades through time-delayed execution and community governance processes.
  * - Anyone is able to:
@@ -29,7 +29,7 @@ import { BaseFactory } from "./BaseFactory.sol";
  *   2. Salt generation using internal counter to ensure unique addresses while maintaining deployment predictability.
  *   3. Configuration validation and deployment via inherited BaseFactory infrastructure for security and consistency.
  *   4. Deployment of the CometWithAssetList implementation, providing extended asset capacity.
- * - Version constraints ensure protocol security by preventing arbitrary version jumps and requiring sequential major version upgrades.
+ * - Version constraints ensure protocol security by preventing the version from ever decreasing.
  * - The factory maintains compatibility with existing Compound tooling while adding BytecodeRepository audit verification and cross-chain deployment capabilities.
  * - Deployment patterns follow Compound V3 standards for seamless integration with existing governance, monitoring, and operational infrastructure.
  */
@@ -57,7 +57,7 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
     /// @notice Sets the version of the contract type used for the deployment.
     /// @dev Only timelock can call this function.
     /// @dev The new version's major version must be equal to previous version's major version + 1.
-    /// @dev New version must be released.
+    /// @dev New version must can be the same as the current one.
     /// @param _newVersion New version of the contract type.
     function setVersion(Types.VersionWithAlternative memory _newVersion) external {
         if (msg.sender != timelock) revert OnlyTimelock();
@@ -66,14 +66,7 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
         Types.Version memory currVersion = version.version;
         Types.Version memory newVersion = _newVersion.version;
 
-        // Cannot set the same version
-        if (
-            currVersion.major == newVersion.major &&
-            currVersion.minor == newVersion.minor &&
-            currVersion.patch == newVersion.patch
-        ) {
-            revert SameVersion();
-        }
+        // We allow setting the same version to optimize proposal workflow
 
         if (newVersion.major == currVersion.major) {
             // Same major: minor cannot decrease (patch can be any)
