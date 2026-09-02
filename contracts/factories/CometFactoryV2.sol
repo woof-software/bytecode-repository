@@ -57,7 +57,7 @@ contract CometFactoryV2 is BaseFactory, ICometFactoryV2 {
     /// @notice Sets the version of the contract type used for the deployment.
     /// @dev Only timelock can call this function.
     /// @dev The new version's major version must be equal to previous version's major version + 1.
-    /// @dev New version must can be the same as the current one.
+    /// @dev New version can be the same as the current one.
     /// @param _newVersion New version of the contract type.
     function setVersion(Types.VersionWithAlternative memory _newVersion) external {
         if (msg.sender != timelock) revert OnlyTimelock();
