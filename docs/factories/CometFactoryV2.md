@@ -72,7 +72,7 @@ Sets the version of the contract type used for the deployment.
 
 _Only timelock can call this function.
 The new version's major version must be equal to previous version's major version + 1.
-New version must can be the same as the current one._
+New version can be the same as the current one._
 
 #### Parameters
 
