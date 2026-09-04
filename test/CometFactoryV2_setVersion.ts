@@ -281,8 +281,8 @@ describe("CometFactoryV2 setVersion()", function () {
         });
     });
 
-    describe("Revert cases", function () {
-        it("Can't set the exact same version 1.2.3 => 1.2.3", async () => {
+    describe("Same version", function () {
+        it("Can set the exact same version 1.2.3 => 1.2.3", async () => {
             // Setup
             const { timelock, bytecodeProviderMock } = await restore();
             const initialVersion = {
@@ -297,10 +297,40 @@ describe("CometFactoryV2 setVersion()", function () {
                 version: { major: 1n, minor: 2n, patch: 3n },
                 alternative: ""
             };
-            await expect(cometFactoryV2.setVersion(newVersion)).revertedWithCustomError(cometFactoryV2, "SameVersion");
+            await expect(cometFactoryV2.setVersion(newVersion)).to.not.be.reverted;
+
+            const result = await cometFactoryV2.version();
+            expect(result.version.major).to.equal(newVersion.version.major);
+            expect(result.version.minor).to.equal(newVersion.version.minor);
+            expect(result.version.patch).to.equal(newVersion.version.patch);
+            expect(result.alternative).to.equal(newVersion.alternative);
         });
 
-        it("Can't set the exact same version with different alternative 1.2.3-alpha => 1.2.3-beta", async () => {
+        it("Can set the exact same version with different alternative 1.2.3 => 1.2.3-stable", async () => {
+            // Setup
+            const { timelock, bytecodeProviderMock } = await restore();
+            const initialVersion = {
+                version: { major: 1n, minor: 2n, patch: 3n },
+                alternative: ""
+            };
+            const cometFactoryV2 = await (await ethers.getContractFactory("CometFactoryV2"))
+                .connect(timelock)
+                .deploy(initialVersion, bytecodeProviderMock, timelock);
+            // Check
+            const newVersion = {
+                version: { major: 1n, minor: 2n, patch: 3n },
+                alternative: "-stable"
+            };
+            await expect(cometFactoryV2.setVersion(newVersion)).to.not.be.reverted;
+
+            const result = await cometFactoryV2.version();
+            expect(result.version.major).to.equal(newVersion.version.major);
+            expect(result.version.minor).to.equal(newVersion.version.minor);
+            expect(result.version.patch).to.equal(newVersion.version.patch);
+            expect(result.alternative).to.equal(newVersion.alternative);
+        });
+
+        it("Can set the exact same version with different alternative 1.2.3-alpha => 1.2.3-beta", async () => {
             // Setup
             const { timelock, bytecodeProviderMock } = await restore();
             const initialVersion = {
@@ -315,9 +345,17 @@ describe("CometFactoryV2 setVersion()", function () {
                 version: { major: 1n, minor: 2n, patch: 3n },
                 alternative: "-beta"
             };
-            await expect(cometFactoryV2.setVersion(newVersion)).revertedWithCustomError(cometFactoryV2, "SameVersion");
-        });
+            await expect(cometFactoryV2.setVersion(newVersion)).to.not.be.reverted;
 
+            const result = await cometFactoryV2.version();
+            expect(result.version.major).to.equal(newVersion.version.major);
+            expect(result.version.minor).to.equal(newVersion.version.minor);
+            expect(result.version.patch).to.equal(newVersion.version.patch);
+            expect(result.alternative).to.equal(newVersion.alternative);
+        });
+    });
+
+    describe("Revert cases", function () {
         describe("Same major, minor decrease", function () {
             const fixture2 = async () => {
                 const { timelock, bytecodeProviderMock } = await restore();
