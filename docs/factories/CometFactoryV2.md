@@ -71,7 +71,8 @@ function setVersion(struct Types.VersionWithAlternative _newVersion) external
 Sets the version of the contract type used for the deployment.
 
 _Only timelock can call this function.
-The new version's major version must be equal to previous version's major version + 1.
+If the major version changes, it must equal the previous major version + 1.
+New version must be released.
 New version can be the same as the current one._
 
 #### Parameters
