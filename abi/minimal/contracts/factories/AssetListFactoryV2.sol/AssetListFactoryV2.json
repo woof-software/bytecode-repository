@@ -1,0 +1,20 @@
+[
+    "constructor(tuple(tuple(uint64,uint64,uint64),string),address,address)",
+    "error Create2EmptyBytecode()",
+    "error FailedDeployment()",
+    "error InsufficientBalance(uint256,uint256)",
+    "error InvalidMinorVersion()",
+    "error NonExistingVersion()",
+    "error OnlyIterativeUpdate()",
+    "error OnlyTimelock()",
+    "error SameVersion()",
+    "event AssetListCreated(address indexed,tuple(address,uint8,address)[])",
+    "event VersionSet(tuple(tuple(uint64,uint64,uint64),string))",
+    "function ASSET_LIST_CT() view returns (bytes32)",
+    "function bytecodeProvider() view returns (address)",
+    "function counters(address) view returns (uint256)",
+    "function createAssetList(tuple(address,uint8,address)[]) returns (address)",
+    "function setVersion(tuple(tuple(uint64,uint64,uint64),string))",
+    "function timelock() view returns (address)",
+    "function version() view returns (tuple(uint64,uint64,uint64), string)"
+]

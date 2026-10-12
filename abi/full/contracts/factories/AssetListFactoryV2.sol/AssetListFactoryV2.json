@@ -1,0 +1,20 @@
+[
+    "constructor(tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) _initialVersion, address _bytecodeProvider, address _timelock)",
+    "error Create2EmptyBytecode()",
+    "error FailedDeployment()",
+    "error InsufficientBalance(uint256 balance, uint256 needed)",
+    "error InvalidMinorVersion()",
+    "error NonExistingVersion()",
+    "error OnlyIterativeUpdate()",
+    "error OnlyTimelock()",
+    "error SameVersion()",
+    "event AssetListCreated(address indexed assetList, tuple(address asset, uint8 decimals, address priceFeed)[] assetConfigs)",
+    "event VersionSet(tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) _newVersion)",
+    "function ASSET_LIST_CT() view returns (bytes32)",
+    "function bytecodeProvider() view returns (address)",
+    "function counters(address) view returns (uint256)",
+    "function createAssetList(tuple(address asset, uint8 decimals, address priceFeed)[] assetConfigs) returns (address assetList)",
+    "function setVersion(tuple(tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative) _newVersion)",
+    "function timelock() view returns (address)",
+    "function version() view returns (tuple(uint64 major, uint64 minor, uint64 patch) version, string alternative)"
+]
