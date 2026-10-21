@@ -34,6 +34,7 @@ struct Configuration {
   uint104 baseBorrowMin;
   uint104 targetReserves;
   struct AssetConfig[] assetConfigs;
+  address liquidationModule;
 }
 ```
 
