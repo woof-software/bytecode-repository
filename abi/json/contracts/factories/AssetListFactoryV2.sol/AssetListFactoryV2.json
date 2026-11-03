@@ -117,11 +117,6 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "uint8",
-                        "name": "decimals",
-                        "type": "uint8"
-                    },
-                    {
                         "internalType": "address",
                         "name": "priceFeed",
                         "type": "address"
@@ -233,11 +228,6 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "uint8",
-                        "name": "decimals",
-                        "type": "uint8"
-                    },
-                    {
                         "internalType": "address",
                         "name": "priceFeed",
                         "type": "address"
@@ -246,6 +236,11 @@
                 "internalType": "struct IAssetListStructs.ImmutableAssetConfig[]",
                 "name": "assetConfigs",
                 "type": "tuple[]"
+            },
+            {
+                "internalType": "address",
+                "name": "configurator",
+                "type": "address"
             }
         ],
         "name": "createAssetList",
