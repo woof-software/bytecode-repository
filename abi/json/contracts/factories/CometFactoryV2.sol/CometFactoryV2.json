@@ -273,46 +273,9 @@
                         "type": "uint104"
                     },
                     {
-                        "components": [
-                            {
-                                "internalType": "address",
-                                "name": "asset",
-                                "type": "address"
-                            },
-                            {
-                                "internalType": "address",
-                                "name": "priceFeed",
-                                "type": "address"
-                            },
-                            {
-                                "internalType": "uint8",
-                                "name": "decimals",
-                                "type": "uint8"
-                            },
-                            {
-                                "internalType": "uint64",
-                                "name": "borrowCollateralFactor",
-                                "type": "uint64"
-                            },
-                            {
-                                "internalType": "uint64",
-                                "name": "liquidateCollateralFactor",
-                                "type": "uint64"
-                            },
-                            {
-                                "internalType": "uint64",
-                                "name": "liquidationFactor",
-                                "type": "uint64"
-                            },
-                            {
-                                "internalType": "uint128",
-                                "name": "supplyCap",
-                                "type": "uint128"
-                            }
-                        ],
-                        "internalType": "struct AssetConfig[]",
-                        "name": "assetConfigs",
-                        "type": "tuple[]"
+                        "internalType": "address",
+                        "name": "assetList",
+                        "type": "address"
                     }
                 ],
                 "internalType": "struct Configuration",

@@ -4,7 +4,8 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-help
 import {
     CometV2MockInitCode,
     CometV3MockInitCode,
-    CometWithExtendedAssetListInitCode,
+    CometWithExtendedAssetListV2InitCode,
+    AssetListV2InitCode,
     CometExtAssetList,
     ConstantPriceFeedInitCode,
     AssetListFactoryInitCode
@@ -68,12 +69,12 @@ describe("CometFactoryV2", function () {
         // Release CometWithAssetList v1.0.0
         await versionController.connect(WOOF.subDevelopers[1]).releaseBytecode({
             contractType: WOOF.contractTypes[1], // CometWithAssetList
-            initCode: CometWithExtendedAssetListInitCode,
+            initCode: CometWithExtendedAssetListV2InitCode,
             sourceURL: URL
         });
         let signature = await prepareAuditReportSignature(
             await versionController.computeBytecodeHash(WOOF.contractTypes[1], version_1_0_0),
-            ethers.keccak256(CometWithExtendedAssetListInitCode),
+            ethers.keccak256(CometWithExtendedAssetListV2InitCode),
             auditReport,
             await versionController.getAddress(),
             auditors[0]
@@ -209,6 +210,24 @@ describe("CometFactoryV2", function () {
             await ethers.getContractFactory("CometFactoryV2")
         ).deploy(version_1_0_0, versionController, timelock);
 
+        // Deploy AssetList proxy holding the collateral asset configuration of the Comet
+        const assetListImpl = await new ethers.ContractFactory(
+            ["constructor(tuple(address asset, address priceFeed)[] assetConfigs_, address configurator_)"],
+            AssetListV2InitCode,
+            governor
+        ).deploy([[await mockCollateralToken.getAddress(), constantPriceFeedAddr]], governor.address);
+        const assetListProxy = await (
+            await ethers.getContractFactory("TransparentUpgradeableProxy")
+        ).deploy(
+            assetListImpl,
+            governor,
+            new ethers.Interface([
+                "function initialize(tuple(uint64 borrowCollateralFactor, uint64 liquidateCollateralFactor, uint64 liquidationFactor, uint128 supplyCap)[] storageConfigs)"
+            ]).encodeFunctionData("initialize", [
+                [["500000000000000000", "700000000000000000", "750000000000000000", "100000000000000000000000"]]
+            ])
+        );
+
         // Create sample Comet configuration with a valid CometExtWithAssetList extension delegate
         const cometConfiguration = {
             governor: governor.address,
@@ -231,17 +250,7 @@ describe("CometFactoryV2", function () {
             baseMinForRewards: 1000000000000,
             baseBorrowMin: 100000000,
             targetReserves: 20000000000000,
-            assetConfigs: [
-                {
-                    asset: await mockCollateralToken.getAddress(),
-                    priceFeed: constantPriceFeedAddr,
-                    decimals: 18,
-                    borrowCollateralFactor: "500000000000000000",
-                    liquidateCollateralFactor: "700000000000000000",
-                    liquidationFactor: "750000000000000000",
-                    supplyCap: "100000000000000000000000"
-                }
-            ]
+            assetList: await assetListProxy.getAddress()
         };
 
         return {
@@ -390,7 +399,7 @@ describe("CometFactoryV2", function () {
                 deployedAddress
             );
             expect(await comet.governor()).to.equal(cometConfiguration.governor);
-            expect(await comet.assetList()).to.not.equal(ethers.ZeroAddress);
+            expect(await comet.assetList()).to.equal(cometConfiguration.assetList);
         });
 
         it("Should increment counter for deployer", async () => {
