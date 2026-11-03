@@ -13,9 +13,10 @@ import { BaseFactory } from "./BaseFactory.sol";
  * @custom:security-contact dmitriy@woof.software
  * @notice This factory contract deploys Compound AssetList implementations with version control and timelock governance integration for secure protocol upgrades.
  * - The contract is a drop-in replacement for Compound's AssetListFactory: it exposes the same `createAssetList` function and `AssetListCreated` event, so it can be set as the asset list factory of a Comet proxy in the Compound V3 Configurator and called through its `deployAssetList` function.
+ * - The Configurator only redeploys an existing asset list, so the first AssetList implementation of a market is deployed by calling this factory directly, with the Configurator proxy as the configurator.
  * - Version management enforces iterative major version upgrades through timelock governance, preventing unauthorized or non-sequential protocol updates.
  * - Deployment targets the AssetList contract type, which stores collateral asset configurations of markets with extended asset capacity. A deployed AssetList is an implementation with disabled initializers, intended to be used through the AssetList proxy of a Comet.
- * - Only the immutable part of asset configurations (asset, decimals, price feed) is passed to the AssetList constructor. Collateral factors and supply caps are not handled by this factory: they are kept in the storage of the AssetList proxy.
+ * - Only the immutable part of asset configurations (asset and price feed) and the configurator are passed to the AssetList constructor. Asset decimals are read from the token by AssetList. Collateral factors and supply caps are not handled by this factory: they are kept in the storage of the AssetList proxy.
  * - Automatic salt generation using an internal counter ensures unique deployment addresses while maintaining deterministic behavior for identical configurations.
  * - Integration with BytecodeRepository ecosystem provides audit verification and cross-chain deployment consistency for AssetList implementations.
  * - Timelock (governance contract) is able to:
@@ -23,7 +24,7 @@ import { BaseFactory } from "./BaseFactory.sol";
  *   2. Validate that new versions exist in the BytecodeRepository before approval, ensuring only audited implementations are deployed.
  *   3. Control the pace of protocol upgrades through time-delayed execution and community governance processes.
  * - Anyone is able to:
- *   1. Deploy new AssetList implementations using the current approved version with the immutable part of Compound V3 asset configurations.
+ *   1. Deploy new AssetList implementations using the current approved version with the immutable part of Compound V3 asset configurations and the configurator allowed to update them.
  * - The contract automatically handles:
  *   1. Bytecode retrieval from BytecodeProvider with version validation and audit verification integration.
  *   2. Salt generation using internal counter to ensure unique addresses while maintaining deployment predictability.
@@ -96,13 +97,15 @@ contract AssetListFactoryV2 is BaseFactory, IAssetListFactoryV2 {
     /// @dev The function is compatible with Compound's AssetListFactory interface used by the Compound V3 Configurator.
     /// @dev Factors and supply caps are not part of the AssetList constructor, they are kept in the storage of the AssetList proxy.
     /// @param assetConfigs The immutable part of the asset configurations passed to the AssetList constructor.
+    /// @param configurator The only address allowed to call the setters of the new AssetList, normally the Configurator proxy.
     /// @return assetList Address of the newly deployed AssetList implementation.
     function createAssetList(
-        IAssetListStructs.ImmutableAssetConfig[] calldata assetConfigs
+        IAssetListStructs.ImmutableAssetConfig[] calldata assetConfigs,
+        address configurator
     ) external returns (address assetList) {
         assetList = _deployContractType(
             Types.BytecodeVersion(ASSET_LIST_CT, version),
-            abi.encode(assetConfigs),
+            abi.encode(assetConfigs, configurator),
             bytes32(counters[msg.sender]++)
         );
         emit AssetListCreated(assetList, assetConfigs);

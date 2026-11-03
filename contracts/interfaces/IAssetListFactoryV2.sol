@@ -8,6 +8,7 @@ interface IAssetListFactoryV2 is ICometFactoryV2 {
     event AssetListCreated(address indexed assetList, IAssetListStructs.ImmutableAssetConfig[] assetConfigs);
 
     function createAssetList(
-        IAssetListStructs.ImmutableAssetConfig[] calldata assetConfigs
+        IAssetListStructs.ImmutableAssetConfig[] calldata assetConfigs,
+        address configurator
     ) external returns (address assetList);
 }
