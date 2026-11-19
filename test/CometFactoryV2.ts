@@ -250,6 +250,7 @@ describe("CometFactoryV2", function () {
             baseMinForRewards: 1000000000000,
             baseBorrowMin: 100000000,
             targetReserves: 20000000000000,
+            maxSupportedUtilization: "2000000000000000000",
             assetList: await assetListProxy.getAddress()
         };
 

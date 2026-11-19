@@ -35,7 +35,7 @@ const ASSET_CONFIG =
 const STORAGE_ASSET_CONFIG =
     "tuple(uint64 borrowCollateralFactor, uint64 liquidateCollateralFactor, uint64 liquidationFactor, uint128 supplyCap)";
 const CONFIGURATION =
-    "tuple(address governor, address pauseGuardian, address baseToken, address baseTokenPriceFeed, address extensionDelegate, uint64 supplyKink, uint64 supplyPerYearInterestRateSlopeLow, uint64 supplyPerYearInterestRateSlopeHigh, uint64 supplyPerYearInterestRateBase, uint64 borrowKink, uint64 borrowPerYearInterestRateSlopeLow, uint64 borrowPerYearInterestRateSlopeHigh, uint64 borrowPerYearInterestRateBase, uint64 storeFrontPriceFactor, uint64 trackingIndexScale, uint64 baseTrackingSupplySpeed, uint64 baseTrackingBorrowSpeed, uint104 baseMinForRewards, uint104 baseBorrowMin, uint104 targetReserves, address assetList)";
+    "tuple(address governor, address pauseGuardian, address baseToken, address baseTokenPriceFeed, address extensionDelegate, uint64 supplyKink, uint64 supplyPerYearInterestRateSlopeLow, uint64 supplyPerYearInterestRateSlopeHigh, uint64 supplyPerYearInterestRateBase, uint64 borrowKink, uint64 borrowPerYearInterestRateSlopeLow, uint64 borrowPerYearInterestRateSlopeHigh, uint64 borrowPerYearInterestRateBase, uint64 storeFrontPriceFactor, uint64 trackingIndexScale, uint64 baseTrackingSupplySpeed, uint64 baseTrackingBorrowSpeed, uint104 baseMinForRewards, uint104 baseBorrowMin, uint104 targetReserves, uint64 maxSupportedUtilization, address assetList)";
 
 const ASSET_LIST_ABI = [
     "function TYPEHASH() view returns (bytes32)",
@@ -147,7 +147,7 @@ describe("AssetListFactoryV2", function () {
 
         const assetListFactory = await (
             await ethers.getContractFactory("AssetListFactoryV2")
-        ).deploy(version_1_0_0, versionController, timelock);
+        ).deploy(version_1_0_0, versionController, timelock, configurator);
 
         // Mock tokens and a price feed with 8 decimals, as required by AssetList
         const mockBaseToken = await (await ethers.getContractFactory("MockERC20")).deploy("Base Token", "BT");
@@ -160,7 +160,7 @@ describe("AssetListFactoryV2", function () {
             governor
         ).deploy(8, 100000000);
 
-        // Immutable part of the asset configurations, passed to the AssetList constructor with the configurator.
+        // Immutable part of the asset configurations, passed to the AssetList constructor with the factory's configurator.
         // Asset decimals are read from the token by AssetList
         const assetConfigs: ImmutableAssetConfig[] = [
             {
@@ -191,9 +191,10 @@ describe("AssetListFactoryV2", function () {
 
     describe("Constructor", function () {
         it("Should set initial state correctly", async () => {
-            const { assetListFactory, timelock, versionController, version_1_0_0 } = await restore();
+            const { assetListFactory, timelock, configurator, versionController, version_1_0_0 } = await restore();
 
             expect(await assetListFactory.timelock()).to.equal(timelock.address);
+            expect(await assetListFactory.configurator()).to.equal(configurator.address);
             expect(await assetListFactory.bytecodeProvider()).to.equal(await versionController.getAddress());
             expect(await assetListFactory.ASSET_LIST_CT()).to.equal(ethers.encodeBytes32String("AssetList"));
 
@@ -247,6 +248,7 @@ describe("AssetListFactoryV2", function () {
                     .deploy(
                         { version: { major: 1n, minor: 5n, patch: 3n }, alternative: "" },
                         bytecodeProviderMock,
+                        timelock,
                         timelock
                     );
             };
@@ -303,10 +305,8 @@ describe("AssetListFactoryV2", function () {
         it("Should deploy AssetList implementation with provided immutable asset configurations", async () => {
             const { assetListFactory, users, configurator, assetConfigs } = await restore();
 
-            const deployedAddress = await assetListFactory
-                .connect(users[0])
-                .createAssetList.staticCall(assetConfigs, configurator.address);
-            await assetListFactory.connect(users[0]).createAssetList(assetConfigs, configurator.address);
+            const deployedAddress = await assetListFactory.connect(users[0]).createAssetList.staticCall(assetConfigs);
+            await assetListFactory.connect(users[0]).createAssetList(assetConfigs);
 
             expect(await ethers.provider.getCode(deployedAddress)).to.not.equal("0x");
 
@@ -326,13 +326,11 @@ describe("AssetListFactoryV2", function () {
         });
 
         it("Should emit AssetListCreated event", async () => {
-            const { assetListFactory, users, configurator, assetConfigs } = await restore();
+            const { assetListFactory, users, assetConfigs } = await restore();
 
-            const deployedAddress = await assetListFactory
-                .connect(users[0])
-                .createAssetList.staticCall(assetConfigs, configurator.address);
+            const deployedAddress = await assetListFactory.connect(users[0]).createAssetList.staticCall(assetConfigs);
 
-            await expect(assetListFactory.connect(users[0]).createAssetList(assetConfigs, configurator.address))
+            await expect(assetListFactory.connect(users[0]).createAssetList(assetConfigs))
                 .to.emit(assetListFactory, "AssetListCreated")
                 .withArgs(deployedAddress, assetConfigs.map(toTuple));
         });
@@ -346,64 +344,70 @@ describe("AssetListFactoryV2", function () {
         });
 
         it("Should increment counter for deployer", async () => {
-            const { assetListFactory, users, configurator, assetConfigs } = await restore();
+            const { assetListFactory, users, assetConfigs } = await restore();
 
             expect(await assetListFactory.counters(users[0].address)).to.equal(0);
-            await assetListFactory.connect(users[0]).createAssetList(assetConfigs, configurator.address);
+            await assetListFactory.connect(users[0]).createAssetList(assetConfigs);
             expect(await assetListFactory.counters(users[0].address)).to.equal(1);
         });
 
         it("Should use different salts for different deployers", async () => {
-            const { assetListFactory, users, configurator, assetConfigs } = await restore();
+            const { assetListFactory, users, assetConfigs } = await restore();
 
-            const address1 = await assetListFactory
-                .connect(users[0])
-                .createAssetList.staticCall(assetConfigs, configurator.address);
-            await assetListFactory.connect(users[0]).createAssetList(assetConfigs, configurator.address);
+            const address1 = await assetListFactory.connect(users[0]).createAssetList.staticCall(assetConfigs);
+            await assetListFactory.connect(users[0]).createAssetList(assetConfigs);
 
-            const address2 = await assetListFactory
-                .connect(users[1])
-                .createAssetList.staticCall(assetConfigs, configurator.address);
-            await assetListFactory.connect(users[1]).createAssetList(assetConfigs, configurator.address);
+            const address2 = await assetListFactory.connect(users[1]).createAssetList.staticCall(assetConfigs);
+            await assetListFactory.connect(users[1]).createAssetList(assetConfigs);
 
             expect(address1).to.not.equal(address2);
         });
 
         it("Should use incremented salt for same deployer", async () => {
-            const { assetListFactory, users, configurator, assetConfigs } = await restore();
+            const { assetListFactory, users, assetConfigs } = await restore();
 
-            const address1 = await assetListFactory
-                .connect(users[0])
-                .createAssetList.staticCall(assetConfigs, configurator.address);
-            await assetListFactory.connect(users[0]).createAssetList(assetConfigs, configurator.address);
+            const address1 = await assetListFactory.connect(users[0]).createAssetList.staticCall(assetConfigs);
+            await assetListFactory.connect(users[0]).createAssetList(assetConfigs);
 
-            const address2 = await assetListFactory
-                .connect(users[0])
-                .createAssetList.staticCall(assetConfigs, configurator.address);
-            await assetListFactory.connect(users[0]).createAssetList(assetConfigs, configurator.address);
+            const address2 = await assetListFactory.connect(users[0]).createAssetList.staticCall(assetConfigs);
+            await assetListFactory.connect(users[0]).createAssetList(assetConfigs);
 
             expect(address1).to.not.equal(address2);
             expect(await assetListFactory.counters(users[0].address)).to.equal(2);
         });
 
         it("Should revert when AssetList constructor rejects configuration", async () => {
-            const { assetListFactory, users, configurator, assetConfigs } = await restore();
+            const { assetListFactory, users, timelock, versionController, version_1_0_0, assetConfigs } =
+                await restore();
 
             const assetList = await ethers.getContractAt(ASSET_LIST_ABI, ethers.ZeroAddress);
 
+            await expect(assetListFactory.connect(users[0]).createAssetList([])).to.be.revertedWithCustomError(
+                assetList,
+                "NoAssets"
+            );
+
+            const zeroConfiguratorFactory = await (
+                await ethers.getContractFactory("AssetListFactoryV2")
+            ).deploy(version_1_0_0, versionController, timelock, ethers.ZeroAddress);
             await expect(
-                assetListFactory.connect(users[0]).createAssetList([], configurator.address)
-            ).to.be.revertedWithCustomError(assetList, "NoAssets");
-            await expect(
-                assetListFactory.connect(users[0]).createAssetList(assetConfigs, ethers.ZeroAddress)
+                zeroConfiguratorFactory.connect(users[0]).createAssetList(assetConfigs)
             ).to.be.revertedWithCustomError(assetList, "ZeroConfigurator");
         });
     });
 
     describe("Configurator integration", function () {
         it("Should deploy AssetList implementations and Comet through Compound V3 Configurator", async () => {
-            const { assetListFactory, governor, users, versionController, mockBaseToken, priceFeed, assetConfigs } =
-                await restore();
+            const {
+                governor,
+                timelock,
+                users,
+                versionController,
+                mockBaseToken,
+                priceFeed,
+                assetConfigs,
+                version_1_0_0
+            } = await restore();
             const proxyFactory = await ethers.getContractFactory("TransparentUpgradeableProxy");
             const proxyAdminOwner = users[1];
             // Configurator stores everything per Comet proxy, any address is enough as a key here
@@ -421,6 +425,11 @@ describe("AssetListFactoryV2", function () {
             // Deployments through Configurator are callable by anyone
             const configuratorAsUser = await ethers.getContractAt(CONFIGURATOR_ABI, configuratorAddress, users[0]);
 
+            // Factory bound to the Configurator proxy, which manages every asset list it creates
+            const assetListFactory = await (
+                await ethers.getContractFactory("AssetListFactoryV2")
+            ).deploy(version_1_0_0, versionController, timelock, configuratorAddress);
+
             const storageConfig = {
                 borrowCollateralFactor: 500000000000000000n,
                 liquidateCollateralFactor: 700000000000000000n,
@@ -431,8 +440,8 @@ describe("AssetListFactoryV2", function () {
             await configurator.addAsset(cometProxy, { ...assetConfigs[0], ...storageConfig });
 
             // Configurator only redeploys an existing asset list, the first implementation is deployed through the factory directly
-            const assetListImpl = await assetListFactory.createAssetList.staticCall(assetConfigs, configuratorAddress);
-            await assetListFactory.createAssetList(assetConfigs, configuratorAddress);
+            const assetListImpl = await assetListFactory.createAssetList.staticCall(assetConfigs);
+            await assetListFactory.createAssetList(assetConfigs);
 
             // AssetList proxy initialized with the storage part of the asset configurations
             const assetListInterface = new ethers.Interface(ASSET_LIST_ABI);
@@ -486,6 +495,7 @@ describe("AssetListFactoryV2", function () {
                 baseMinForRewards: 1000000000000,
                 baseBorrowMin: 100000000,
                 targetReserves: 20000000000000,
+                maxSupportedUtilization: "2000000000000000000",
                 assetList: assetListAddress
             });
 
@@ -497,7 +507,7 @@ describe("AssetListFactoryV2", function () {
             await configuratorAsUser.deployAssetList(cometProxy);
             expect(await assetListFactory.counters(configuratorAddress)).to.equal(0);
 
-            // Changed immutable configs: Configurator deploys a new implementation through the factory with itself as configurator
+            // Changed immutable configs: Configurator deploys a new implementation through the factory, managed by the factory's configurator
             const newPriceFeed = await new ethers.ContractFactory(
                 ["constructor(uint8 decimals_, int256 constantPrice_)"],
                 ConstantPriceFeedInitCode,
@@ -535,7 +545,7 @@ describe("AssetListFactoryV2", function () {
             expect(assetInfo.priceFeed).to.equal(newAssetConfigs[0].priceFeed);
             expect(assetInfo.supplyCap).to.equal(storageConfig.supplyCap);
 
-            // Configurator passed to the factory is allowed to update the asset list behind the proxy
+            // Configurator set in the factory is allowed to update the asset list behind the proxy
             const newSupplyCap = 200000000000000000000000n;
             await configurator.updateAssetSupplyCap(cometProxy, assetConfigs[0].asset, newSupplyCap);
             assetInfo = (await assetList.getAssetInfo(0)) as AssetInfo;
