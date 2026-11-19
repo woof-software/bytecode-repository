@@ -4,7 +4,7 @@ pragma solidity 0.8.30;
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { Types } from "../interfaces/Types.sol";
 import { IBytecodeProvider } from "../interfaces/IBytecodeProvider.sol";
-import { Configuration, ExtConfiguration } from "../integration/CometConfiguration.sol";
+import { Configuration, ExtConfiguration } from "../integration/CometConfigurationV1.sol";
 import { BaseFactory } from "./BaseFactory.sol";
 
 /**
