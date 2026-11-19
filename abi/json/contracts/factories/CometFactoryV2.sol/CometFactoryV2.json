@@ -273,6 +273,11 @@
                         "type": "uint104"
                     },
                     {
+                        "internalType": "uint64",
+                        "name": "maxSupportedUtilization",
+                        "type": "uint64"
+                    },
+                    {
                         "internalType": "address",
                         "name": "assetList",
                         "type": "address"

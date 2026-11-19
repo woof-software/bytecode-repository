@@ -44,6 +44,11 @@
                 "internalType": "address",
                 "name": "_timelock",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_configurator",
+                "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
@@ -200,6 +205,19 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "configurator",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -236,11 +254,6 @@
                 "internalType": "struct IAssetListStructs.ImmutableAssetConfig[]",
                 "name": "assetConfigs",
                 "type": "tuple[]"
-            },
-            {
-                "internalType": "address",
-                "name": "configurator",
-                "type": "address"
             }
         ],
         "name": "createAssetList",
