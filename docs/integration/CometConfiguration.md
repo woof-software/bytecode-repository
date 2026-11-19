@@ -33,6 +33,7 @@ struct Configuration {
   uint104 baseMinForRewards;
   uint104 baseBorrowMin;
   uint104 targetReserves;
+  uint64 maxSupportedUtilization;
   address assetList;
 }
 ```
